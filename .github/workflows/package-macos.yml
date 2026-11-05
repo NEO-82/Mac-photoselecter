@@ -1,0 +1,34 @@
+name: Build macOS installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'App version (e.g. 0.1.0)'
+        required: true
+        default: '0.1.0'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test, build arm64 app and verify DMG
+        env:
+          PHOTOSELECT_VERSION: ${{ inputs.version }}
+          PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
+        run: bash scripts/package-macos.sh
+      - name: Upload personal-test installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoSelect-${{ inputs.version }}-arm64
+          path: |
+            dist/PhotoSelect-*/PhotoSelect-*.dmg
+            dist/PhotoSelect-*/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
