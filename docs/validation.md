@@ -6,8 +6,18 @@
 - macOS 검증 스크립트의 Bash 구문, Xcode 프로젝트 객체 참조·소스 포함·스킴 XML 구조 확인.
 - Linux에서 검증 스크립트가 플랫폼 제한을 명시하고 종료 코드 2를 반환하는지 확인.
 - 위 항목은 Swift 컴파일/앱 기능 검증을 대신하지 않습니다.
-- Swift 빌드, XCTest 5개, 앱 실행, 이미지 디코딩, 조작감과 성능 실측: **미실행**.
-- 설치 파일 생성 스크립트: 도구 대역을 이용한 제어 흐름 테스트 9개 통과. 실제 macOS 빌드/서명/DMG 생성·설치는 **미실행**.
+- 설치 파일 생성 스크립트: 도구 대역을 이용한 제어 흐름 테스트 9개 통과.
+
+## GitHub macOS에서 수행한 검증 — 2026-11-05
+
+[빌드 실행 #1](https://github.com/NEO-82/Mac-photoselecter/actions/runs/42026726764), 소스 커밋 `c50966285ba5a9e698bb8065798d663ae31ebcc3`.
+
+- arm64 macOS 러너, Xcode 26.6에서 Swift Package XCTest 5개 실행 및 통과.
+- 로그의 별도 Swift Testing 프레임워크 0개 표시는 XCTest 5개 실행 결과와 별개입니다.
+- Apple Silicon Release 앱 빌드, ad-hoc 앱 서명 및 검증 통과.
+- DMG 생성, hdiutil 무결성 확인, 읽기 전용 마운트 및 내부 앱 서명 검증 통과.
+- GitHub 실제 다운로드 HTTP 200, 118,142바이트, SHA-256 일치 확인.
+- GUI 조작, 실제 ARW 파일 표시, M1 Pro/저장장치별 성능 실측 및 수동 앱 설치: **미실행**.
 
 ## Mac에서 필수 확인
 

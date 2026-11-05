@@ -3,6 +3,14 @@
 Apple Silicon용 Swift/AppKit 사진 탐색기. macOS 13+, Xcode 15+가 필요합니다.
 외부 패키지, 서버, API 키는 필요하지 않습니다. 원본 사진을 수정하지 않습니다.
 
+## 설치 파일 다운로드
+
+[PhotoSelect 0.1.0 arm64 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.1.0-arm64.dmg)
+
+DMG를 열고 PhotoSelect.app을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
+Apple 공증이 없는 개인 테스트용 빌드입니다. macOS가 차단하면 출처를 확인한 후 시스템 설정 → 개인정보 보호 및 보안의 실행 허용 안내를 따르세요.
+GitHub macOS에서 Release 빌드, XCTest 5개, DMG/앱 서명 검증이 통과했고 다운로드 파일의 SHA-256 일치도 확인했습니다.
+
 ## 설치 파일 만들기
 
 **Xcode 15 이상이 설치된 Mac**에서 `설치파일-만들기.command`를 더블클릭하세요.
@@ -58,5 +66,5 @@ Swift Package도 Xcode에서 열거나 `swift run PhotoSelect`로 실행할 수 
 
 상세 RAW/Retina 정의는 [설계 문서](docs/architecture.md), 실기기 확인 항목과 측정은 [검증 문서](docs/validation.md)를 참고하세요.
 
-현재 Linux 클라우드에서는 macOS SDK/Xcode/Swift가 없어 컴파일, XCTest, GUI 및 ARW 실물 검증을 실행하지 못했습니다.
-이 소스는 Mac에서 검증이 필요한 MVP 구현이며, 빌드 성공이나 성능 목표 달성을 주장하지 않습니다.
+Linux 클라우드의 편집 환경과 별도로 GitHub의 arm64 macOS 러너(Xcode 26.6)에서 빌드와 XCTest를 검증했습니다.
+GUI 조작, 실제 ARW 호환성과 M1 Pro 성능 목표는 아직 실기기 검증이 필요합니다.

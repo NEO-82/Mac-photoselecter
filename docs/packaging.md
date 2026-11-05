@@ -2,9 +2,15 @@
 
 ## 현재 상태
 
-실제 앱/DMG 생성에는 macOS와 Xcode가 필요합니다. 현재 Linux 클라우드에는 Mac 빌드 도구나 연결된 Mac 러너가 없어
-완성된 설치 파일을 생성하지 못했습니다. 다음 자동화는 Mac에서 실행해야 합니다.
-Swift 컴파일, XCTest, 실제 DMG 마운트 및 앱 실행 결과는 아직 미확인입니다.
+GitHub의 arm64 macOS 러너(Xcode 26.6)에서 실제 앱/DMG를 생성했습니다.
+[빌드 실행 #1](https://github.com/NEO-82/Mac-photoselecter/actions/runs/42026726764)에서
+XCTest 5개, Release 빌드, 앱 서명 검증, DMG 무결성 검사 및 읽기 전용 마운트 후 내부 앱 검증이 통과했습니다.
+GUI 조작과 실제 ARW 호환성/성능은 아직 미확인입니다.
+
+[설치용 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.1.0-arm64.dmg)
+
+GitHub 다운로드 주소에서 HTTP 200으로 실제 파일을 내려받고 저장된 DMG와 SHA-256이 같은지 확인했습니다.
+파일 크기는 118,142바이트이며 무결성 기준은 `downloads/SHA256SUMS`에 저장되어 있습니다.
 
 `PhotoSelect-Mac-BuildKit.zip`이 제공된 경우 소스와 아래 스크립트만 들어 있는 빌드 묶음입니다.
 완성된 `.app` 또는 `.dmg`로 오인하지 마세요.
