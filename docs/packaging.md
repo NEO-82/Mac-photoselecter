@@ -68,9 +68,11 @@ Apple Developer ID 서명, Hardened Runtime 기반 공증 제출, Apple 공증 �
 3. 실행 결과의 Artifacts에서 `PhotoSelect-<버전>-arm64`를 내려받습니다.
 4. 압축을 해제한 후 내부 `.dmg`를 사용합니다.
 
-워크플로는 수동 실행 전용이고 저장소 읽기 권한만 사용하며 Release를 게시하지 않습니다.
+워크플로는 수동 실행하거나 `codex/macos-installer-download` 전달용 브랜치의 소스를 push하면 실행합니다.
+전달용 브랜치에서는 빌드 로그/결과와 성공한 DMG를 `downloads/`에 저장하므로 작업에 저장소 쓰기 권한을 사용합니다.
+`downloads/` 변경만으로는 재실행되지 않으며 GitHub Release를 게시하지 않습니다.
 GitHub Actions 사용 가능 여부와 이용 한도는 해당 저장소 설정에 따릅니다.
-현재 클라우드에서는 이 워크플로를 업로드하거나 실행하지 않았습니다.
+빌드 성공 여부는 해당 실행 로그와 `downloads/build-status.json`을 확인하세요.
 
 ## 여기서 확인한 범위
 

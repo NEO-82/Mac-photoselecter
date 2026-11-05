@@ -1,6 +1,9 @@
 name: Build macOS installer
 
 on:
+  push:
+    branches: [codex/macos-installer-download]
+    paths-ignore: ['downloads/**']
   workflow_dispatch:
     inputs:
       version:
@@ -12,23 +15,40 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: macos-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.1.0' }}
+  PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
+
 jobs:
   package:
     runs-on: macos-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Test, build arm64 app and verify DMG
-        env:
-          PHOTOSELECT_VERSION: ${{ inputs.version }}
-          PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
-        run: bash scripts/package-macos.sh
+        id: package
+        run: |
+          set -o pipefail
+          bash scripts/package-macos.sh 2>&1 | tee "$RUNNER_TEMP/PhotoSelect-build.log"
       - name: Upload personal-test installer
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: PhotoSelect-${{ inputs.version }}-arm64
+          name: PhotoSelect-${{ env.PHOTOSELECT_VERSION }}-arm64
           path: |
             dist/PhotoSelect-*/PhotoSelect-*.dmg
             dist/PhotoSelect-*/SHA256SUMS
+            ${{ runner.temp }}/PhotoSelect-build.log
           if-no-files-found: error
           retention-days: 14
+      - name: Save installer and build evidence on the delivery branch
+        if: always() && github.ref_name == 'codex/macos-installer-download'
+        env:
+          PACKAGE_OUTCOME: ${{ steps.package.outcome }}
+        run: bash scripts/publish-installer-result.sh
