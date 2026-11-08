@@ -1,13 +1,14 @@
-# PhotoSelect — 1단계 MVP
+# 정광이의 MAC 포토셀렉터 — 1단계 MVP
 
 Apple Silicon용 Swift/AppKit 사진 탐색기. macOS 13+, Xcode 15+가 필요합니다.
 외부 패키지, 서버, API 키는 필요하지 않습니다. 원본 사진을 수정하지 않습니다.
 
 ## 설치 파일 다운로드
 
-[PhotoSelect 0.1.0 arm64 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.1.0-arm64.dmg)
+[정광이의 MAC 포토셀렉터 0.1.0 arm64 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.1.0-arm64.dmg)
 
-DMG를 열고 PhotoSelect.app을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
+DMG를 열고 정광이의 MAC 포토셀렉터.app을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
+이전 `PhotoSelect.app`을 사용 중이면 종료한 뒤 이전 앱을 휴지통으로 옮기고 새 이름의 앱을 설치하세요.
 Apple 공증이 없는 개인 테스트용 빌드입니다. macOS가 차단하면 출처를 확인한 후 시스템 설정 → 개인정보 보호 및 보안의 실행 허용 안내를 따르세요.
 GitHub macOS에서 Release 빌드, XCTest 5개, DMG/앱 서명 검증이 통과했고 다운로드 파일의 SHA-256 일치도 확인했습니다.
 
@@ -23,7 +24,7 @@ bash scripts/package-macos.sh
 
 테스트 → arm64 Release 빌드 → 로컬 서명 → DMG 생성·검증을 순서대로 수행합니다.
 성공하면 `dist/PhotoSelect-0.1.0-1-arm64/PhotoSelect-0.1.0-1-arm64.dmg`와 `SHA256SUMS`가 생성됩니다.
-DMG를 열고 **PhotoSelect.app을 Applications로 끌어 넣으면 설치**됩니다. 설치 후 실행에는 Xcode가 필요하지 않습니다.
+DMG를 열고 **정광이의 MAC 포토셀렉터.app을 Applications로 끌어 넣으면 설치**됩니다. 설치 후 실행에는 Xcode가 필요하지 않습니다.
 Developer ID 서명/Apple 공증이 없는 개인 테스트용이며 다운로드한 앱은 macOS에서 첫 실행을 차단할 수 있습니다.
 자세한 설치·재빌드·GitHub 빌드 방법은 [패키징 안내](docs/packaging.md)를 참고하세요.
 
@@ -42,6 +43,9 @@ Swift Package도 Xcode에서 열거나 `swift run PhotoSelect`로 실행할 수 
 앱 번들은 Xcode 프로젝트를 사용하세요. 별도 worktree는 필요하지 않습니다.
 기본 앱은 샌드박스를 활성화하지 않은 로컬 개발 빌드입니다. DMG는 개인 테스트용 로컬 서명을 사용하며,
 일반 배포를 위한 Developer ID 서명·공증은 아직 구성하지 않았습니다.
+
+앱 표시 이름은 **정광이의 MAC 포토셀렉터**입니다. 아이콘은 사용자가 제공한 골든리트리버·카메라·‘정광이’ 글씨 그림을 기반으로 합니다.
+`Resources/AppIcon.png`에서 Xcode 빌드 단계가 16–1024픽셀 ICNS 리소스를 생성해 앱에 포함합니다.
 
 ## 구조
 

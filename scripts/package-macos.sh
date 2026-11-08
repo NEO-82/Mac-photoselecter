@@ -4,6 +4,7 @@ set -euo pipefail
 
 repo_dir="$(cd "$(dirname "$0")/.." && pwd -P)"
 cd "$repo_dir"
+app_name='정광이의 MAC 포토셀렉터'
 
 if [[ "$(uname -s)" != Darwin ]]; then
     echo '설치 파일 생성에는 macOS와 Xcode 15 이상이 필요합니다. Linux에서는 생성할 수 없습니다.' >&2
@@ -17,7 +18,7 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || [[ ! "$build_number" =~ ^[1
     exit 2
 fi
 
-for tool in xcodebuild xcrun codesign ditto hdiutil shasum; do
+for tool in xcodebuild xcrun codesign ditto hdiutil shasum plutil; do
     if ! command -v "$tool" >/dev/null 2>&1; then
         echo "필수 도구를 찾을 수 없습니다: $tool (Xcode를 설치하고 최초 실행을 완료하세요)." >&2
         exit 2
@@ -78,8 +79,8 @@ xcodebuild -project PhotoSelect.xcodeproj -scheme PhotoSelect -configuration Rel
     ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO \
     MARKETING_VERSION="$version" CURRENT_PROJECT_VERSION="$build_number" build
 
-app_path="$work_dir/image/PhotoSelect.app"
-ditto "$work_dir/DerivedData/Build/Products/Release/PhotoSelect.app" "$app_path"
+app_path="$work_dir/image/$app_name.app"
+ditto "$work_dir/DerivedData/Build/Products/Release/$app_name.app" "$app_path"
 binary_path="$app_path/Contents/MacOS/PhotoSelect"
 if [[ ! -x "$binary_path" ]] || [[ ! -s "$app_path/Contents/Info.plist" ]]; then
     echo '빌드된 앱 번들의 실행 파일 또는 Info.plist가 없습니다.' >&2
@@ -89,18 +90,32 @@ if [[ "$(xcrun lipo -archs "$binary_path")" != arm64 ]]; then
     echo 'arm64 전용 실행 파일이 아닙니다. 설치 이미지 생성을 중단합니다.' >&2
     exit 1
 fi
+for name_key in CFBundleName CFBundleDisplayName; do
+    if [[ "$(plutil -extract "$name_key" raw -o - "$app_path/Contents/Info.plist")" != "$app_name" ]]; then
+        echo "앱 표시 이름 검증 실패: $name_key" >&2
+        exit 1
+    fi
+done
+if [[ "$(plutil -extract CFBundleIconFile raw -o - "$app_path/Contents/Info.plist")" != AppIcon.icns ]] \
+    || [[ ! -s "$app_path/Contents/Resources/AppIcon.icns" ]] \
+    || [[ "$(head -c 4 "$app_path/Contents/Resources/AppIcon.icns")" != icns ]]; then
+    echo '앱 아이콘 누락 또는 잘못된 ICNS 파일입니다.' >&2
+    exit 1
+fi
+echo "앱 이름 및 골든리트리버 아이콘 확인: $app_name"
 
 echo '3/5 로컬 테스트용 앱 서명 및 검증'
 codesign --force --sign - --timestamp=none "$app_path"
 codesign --verify --strict --verbose=2 "$app_path"
 ln -s /Applications "$work_dir/image/Applications"
 cat > "$work_dir/image/설치 안내.txt" <<'INSTALL'
-PhotoSelect — Apple Silicon용 개인 테스트 빌드
+정광이의 MAC 포토셀렉터 — Apple Silicon용 개인 테스트 빌드
 
 요구 사항: M1 이상 Mac, macOS 13 이상. 설치 후 실행에는 Xcode가 필요하지 않습니다.
 
-설치: PhotoSelect.app을 Applications 폴더로 끌어 넣은 뒤 디스크 이미지를 추출하세요.
-제거: 앱을 종료한 뒤 응용 프로그램 폴더의 PhotoSelect.app을 휴지통으로 옮기세요.
+설치: 정광이의 MAC 포토셀렉터.app을 Applications 폴더로 끌어 넣은 뒤 디스크 이미지를 추출하세요.
+제거: 앱을 종료한 뒤 응용 프로그램 폴더의 정광이의 MAC 포토셀렉터.app을 휴지통으로 옮기세요.
+이전 PhotoSelect.app이 설치돼 있으면 종료한 뒤 이전 앱을 휴지통으로 옮기고 새 이름의 앱을 넣으세요.
 사진 파일은 앱 설치/제거 과정에서 변경하지 않습니다.
 
 이 빌드는 로컬 ad-hoc 서명이며 Apple Developer ID 서명 및 공증은 포함하지 않습니다.
@@ -115,11 +130,11 @@ INSTALL
 
 echo '4/5 DMG 생성 및 내부 앱 검증'
 dmg_path="$work_dir/artifacts/$artifact_name.dmg"
-hdiutil create -volname PhotoSelect -srcfolder "$work_dir/image" -fs HFS+ -format UDZO "$dmg_path"
+hdiutil create -volname "$app_name" -srcfolder "$work_dir/image" -fs HFS+ -format UDZO "$dmg_path"
 hdiutil verify "$dmg_path"
 hdiutil attach -readonly -nobrowse -mountpoint "$work_dir/mount" "$dmg_path"
 mounted=1
-codesign --verify --strict --verbose=2 "$work_dir/mount/PhotoSelect.app"
+codesign --verify --strict --verbose=2 "$work_dir/mount/$app_name.app"
 if [[ "$(readlink "$work_dir/mount/Applications")" != /Applications ]]; then
     echo '설치 이미지의 Applications 링크가 올바르지 않습니다.' >&2
     exit 1
@@ -135,5 +150,5 @@ echo '5/5 체크섬 생성 및 결과 저장'
 )
 mv "$work_dir/artifacts" "$output_dir"
 echo "완료: $output_dir/$artifact_name.dmg"
-echo '설치 이미지를 열고 PhotoSelect.app을 Applications로 끌어 넣으세요.'
+echo "설치 이미지를 열고 $app_name.app을 Applications로 끌어 넣으세요."
 echo '이 결과물은 Developer ID 서명 및 Apple 공증이 없는 개인 테스트용입니다.'

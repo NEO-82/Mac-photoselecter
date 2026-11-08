@@ -1,12 +1,16 @@
 import AppKit
 
+enum AppBranding {
+    static let displayName = "정광이의 MAC 포토셀렉터"
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var browser: BrowserController?
     func applicationDidFinishLaunching(_ notification: Notification) {
         let main = NSMenu()
-        let appItem = NSMenuItem(title: "PhotoSelect", action: nil, keyEquivalent: ""); main.addItem(appItem)
+        let appItem = NSMenuItem(title: AppBranding.displayName, action: nil, keyEquivalent: ""); main.addItem(appItem)
         let appMenu = NSMenu(); appItem.submenu = appMenu
-        appMenu.addItem(withTitle: "PhotoSelect 종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: AppBranding.displayName + " 종료", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         NSApp.mainMenu = main
         browser = BrowserController(); browser?.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)

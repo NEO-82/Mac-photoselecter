@@ -21,11 +21,14 @@ GitHub 다운로드 주소에서 HTTP 200으로 실제 파일을 내려받고 �
 2. 소스 묶음을 압축 해제하고 `설치파일-만들기.command`를 더블클릭합니다.
    터미널에서 실행할 경우 저장소 디렉터리로 이동해 `bash scripts/package-macos.sh`를 실행합니다.
 3. XCTest 및 Release 빌드가 성공하면 `dist` 폴더가 열립니다.
-4. `PhotoSelect-0.1.0-1-arm64` 안의 `.dmg`를 열고 `PhotoSelect.app`을 `Applications`로 끌어 넣습니다.
+4. `PhotoSelect-0.1.0-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
 5. 디스크 이미지를 추출한 뒤 응용 프로그램 폴더에서 앱을 실행합니다.
 
 완성된 앱의 실행 요건은 M1 이상, macOS 13 이상입니다. 앱 실행에는 Xcode나 Swift 설치가 필요하지 않습니다.
-앱 제거는 앱을 종료한 후 응용 프로그램 폴더의 `PhotoSelect.app`을 휴지통으로 옮기면 됩니다.
+창·메뉴·Finder의 앱 이름은 `정광이의 MAC 포토셀렉터`이며, `Resources/AppIcon.png`의 골든리트리버 아이콘을 사용합니다.
+Xcode의 `Build App Icon` 단계가 macOS `sips`/`iconutil`로 모든 크기를 만들고, 패키징 시 표시 이름과 ICNS 포함을 검증합니다.
+기존 `PhotoSelect.app`을 사용 중이면 종료한 뒤 이전 앱을 휴지통으로 옮기고 새 이름의 앱을 설치하세요.
+앱 제거는 앱을 종료한 후 응용 프로그램 폴더의 `정광이의 MAC 포토셀렉터.app`을 휴지통으로 옮기면 됩니다.
 앱 설치/제거는 사진 파일을 수정하지 않습니다. 관리자 권한으로 실행하는 설치 스크립트는 사용하지 않습니다.
 
 Xcode Command Line Tools만으로는 충분하지 않습니다. 여러 Xcode가 설치되어 있다면 Xcode Settings의

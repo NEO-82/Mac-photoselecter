@@ -57,7 +57,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     init() {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1100, height: 760),
                               styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        window.title = "PhotoSelect"; window.center()
+        window.title = AppBranding.displayName; window.center()
         super.init(window: window)
         let content = NSView(); window.contentView = content
         let open = NSButton(title: "폴더 열기…", target: self, action: #selector(openFolder))
