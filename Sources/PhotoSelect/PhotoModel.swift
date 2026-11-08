@@ -8,6 +8,33 @@ struct Photo: Hashable {
     }
 }
 
+struct PhotoList {
+    private(set) var photos: [Photo] = []
+    private(set) var selectedIndex: Int?
+    var selectedPhoto: Photo? { selectedIndex.map { photos[$0] } }
+
+    mutating func replace(with photos: [Photo]) {
+        self.photos = photos
+        selectedIndex = photos.isEmpty ? nil : 0
+    }
+    @discardableResult
+    mutating func select(_ index: Int) -> Bool {
+        guard photos.indices.contains(index) else { return false }
+        selectedIndex = index
+        return true
+    }
+    @discardableResult
+    mutating func remove(_ url: URL) -> Bool {
+        guard let removed = photos.firstIndex(where: { $0.url == url }) else { return false }
+        let selectedURL = selectedPhoto?.url
+        photos.remove(at: removed)
+        if photos.isEmpty { selectedIndex = nil }
+        else if selectedURL == url { selectedIndex = min(removed, photos.count - 1) }
+        else { selectedIndex = photos.firstIndex(where: { $0.url == selectedURL }) ?? 0 }
+        return true
+    }
+}
+
 // All coordinates here are in view points. One source pixel occupies 1/backingScale points.
 enum ZoomGeometry {
     static func rect(image: CGSize, view: CGSize, cursor: CGPoint, backingScale: CGFloat) -> CGRect {

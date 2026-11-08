@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.1.0'
+        default: '0.2.0'
         type: string
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.1.0' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.2.0' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
 
 jobs:

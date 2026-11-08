@@ -147,4 +147,27 @@ final class ViewerInteractionTests: XCTestCase {
         XCTAssertTrue(closed)
         XCTAssertFalse(isRenderedZoomed(canvas))
     }
+
+    @MainActor
+    func testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat() {
+        let canvas = makeCanvas(); canvas.decoded = image(raw: true)
+        var trashed = 0, tagged = 0
+        canvas.trashCurrent = { trashed += 1 }; canvas.toggleTag = { tagged += 1 }
+        func key(_ code: UInt16, _ characters: String, repeated: Bool = false) -> NSEvent {
+            NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+                             windowNumber: 0, context: nil, characters: characters,
+                             charactersIgnoringModifiers: characters, isARepeat: repeated, keyCode: code)!
+        }
+        canvas.mouseDown(with: mouse(.leftMouseDown))
+        canvas.keyDown(with: key(51, "\u{7F}"))
+        canvas.keyDown(with: key(51, "\u{7F}", repeated: true))
+        canvas.keyDown(with: key(117, "\u{F728}"))
+        canvas.keyDown(with: key(42, "\\"))
+        canvas.keyDown(with: key(42, "\\", repeated: true))
+        canvas.keyDown(with: key(42, "₩"))
+        XCTAssertEqual(trashed, 2); XCTAssertEqual(tagged, 2)
+        XCTAssertTrue(isRenderedZoomed(canvas))
+        canvas.mouseUp(with: mouse(.leftMouseUp))
+        XCTAssertFalse(isRenderedZoomed(canvas))
+    }
 }
