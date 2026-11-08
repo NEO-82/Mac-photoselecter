@@ -38,8 +38,8 @@ final class PhotoCanvas: NSView {
     func resetZoom() { pressed = false; zoomChanged?(false); needsDisplay = true }
     override func keyDown(with event: NSEvent) {
         switch event.keyCode {
-        case 123: resetZoom(); navigate?(-1)
-        case 124: resetZoom(); navigate?(1)
+        case 123: navigate?(-1)
+        case 124: navigate?(1)
         case 53: resetZoom(); close?()
         default: super.keyDown(with: event)
         }
