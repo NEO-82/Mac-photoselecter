@@ -23,7 +23,7 @@
 
 `bash scripts/validate-macos.sh` 실행 후 아래 항목을 확인합니다. 기본 기준은 M1 Pro, macOS 버전·Xcode 버전·화면 배율을 함께 기록합니다.
 
-- [ ] Xcode 앱 빌드 성공 및 `swift test` 5개 실행/통과 (0개 실행은 성공 아님)
+- [ ] Xcode 앱 빌드 성공 및 `swift test` 9개 실행/통과 (0개 실행은 성공 아님)
 - [ ] 1,500장 목록 열거 중 창 이동/입력이 계속 반응
 - [ ] ARW/JPG 동명 쌍이 각각 표시, JPG/JPEG 대소문자 처리 및 자연 정렬
 - [ ] 썸네일 더블클릭 → 해당 사진 전체 화면, Esc → 동일 사진 선택된 목록
@@ -40,6 +40,10 @@
 실제 ARW 샘플은 사용자 소유/배포 허용 파일로 준비합니다. 카메라 모델, 펌웨어, ARW 압축 방식, 원본 픽셀 크기, macOS 버전, 프리뷰 유무/크기, RAW 성공 여부를 기록하세요.
 
 ## 누른 채 사진 넘기기 — 회귀 확인
+
+2026-11-08 [macOS 빌드 실행 #2](https://github.com/NEO-82/Mac-photoselecter/actions/runs/42475958754)에서
+소스 커밋 `fa4cc89d6bbe3c9f4283fe4aef41424b26bc9ab0`의 기존 XCTest 5개와 추가 4개, 총 9개가 통과했습니다.
+arm64 Release 빌드와 DMG 무결성/서명 검증이 통과했고, 새 DMG의 GitHub 다운로드 및 체크섬 일치도 확인했습니다.
 
 추가 XCTest는 NSEvent를 구성해 AppKit 이벤트 핸들러를 직접 호출하고 캔버스의 실제 그리기 결과를 확인합니다.
 누름/해제, 좌우 반복 92회(양끝 포함), ARW/JPEG 디코더 출력 교체, 버튼 해제 후 늦은 이미지 교체, Esc를 다룹니다.
