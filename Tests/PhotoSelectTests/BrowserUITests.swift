@@ -22,6 +22,14 @@ final class BrowserUITests: XCTestCase {
         return url
     }
     @MainActor
+    private func jpegData() -> Data {
+        let context = CGContext(data: nil, width: 20, height: 10, bitsPerComponent: 8, bytesPerRow: 80,
+                                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        context.setFillColor(CGColor(red: 1, green: 0, blue: 0, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: 20, height: 10))
+        return NSBitmapImageRep(cgImage: context.makeImage()!).representation(using: .jpeg, properties: [:])!
+    }
+    @MainActor
     func testBrowserStartsWithTreeGridAndPreviewColumns() throws {
         _ = NSApplication.shared
         let root = try folder()
@@ -48,10 +56,7 @@ final class BrowserUITests: XCTestCase {
     func testSelectingThumbnailChangesRightPreview() throws {
         _ = NSApplication.shared
         let root = try folder()
-        let context = CGContext(data: nil, width: 20, height: 10, bitsPerComponent: 8, bytesPerRow: 80,
-                                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
-        context.setFillColor(CGColor(red: 1, green: 0, blue: 0, alpha: 1)); context.fill(CGRect(x: 0, y: 0, width: 20, height: 10))
-        let data = NSBitmapImageRep(cgImage: context.makeImage()!).representation(using: .jpeg, properties: [:])!
+        let data = jpegData()
         for name in ["1.jpg", "2.jpg"] { try data.write(to: root.appendingPathComponent(name)) }
         let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: root)
         defer { browser.close() }
@@ -63,6 +68,38 @@ final class BrowserUITests: XCTestCase {
         grid.selectionIndexPaths = [IndexPath(item: 1, section: 0)]
         browser.collectionView(grid, didSelectItemsAt: [IndexPath(item: 1, section: 0)])
         waitUntil("second preview decoded") { preview.filename.stringValue == "2.jpg" && preview.imageView.image != nil }
+    }
+    @MainActor
+    func testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge() throws {
+        _ = NSApplication.shared
+        let root = try folder(), trash = try folder()
+        let data = jpegData()
+        for name in ["1.jpg", "2.jpg"] { try data.write(to: root.appendingPathComponent(name)) }
+        let service = PhotoTrash { url in
+            try FileManager.default.moveItem(at: url, to: trash.appendingPathComponent(url.lastPathComponent))
+        }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")),
+                                        trashService: service, initialFolder: root)
+        defer { browser.close() }
+        let views = descendants(browser.window!.contentView!)
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("first photo ready") { preview.filename.stringValue == "1.jpg" && preview.imageView.image != nil }
+        grid.trashCurrent?()
+        grid.selectionIndexPaths = [IndexPath(item: 1, section: 0)]
+        browser.collectionView(grid, didSelectItemsAt: [IndexPath(item: 1, section: 0)])
+        waitUntil("delete preserves newer selection") {
+            grid.numberOfItems(inSection: 0) == 1 && preview.filename.stringValue == "2.jpg" && preview.imageView.image != nil
+        }
+        XCTAssertEqual(try Data(contentsOf: trash.appendingPathComponent("1.jpg")), data)
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("2.jpg")), data)
+        grid.toggleTag?()
+        waitUntil("red tag badge") { !preview.tagMarker.isHidden }
+        grid.trashCurrent?()
+        waitUntil("last photo removed") {
+            grid.numberOfItems(inSection: 0) == 0 && preview.filename.stringValue == "선택한 사진 없음" && preview.imageView.image == nil
+        }
+        XCTAssertEqual(try Data(contentsOf: trash.appendingPathComponent("2.jpg")), data)
     }
     @MainActor
     func testViewerStartsAsNormalWindowInsideVisibleScreen() throws {

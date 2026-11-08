@@ -23,8 +23,10 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
 
     override init() {
         let home = FileManager.default.homeDirectoryForCurrentUser
+        let filesystem = URL(fileURLWithPath: "/", isDirectory: true)
         let volumes = URL(fileURLWithPath: "/Volumes", isDirectory: true)
         roots = [FolderNode(url: home, lease: FolderLease(home), title: "홈 · " + home.lastPathComponent),
+                 FolderNode(url: filesystem, lease: FolderLease(filesystem), title: "이 Mac"),
                  FolderNode(url: volumes, lease: FolderLease(volumes), title: "저장장치")]
         super.init()
         let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("folder"))
@@ -90,6 +92,8 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
                 case .success(let urls): node.children = urls.map { FolderNode(url: $0, lease: lease) }
                 case .failure(let error): node.children = []; node.error = error.localizedDescription
                 }
+                // A collapsed ancestor or refreshed tree may no longer contain this row.
+                guard self.view.row(forItem: node) >= 0 else { return }
                 self.suppressSelection = true
                 self.view.reloadItem(node, reloadChildren: true)
                 if node.expanded { self.view.expandItem(node) }

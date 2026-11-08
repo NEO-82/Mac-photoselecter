@@ -123,6 +123,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let tagStore: TagStore
     private let trashService: PhotoTrash
     private var taggedPaths: Set<String> = []
+    private var tagStorageError: String?
     private var list = PhotoList()
     private var lease: FolderLease?
     private var currentFolder: URL?
@@ -194,7 +195,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             guard let self else { return }
             switch result {
             case .success(let paths): self.taggedPaths = paths; self.updateBadges()
-            case .failure(let error): self.setStatus("태그 읽기 실패: \(error.localizedDescription)", error: true)
+            case .failure(let error):
+                self.tagStorageError = error.localizedDescription
+                self.setStatus("태그 읽기 실패: \(error.localizedDescription)", error: true)
             }
         }
         volumeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didUnmountNotification,
@@ -226,14 +229,17 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         return box
     }
     private func setStatus(_ message: String, error: Bool = false) {
-        status.stringValue = message; status.toolTip = message
-        status.textColor = error ? .systemRed : .secondaryLabelColor
+        let suffix = tagStorageError != nil && !message.contains("태그") ? " · 태그 저장소 오류" : ""
+        status.stringValue = message + suffix
+        status.toolTip = message + (tagStorageError.map { "\n태그: " + $0 } ?? "")
+        status.textColor = error || tagStorageError != nil ? .systemRed : .secondaryLabelColor
     }
     @objc private func openFolder() {
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         guard panel.runModal() == .OK, let url = panel.url else { return }
         tree.select(url, lease: FolderLease(url))
+        window?.makeFirstResponder(grid)
     }
     @objc private func refreshFolder() {
         tree.refresh()
