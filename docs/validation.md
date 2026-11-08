@@ -21,6 +21,10 @@
 
 ## Mac에서 필수 확인
 
+앱 이름·아이콘 변경본은 2026-11-08 [macOS 빌드 실행 #4](https://github.com/NEO-82/Mac-photoselecter/actions/runs/42478581841)에서
+XCTest 9개와 Release 빌드가 통과했습니다. 표시 이름 `정광이의 MAC 포토셀렉터`와 `AppIcon.icns` 포함 및 헤더를 검증했고,
+DMG 무결성/앱 서명/다운로드 체크섬도 확인했습니다. Dock/Finder의 실제 표시 확인은 아래 실기기 항목과 함께 수행합니다.
+
 `bash scripts/validate-macos.sh` 실행 후 아래 항목을 확인합니다. 기본 기준은 M1 Pro, macOS 버전·Xcode 버전·화면 배율을 함께 기록합니다.
 
 - [ ] Xcode 앱 빌드 성공 및 `swift test` 9개 실행/통과 (0개 실행은 성공 아님)

@@ -10,7 +10,7 @@ Apple Silicon용 Swift/AppKit 사진 탐색기. macOS 13+, Xcode 15+가 필요�
 DMG를 열고 정광이의 MAC 포토셀렉터.app을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 이전 `PhotoSelect.app`을 사용 중이면 종료한 뒤 이전 앱을 휴지통으로 옮기고 새 이름의 앱을 설치하세요.
 Apple 공증이 없는 개인 테스트용 빌드입니다. macOS가 차단하면 출처를 확인한 후 시스템 설정 → 개인정보 보호 및 보안의 실행 허용 안내를 따르세요.
-GitHub macOS에서 Release 빌드, XCTest 5개, DMG/앱 서명 검증이 통과했고 다운로드 파일의 SHA-256 일치도 확인했습니다.
+GitHub macOS에서 Release 빌드, XCTest 9개, 앱 이름·아이콘 포함, DMG/앱 서명 검증이 통과했고 다운로드 파일의 SHA-256 일치도 확인했습니다.
 
 ## 설치 파일 만들기
 
