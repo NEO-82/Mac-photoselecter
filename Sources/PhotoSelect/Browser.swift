@@ -55,8 +55,14 @@ final class ThumbnailItem: NSCollectionViewItem {
     }
 }
 
+final class FittingPreviewImageView: NSImageView {
+    override var intrinsicContentSize: NSSize {
+        NSSize(width: NSView.noIntrinsicMetric, height: NSView.noIntrinsicMetric)
+    }
+}
+
 final class PreviewPane: NSView {
-    let imageView = NSImageView()
+    let imageView = FittingPreviewImageView()
     let filename = NSTextField(labelWithString: "선택한 사진 없음")
     let detail = NSTextField(wrappingLabelWithString: "")
     let tagMarker = TagMarkerView()
@@ -68,8 +74,10 @@ final class PreviewPane: NSView {
         imageBox.wantsLayer = true; imageBox.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
         imageView.imageScaling = .scaleProportionallyUpOrDown
         filename.alignment = .center; filename.maximumNumberOfLines = 2; filename.lineBreakMode = .byWordWrapping
+        filename.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         detail.alignment = .center; detail.textColor = .secondaryLabelColor; detail.font = .systemFont(ofSize: 11)
         detail.maximumNumberOfLines = 3
+        detail.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         for view in [title, imageBox, filename, detail] { view.translatesAutoresizingMaskIntoConstraints = false; addSubview(view) }
         for view in [imageView, tagMarker] { view.translatesAutoresizingMaskIntoConstraints = false; imageBox.addSubview(view) }
         NSLayoutConstraint.activate([
@@ -112,12 +120,14 @@ final class PreviewPane: NSView {
     }
 }
 
-final class BrowserController: NSWindowController, NSCollectionViewDataSource, NSCollectionViewDelegate {
+final class BrowserController: NSWindowController, NSCollectionViewDataSource, NSCollectionViewDelegate, NSWindowDelegate, NSSplitViewDelegate {
     private let pipeline = ImagePipeline()
     private let thumbnails = ImagePipeline()
     private let tree = FolderTree()
     private let grid = PhotoCollectionView()
     private let preview = PreviewPane()
+    private let columns = NSSplitView()
+    private var arrangingColumns = false
     private let status = NSTextField(labelWithString: "폴더를 선택하세요")
     private let up = NSButton(title: "상위 폴더", target: nil, action: nil)
     private let tagStore: TagStore
@@ -140,14 +150,19 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var request: Operation?
     private var fullRequest: Operation?
     private var volumeObserver: NSObjectProtocol?
+    private var screenObserver: NSObjectProtocol?
     private let logger = Logger(subsystem: "dev.photoselect", category: "navigation")
 
     init(tagStore: TagStore = TagStore(), trashService: PhotoTrash = PhotoTrash(),
          initialFolder: URL? = FileManager.default.homeDirectoryForCurrentUser) {
         self.tagStore = tagStore; self.trashService = trashService
+        let available = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 800),
                               styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        window.title = AppBranding.displayName; window.minSize = NSSize(width: 1000, height: 600); window.center()
+        window.title = AppBranding.displayName
+        window.minSize = WindowLayout.minimumSize(in: available, kind: .browser)
+        window.maxSize = available.size
+        window.setFrame(WindowLayout.initialFrame(in: available, kind: .browser), display: false)
         super.init(window: window)
         let content = NSView(); window.contentView = content
         let open = NSButton(title: "폴더 열기…", target: self, action: #selector(openFolder))
@@ -156,7 +171,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         let bar = NSStackView(views: [open, up, refresh, status]); bar.spacing = 12
         bar.orientation = .horizontal; bar.alignment = .centerY; bar.distribution = .fill
         bar.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserToolbar")
-        let split = NSSplitView(); split.isVertical = true; split.dividerStyle = .thin
+        let split = columns; split.isVertical = true; split.dividerStyle = .thin
         split.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserColumns")
         let folderScroll = NSScrollView(); folderScroll.hasVerticalScroller = true; folderScroll.documentView = tree.view
         let layout = NSCollectionViewFlowLayout(); layout.itemSize = NSSize(width: 164, height: 154)
@@ -183,15 +198,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             split.topAnchor.constraint(equalTo: bar.bottomAnchor, constant: 10),
             split.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             split.trailingAnchor.constraint(equalTo: content.trailingAnchor),
-            split.bottomAnchor.constraint(equalTo: content.bottomAnchor),
-            split.heightAnchor.constraint(greaterThanOrEqualToConstant: 400),
-            folderPane.widthAnchor.constraint(greaterThanOrEqualToConstant: 180),
-            photoPane.widthAnchor.constraint(greaterThanOrEqualToConstant: 340),
-            preview.widthAnchor.constraint(greaterThanOrEqualToConstant: 240)
+            split.bottomAnchor.constraint(equalTo: content.bottomAnchor)
         ])
         content.layoutSubtreeIfNeeded()
-        split.setPosition(220, ofDividerAt: 0)
-        split.setPosition(max(580, split.bounds.width - 300), ofDividerAt: 1)
+        split.delegate = self
+        arrangeColumns()
+        window.delegate = self
         status.lineBreakMode = .byTruncatingMiddle; status.maximumNumberOfLines = 1; status.textColor = .secondaryLabelColor
         status.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         tree.onSelect = { [weak self] node in self?.loadFolder(node.url, lease: node.lease) }
@@ -213,10 +225,52 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 self.viewer?.hud.stringValue = "저장장치 변경 감지 — Esc로 돌아가 폴더를 다시 선택하세요"
                 self.setStatus("저장장치 변경 감지 — 새로고침하거나 폴더를 다시 선택하세요", error: true)
             }
+        screenObserver = NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
+            object: nil, queue: .main) { [weak self] _ in self?.fitToCurrentScreen() }
         if let initialFolder { tree.select(initialFolder) }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    deinit { if let volumeObserver { NSWorkspace.shared.notificationCenter.removeObserver(volumeObserver) } }
+    deinit {
+        if let volumeObserver { NSWorkspace.shared.notificationCenter.removeObserver(volumeObserver) }
+        if let screenObserver { NotificationCenter.default.removeObserver(screenObserver) }
+    }
+
+    private func arrangeColumns() {
+        guard !arrangingColumns, columns.arrangedSubviews.count == 3, columns.bounds.width > 0 else { return }
+        arrangingColumns = true
+        defer { arrangingColumns = false }
+        let sizes = WindowLayout.columns(for: columns.bounds.width, divider: columns.dividerThickness)
+        columns.setPosition(sizes.folders, ofDividerAt: 0)
+        columns.setPosition(columns.bounds.width - sizes.preview - columns.dividerThickness, ofDividerAt: 1)
+    }
+    func windowDidResize(_ notification: Notification) {
+        window?.contentView?.layoutSubtreeIfNeeded()
+        arrangeColumns()
+    }
+    func windowDidChangeScreen(_ notification: Notification) { fitToCurrentScreen() }
+    func windowDidChangeBackingProperties(_ notification: Notification) { fitToCurrentScreen() }
+    private func fitToCurrentScreen() {
+        guard let window, let screen = window.screen ?? NSScreen.main else { return }
+        window.minSize = WindowLayout.minimumSize(in: screen.visibleFrame, kind: .browser)
+        window.maxSize = screen.visibleFrame.size
+        let fitted = WindowLayout.fittedFrame(window.frame, in: screen.visibleFrame, kind: .browser)
+        if window.frame != fitted { window.setFrame(fitted, display: true) }
+        window.contentView?.layoutSubtreeIfNeeded(); arrangeColumns()
+    }
+    func splitView(_ splitView: NSSplitView, constrainMinCoordinate proposedMinimumPosition: CGFloat, ofSubviewAt dividerIndex: Int) -> CGFloat {
+        if arrangingColumns { return proposedMinimumPosition }
+        let width = max(0, splitView.bounds.width - splitView.dividerThickness * 2)
+        if dividerIndex == 0 { return max(proposedMinimumPosition, min(144, width * 0.22)) }
+        return max(proposedMinimumPosition, splitView.arrangedSubviews[0].frame.maxX + splitView.dividerThickness + min(300, width * 0.5))
+    }
+    func splitView(_ splitView: NSSplitView, constrainMaxCoordinate proposedMaximumPosition: CGFloat, ofSubviewAt dividerIndex: Int) -> CGFloat {
+        if arrangingColumns { return proposedMaximumPosition }
+        let width = max(0, splitView.bounds.width - splitView.dividerThickness * 2)
+        if dividerIndex == 1 {
+            return min(proposedMaximumPosition, splitView.bounds.width - min(168, width * 0.24) - splitView.dividerThickness)
+        }
+        return min(proposedMaximumPosition, splitView.arrangedSubviews[1].frame.maxX - min(300, width * 0.5) - splitView.dividerThickness)
+    }
 
     private func pane(title: String, content: NSView) -> NSView {
         let box = NSView(); let label = NSTextField(labelWithString: title)

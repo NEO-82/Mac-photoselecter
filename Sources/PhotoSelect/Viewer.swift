@@ -97,18 +97,20 @@ final class ViewerController: NSWindowController, NSWindowDelegate {
     let tagMarker = TagMarkerView()
     var didClose: (() -> Void)?
     private var deactivate: NSObjectProtocol?
+    private var screenObserver: NSObjectProtocol?
     init() {
         let screen = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1200, height: 800)
-        let window = ViewerWindow(contentRect: screen, styleMask: [.titled, .closable, .miniaturizable, .resizable],
+        let window = ViewerWindow(contentRect: NSRect(x: 0, y: 0, width: 1000, height: 700), styleMask: [.titled, .closable, .miniaturizable, .resizable],
                                   backing: .buffered, defer: false)
         super.init(window: window)
-        window.setFrame(screen, display: false)
+        window.minSize = WindowLayout.minimumSize(in: screen, kind: .viewer)
+        window.maxSize = screen.size
+        window.setFrame(WindowLayout.initialFrame(in: screen, kind: .viewer), display: false)
         window.title = AppBranding.displayName
-        window.minSize = NSSize(width: 640, height: 480)
         window.backgroundColor = .black
         window.isReleasedWhenClosed = false
         window.delegate = self
-        canvas.frame = NSRect(origin: .zero, size: screen.size)
+        canvas.frame = NSRect(origin: .zero, size: window.contentView?.bounds.size ?? window.contentLayoutRect.size)
         canvas.autoresizingMask = [.width, .height]
         window.contentView = canvas
         hud.textColor = .white; hud.backgroundColor = NSColor.black.withAlphaComponent(0.75)
@@ -129,12 +131,34 @@ final class ViewerController: NSWindowController, NSWindowDelegate {
         canvas.close = { [weak self] in self?.close() }
         deactivate = NotificationCenter.default.addObserver(forName: NSApplication.didResignActiveNotification,
             object: nil, queue: .main) { [weak self] _ in self?.canvas.resetZoom() }
+        screenObserver = NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
+            object: nil, queue: .main) { [weak self] _ in self?.fitToCurrentScreen() }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    deinit { if let deactivate { NotificationCenter.default.removeObserver(deactivate) } }
+    deinit {
+        if let deactivate { NotificationCenter.default.removeObserver(deactivate) }
+        if let screenObserver { NotificationCenter.default.removeObserver(screenObserver) }
+    }
     func present(on screen: NSScreen?) {
-        if let screen { window?.setFrame(screen.visibleFrame, display: true) }
+        if let screen = screen ?? window?.screen ?? NSScreen.main, let window {
+            let initial = !window.isVisible || window.screen?.frame != screen.frame
+            fit(to: screen, initial: initial)
+        }
         showWindow(nil); window?.makeKeyAndOrderFront(nil); window?.makeFirstResponder(canvas)
     }
+    private func fit(to screen: NSScreen, initial: Bool = false) {
+        guard let window else { return }
+        window.minSize = WindowLayout.minimumSize(in: screen.visibleFrame, kind: .viewer)
+        window.maxSize = screen.visibleFrame.size
+        let frame = initial ? WindowLayout.initialFrame(in: screen.visibleFrame, kind: .viewer) :
+            WindowLayout.fittedFrame(window.frame, in: screen.visibleFrame, kind: .viewer)
+        if frame != window.frame { window.setFrame(frame, display: true) }
+        canvas.needsDisplay = true
+    }
+    private func fitToCurrentScreen() {
+        if let screen = window?.screen ?? NSScreen.main { fit(to: screen) }
+    }
+    func windowDidChangeScreen(_ notification: Notification) { fitToCurrentScreen() }
+    func windowDidChangeBackingProperties(_ notification: Notification) { fitToCurrentScreen() }
     func windowWillClose(_ notification: Notification) { canvas.resetZoom(); didClose?() }
 }

@@ -22,11 +22,11 @@ final class BrowserUITests: XCTestCase {
         return url
     }
     @MainActor
-    private func jpegData() -> Data {
-        let context = CGContext(data: nil, width: 20, height: 10, bitsPerComponent: 8, bytesPerRow: 80,
+    private func jpegData(width: Int = 20, height: Int = 10) -> Data {
+        let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
                                 space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
         context.setFillColor(CGColor(red: 1, green: 0, blue: 0, alpha: 1))
-        context.fill(CGRect(x: 0, y: 0, width: 20, height: 10))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
         return NSBitmapImageRep(cgImage: context.makeImage()!).representation(using: .jpeg, properties: [:])!
     }
     @MainActor
@@ -38,7 +38,10 @@ final class BrowserUITests: XCTestCase {
         let views = descendants(browser.window!.contentView!)
         let split = try XCTUnwrap(views.compactMap { $0 as? NSSplitView }.first)
         XCTAssertEqual(split.arrangedSubviews.count, 3)
-        XCTAssertTrue(split.arrangedSubviews.allSatisfy { $0.bounds.width >= 180 })
+        let expected = WindowLayout.columns(for: split.bounds.width, divider: split.dividerThickness)
+        XCTAssertEqual(split.arrangedSubviews[0].bounds.width, expected.folders, accuracy: 2)
+        XCTAssertEqual(split.arrangedSubviews[2].bounds.width, expected.preview, accuracy: 2)
+        XCTAssertGreaterThan(split.arrangedSubviews[1].bounds.width, split.arrangedSubviews[2].bounds.width)
         XCTAssertTrue(descendants(split.arrangedSubviews[0]).contains { $0 is NSOutlineView })
         XCTAssertTrue(descendants(split.arrangedSubviews[1]).contains { $0 is PhotoCollectionView })
         XCTAssertTrue(split.arrangedSubviews[2] is PreviewPane)
@@ -49,7 +52,7 @@ final class BrowserUITests: XCTestCase {
         let root = try folder()
         let photos = root.appendingPathComponent(String(repeating: "데스크탑사진", count: 12), isDirectory: true)
         try FileManager.default.createDirectory(at: photos, withIntermediateDirectories: true)
-        try jpegData().write(to: photos.appendingPathComponent("sample.jpg"))
+        try jpegData(width: 3200, height: 2200).write(to: photos.appendingPathComponent("sample.jpg"))
         let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: photos)
         defer { browser.close() }
         browser.showWindow(nil)
@@ -109,6 +112,53 @@ final class BrowserUITests: XCTestCase {
         pane.layoutSubtreeIfNeeded()
         XCTAssertEqual(pane.filename.stringValue, "DSC0001.ARW")
         XCTAssertLessThan(pane.filename.frame.maxY, pane.imageView.superview!.frame.minY)
+    }
+    @MainActor
+    func testInitialBrowserFrameFitsActualAvailableScreen() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: nil)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let window = try XCTUnwrap(browser.window)
+        let screen = try XCTUnwrap(window.screen)
+        XCTAssertTrue(screen.visibleFrame.contains(window.frame))
+        XCTAssertLessThanOrEqual(window.minSize.width, screen.visibleFrame.width)
+        XCTAssertLessThanOrEqual(window.minSize.height, screen.visibleFrame.height)
+    }
+    @MainActor
+    func testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        try jpegData(width: 3200, height: 2200).write(to: root.appendingPathComponent("1-landscape.jpg"))
+        try jpegData(width: 1000, height: 5000).write(to: root.appendingPathComponent("2-portrait.jpg"))
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let window = try XCTUnwrap(browser.window)
+        let content = try XCTUnwrap(window.contentView)
+        let views = descendants(content)
+        let split = try XCTUnwrap(views.compactMap { $0 as? NSSplitView }.first)
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        let originalWindowFrame = window.frame
+        waitUntil("large first image") { preview.filename.stringValue == "1-landscape.jpg" && preview.imageView.image != nil }
+        content.layoutSubtreeIfNeeded()
+        var expected = WindowLayout.columns(for: split.bounds.width, divider: split.dividerThickness)
+        XCTAssertEqual(preview.frame.width, expected.preview, accuracy: 2)
+        XCTAssertLessThanOrEqual(preview.frame.width, 322)
+        XCTAssertEqual(window.frame, originalWindowFrame)
+        grid.selectionIndexPaths = [IndexPath(item: 1, section: 0)]
+        browser.collectionView(grid, didSelectItemsAt: [IndexPath(item: 1, section: 0)])
+        waitUntil("large portrait") { preview.filename.stringValue == "2-portrait.jpg" && preview.imageView.image != nil }
+        content.layoutSubtreeIfNeeded()
+        XCTAssertEqual(preview.frame.width, expected.preview, accuracy: 2)
+        XCTAssertEqual(window.frame, originalWindowFrame)
+        window.setContentSize(NSSize(width: 1000, height: 600))
+        content.layoutSubtreeIfNeeded()
+        expected = WindowLayout.columns(for: split.bounds.width, divider: split.dividerThickness)
+        XCTAssertEqual(preview.frame.width, expected.preview, accuracy: 2)
+        XCTAssertGreaterThan(split.arrangedSubviews[1].bounds.width, preview.frame.width)
     }
     @MainActor
     func testSelectingThumbnailChangesRightPreview() throws {
@@ -171,5 +221,18 @@ final class BrowserUITests: XCTestCase {
         XCTAssertFalse(window.collectionBehavior.contains(.fullScreenAuxiliary))
         XCTAssertGreaterThanOrEqual(window.frame.minY, screen.visibleFrame.minY - 1)
         XCTAssertLessThanOrEqual(window.frame.maxY, screen.visibleFrame.maxY + 1)
+    }
+    @MainActor
+    func testPresentingVisibleViewerKeepsManualWindowSize() throws {
+        _ = NSApplication.shared
+        let screen = try XCTUnwrap(NSScreen.main)
+        let viewer = ViewerController(); defer { viewer.close() }
+        viewer.present(on: screen)
+        let window = try XCTUnwrap(viewer.window)
+        let manual = WindowLayout.fittedFrame(window.frame.insetBy(dx: 50, dy: 40), in: screen.visibleFrame, kind: .viewer)
+        window.setFrame(manual, display: true)
+        let actual = window.frame
+        viewer.present(on: screen)
+        XCTAssertEqual(window.frame, actual)
     }
 }
