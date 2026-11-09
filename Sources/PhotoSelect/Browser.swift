@@ -128,6 +128,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let preview = PreviewPane()
     private let columns = NSSplitView()
     private var arrangingColumns = false
+    private var folderWidth: NSLayoutConstraint?
+    private var previewWidth: NSLayoutConstraint?
     private let status = NSTextField(labelWithString: "폴더를 선택하세요")
     private let up = NSButton(title: "상위 폴더", target: nil, action: nil)
     private let tagStore: TagStore
@@ -189,6 +191,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         let folderPane = pane(title: "폴더", content: folderScroll)
         let photoPane = pane(title: "사진", content: photoScroll)
         split.addArrangedSubview(folderPane); split.addArrangedSubview(photoPane); split.addArrangedSubview(preview)
+        // setPosition alone is only an initial frame hint. Auto Layout can discard
+        // it on the first image/label update, so keep explicit preferred widths.
+        let folderWidth = folderPane.widthAnchor.constraint(equalToConstant: 220)
+        let previewWidth = preview.widthAnchor.constraint(equalToConstant: 280)
+        for constraint in [folderWidth, previewWidth] { constraint.priority = .defaultHigh }
+        NSLayoutConstraint.activate([folderWidth, previewWidth])
+        self.folderWidth = folderWidth; self.previewWidth = previewWidth
         for view in [bar, split] { view.translatesAutoresizingMaskIntoConstraints = false; content.addSubview(view) }
         NSLayoutConstraint.activate([
             bar.topAnchor.constraint(equalTo: content.topAnchor, constant: 10),
@@ -240,8 +249,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         arrangingColumns = true
         defer { arrangingColumns = false }
         let sizes = WindowLayout.columns(for: columns.bounds.width, divider: columns.dividerThickness)
+        folderWidth?.constant = sizes.folders; previewWidth?.constant = sizes.preview
         columns.setPosition(sizes.folders, ofDividerAt: 0)
         columns.setPosition(columns.bounds.width - sizes.preview - columns.dividerThickness, ofDividerAt: 1)
+        columns.layoutSubtreeIfNeeded()
     }
     func windowDidResize(_ notification: Notification) {
         window?.contentView?.layoutSubtreeIfNeeded()
@@ -270,6 +281,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             return min(proposedMaximumPosition, splitView.bounds.width - min(168, width * 0.24) - splitView.dividerThickness)
         }
         return min(proposedMaximumPosition, splitView.arrangedSubviews[1].frame.maxX - min(300, width * 0.5) - splitView.dividerThickness)
+    }
+    func splitView(_ splitView: NSSplitView, constrainSplitPosition proposedPosition: CGFloat, ofSubviewAt dividerIndex: Int) -> CGFloat {
+        if !arrangingColumns {
+            if dividerIndex == 0 { folderWidth?.constant = proposedPosition }
+            else { previewWidth?.constant = splitView.bounds.width - proposedPosition - splitView.dividerThickness }
+        }
+        return proposedPosition
     }
 
     private func pane(title: String, content: NSView) -> NSView {
