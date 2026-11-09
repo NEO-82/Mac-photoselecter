@@ -127,7 +127,7 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
                 guard self.view.row(forItem: node) >= 0 else { return }
                 self.suppressSelection = true
                 self.view.reloadItem(node, reloadChildren: true)
-                if node.expanded { self.view.expandItem(node) }
+                if node.error == nil && node.expanded { self.view.expandItem(node) }
                 self.suppressSelection = false
             }
         }
@@ -147,7 +147,7 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
     }
     func outlineView(_ outlineView: NSOutlineView, shouldExpandItem item: Any) -> Bool {
         guard let node = item as? FolderNode else { return false }
-        if node.error != nil { node.invalidate() }
+        if node.error != nil && !suppressSelection { node.invalidate() }
         node.expanded = true; load(node); return true
     }
     func outlineView(_ outlineView: NSOutlineView, shouldCollapseItem item: Any) -> Bool {
