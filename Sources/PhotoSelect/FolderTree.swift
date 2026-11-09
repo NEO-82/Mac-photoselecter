@@ -2,7 +2,7 @@ import AppKit
 
 final class FolderNode: NSObject {
     let url: URL
-    let lease: FolderLease
+    var lease: FolderLease
     let title: String
     var children: [FolderNode]?
     var loading = false
@@ -13,21 +13,32 @@ final class FolderNode: NSObject {
         self.url = url; self.lease = lease
         self.title = title ?? url.lastPathComponent
     }
+    func invalidate(lease: FolderLease? = nil) {
+        if let lease { self.lease = lease }
+        requestID = UUID(); loading = false; children = nil; error = nil
+    }
 }
 
 final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate {
     let view = NSOutlineView()
     var onSelect: ((FolderNode) -> Void)?
     private(set) var roots: [FolderNode]
+    private let directoryReader: (URL) throws -> [URL]
     private var suppressSelection = false
 
-    override init() {
+    init(roots: [FolderNode]? = nil, directoryReader: @escaping (URL) throws -> [URL] = {
+        try FolderReader.entries($0, directories: true)
+    }) {
         let home = FileManager.default.homeDirectoryForCurrentUser
+        let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first ??
+            home.appendingPathComponent("Desktop", isDirectory: true)
         let filesystem = URL(fileURLWithPath: "/", isDirectory: true)
         let volumes = URL(fileURLWithPath: "/Volumes", isDirectory: true)
-        roots = [FolderNode(url: home, lease: FolderLease(home), title: "홈 · " + home.lastPathComponent),
+        self.roots = roots ?? [FolderNode(url: home, lease: FolderLease(home), title: "홈 · " + home.lastPathComponent),
+                 FolderNode(url: desktop, lease: FolderLease(desktop), title: "데스크탑"),
                  FolderNode(url: filesystem, lease: FolderLease(filesystem), title: "이 Mac"),
                  FolderNode(url: volumes, lease: FolderLease(volumes), title: "저장장치")]
+        self.directoryReader = directoryReader
         super.init()
         let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("folder"))
         column.title = "폴더"; column.width = 210
@@ -40,22 +51,40 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
         view.reloadData()
     }
 
-    func select(_ url: URL, lease: FolderLease? = nil) {
-        func find(_ nodes: [FolderNode]) -> FolderNode? {
+    private func sameLocation(_ first: URL, _ second: URL) -> Bool {
+        first.standardizedFileURL.path.precomposedStringWithCanonicalMapping ==
+            second.standardizedFileURL.path.precomposedStringWithCanonicalMapping
+    }
+
+    func select(_ url: URL, lease: FolderLease? = nil, renewAccess: Bool = false) {
+        func findPath(_ nodes: [FolderNode]) -> [FolderNode]? {
             for node in nodes {
-                if node.url == url { return node }
-                if let found = find(node.children ?? []) { return found }
+                if sameLocation(node.url, url) { return [node] }
+                if let found = findPath(node.children ?? []) { return [node] + found }
             }
             return nil
         }
         let node: FolderNode
-        if let existing = find(roots), lease == nil || existing.lease.url == lease?.url { node = existing }
+        var path = roots.first(where: { sameLocation($0.url, url) }).map { [$0] } ?? findPath(roots)
+        suppressSelection = true
+        if let existing = path?.last, lease.map({ sameLocation(existing.lease.url, $0.url) }) ?? true {
+            node = existing
+        }
         else {
             node = FolderNode(url: url, lease: lease ?? FolderLease(url))
             roots.insert(node, at: 0)
             view.reloadData()
+            path = [node]
         }
-        suppressSelection = true
+        let grantChanged = lease.map { node.lease !== $0 } ?? false
+        if renewAccess || node.error != nil || (grantChanged && node.loading) {
+            node.invalidate(lease: lease)
+            if view.row(forItem: node) >= 0 { view.reloadItem(node, reloadChildren: true) }
+        } else if let lease { node.lease = lease }
+        for ancestor in (path ?? []).dropLast() {
+            ancestor.expanded = true
+            view.expandItem(ancestor)
+        }
         let row = view.row(forItem: node)
         if row >= 0 { view.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false) }
         suppressSelection = false
@@ -70,7 +99,7 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
         let selected = view.item(atRow: view.selectedRow) as? FolderNode
         let nodes = all ? roots : selected.map { [$0] } ?? roots
         for node in nodes {
-            node.requestID = UUID(); node.loading = false; node.children = nil; node.error = nil
+            node.invalidate()
             view.reloadItem(node, reloadChildren: true)
         }
         for node in nodes where node.expanded { load(node) }
@@ -82,15 +111,17 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
         node.loading = true
         let token = node.requestID
         let lease = node.lease
+        let reader = directoryReader
         DispatchQueue.global(qos: .userInitiated).async { [weak self, weak node] in
             guard let node else { return }
-            let result = Result { try withExtendedLifetime(lease) { try FolderReader.entries(node.url, directories: true) } }
+            let result = Result { try withExtendedLifetime(lease) { try reader(node.url) } }
             DispatchQueue.main.async {
                 guard let self, node.requestID == token else { return }
                 node.loading = false
                 switch result {
-                case .success(let urls): node.children = urls.map { FolderNode(url: $0, lease: lease) }
-                case .failure(let error): node.children = []; node.error = error.localizedDescription
+                case .success(let urls):
+                    node.children = urls.map { FolderNode(url: $0, lease: lease) }; node.error = nil
+                case .failure(let error): node.children = []; node.error = FolderReader.errorMessage(for: error)
                 }
                 // A collapsed ancestor or refreshed tree may no longer contain this row.
                 guard self.view.row(forItem: node) >= 0 else { return }
@@ -112,10 +143,11 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
     }
     func outlineView(_ outlineView: NSOutlineView, isItemExpandable item: Any) -> Bool {
         guard let node = item as? FolderNode else { return false }
-        return node.children == nil || !(node.children?.isEmpty ?? true)
+        return node.error != nil || node.children == nil || !(node.children?.isEmpty ?? true)
     }
     func outlineView(_ outlineView: NSOutlineView, shouldExpandItem item: Any) -> Bool {
         guard let node = item as? FolderNode else { return false }
+        if node.error != nil { node.invalidate() }
         node.expanded = true; load(node); return true
     }
     func outlineView(_ outlineView: NSOutlineView, shouldCollapseItem item: Any) -> Bool {
@@ -124,13 +156,19 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
     }
     func outlineViewSelectionDidChange(_ notification: Notification) {
         guard !suppressSelection, let node = view.item(atRow: view.selectedRow) as? FolderNode else { return }
+        if node.error != nil {
+            node.invalidate(); load(node)
+            suppressSelection = true
+            view.reloadItem(node, reloadChildren: true)
+            suppressSelection = false
+        }
         onSelect?(node)
     }
     func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
         guard let node = item as? FolderNode else { return nil }
-        let label = NSTextField(labelWithString: "📁 " + node.title)
+        let label = NSTextField(labelWithString: (node.error == nil ? "📁 " : "⚠︎ ") + node.title)
         label.lineBreakMode = .byTruncatingMiddle
-        label.toolTip = node.error ?? node.url.path
+        label.toolTip = node.error.map { $0 + "\n" + node.url.path } ?? node.url.path
         if node.error != nil { label.textColor = .systemRed }
         return label
     }

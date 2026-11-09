@@ -62,6 +62,15 @@ final class FolderLease {
 }
 
 enum FolderReader {
+    static func errorMessage(for error: Error) -> String {
+        let nsError = error as NSError
+        let denied = (nsError.domain == NSCocoaErrorDomain && nsError.code == CocoaError.Code.fileReadNoPermission.rawValue) ||
+            (nsError.domain == NSPOSIXErrorDomain && [1, 13].contains(nsError.code))
+        if denied {
+            return "접근 권한이 필요합니다. ‘폴더 열기…’에서 이 폴더를 다시 선택해 주세요."
+        }
+        return error.localizedDescription
+    }
     static func entries(_ url: URL, directories: Bool) throws -> [URL] {
         let keys: Set<URLResourceKey> = [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey]
         return try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: Array(keys),

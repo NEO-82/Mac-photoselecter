@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.2.0'
+        default: '0.2.1'
         type: string
 
 permissions:
@@ -20,8 +20,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.2.0' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.2.1' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
+  PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
 jobs:
   package:
@@ -45,6 +46,7 @@ jobs:
             dist/PhotoSelect-*/PhotoSelect-*.dmg
             dist/PhotoSelect-*/SHA256SUMS
             ${{ runner.temp }}/PhotoSelect-build.log
+            .build/browser-layout.png
           if-no-files-found: error
           retention-days: 14
       - name: Save installer and build evidence on the delivery branch

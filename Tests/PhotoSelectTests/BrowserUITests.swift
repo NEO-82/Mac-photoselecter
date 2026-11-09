@@ -44,6 +44,44 @@ final class BrowserUITests: XCTestCase {
         XCTAssertTrue(split.arrangedSubviews[2] is PreviewPane)
     }
     @MainActor
+    func testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        let photos = root.appendingPathComponent(String(repeating: "데스크탑사진", count: 12), isDirectory: true)
+        try FileManager.default.createDirectory(at: photos, withIntermediateDirectories: true)
+        try jpegData().write(to: photos.appendingPathComponent("sample.jpg"))
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: photos)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let window = try XCTUnwrap(browser.window)
+        let content = try XCTUnwrap(window.contentView)
+        let views = descendants(content)
+        let toolbar = try XCTUnwrap(views.first { $0.identifier?.rawValue == "PhotoBrowserToolbar" })
+        let split = try XCTUnwrap(views.compactMap { $0 as? NSSplitView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("preview ready for layout check") { preview.imageView.image != nil }
+        for size in [NSSize(width: 1000, height: 600), NSSize(width: 1280, height: 800), NSSize(width: 1100, height: 650)] {
+            window.setContentSize(size)
+            content.layoutSubtreeIfNeeded(); window.displayIfNeeded()
+            XCTAssertLessThanOrEqual(toolbar.frame.height, 44)
+            XCTAssertGreaterThanOrEqual(toolbar.frame.height, 24)
+            XCTAssertGreaterThanOrEqual(split.frame.height, content.bounds.height - 80)
+            XCTAssertGreaterThanOrEqual(split.frame.height, 400)
+            for pane in split.arrangedSubviews {
+                XCTAssertGreaterThanOrEqual(pane.bounds.height, split.bounds.height - 2)
+            }
+            XCTAssertGreaterThan(preview.imageView.bounds.height, 300)
+            XCTAssertLessThanOrEqual(split.frame.maxY, toolbar.frame.minY)
+        }
+        if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+            let output = URL(fileURLWithPath: path)
+            try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let bitmap = try XCTUnwrap(content.bitmapImageRepForCachingDisplay(in: content.bounds))
+            content.cacheDisplay(in: content.bounds, to: bitmap)
+            try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: output)
+        }
+    }
+    @MainActor
     func testPreviewFilenameIsBelowImage() {
         _ = NSApplication.shared
         let pane = PreviewPane(frame: NSRect(x: 0, y: 0, width: 300, height: 500))

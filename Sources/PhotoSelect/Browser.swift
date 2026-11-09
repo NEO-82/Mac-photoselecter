@@ -154,6 +154,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         up.target = self; up.action = #selector(parentFolder); up.isEnabled = false
         let refresh = NSButton(title: "새로고침", target: self, action: #selector(refreshFolder))
         let bar = NSStackView(views: [open, up, refresh, status]); bar.spacing = 12
+        bar.orientation = .horizontal; bar.alignment = .centerY; bar.distribution = .fill
+        bar.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserToolbar")
         let split = NSSplitView(); split.isVertical = true; split.dividerStyle = .thin
         split.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserColumns")
         let folderScroll = NSScrollView(); folderScroll.hasVerticalScroller = true; folderScroll.documentView = tree.view
@@ -177,10 +179,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             bar.topAnchor.constraint(equalTo: content.topAnchor, constant: 10),
             bar.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 12),
             bar.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -12),
+            bar.heightAnchor.constraint(equalToConstant: 32),
             split.topAnchor.constraint(equalTo: bar.bottomAnchor, constant: 10),
             split.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             split.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             split.bottomAnchor.constraint(equalTo: content.bottomAnchor),
+            split.heightAnchor.constraint(greaterThanOrEqualToConstant: 400),
             folderPane.widthAnchor.constraint(greaterThanOrEqualToConstant: 180),
             photoPane.widthAnchor.constraint(greaterThanOrEqualToConstant: 340),
             preview.widthAnchor.constraint(greaterThanOrEqualToConstant: 240)
@@ -188,7 +192,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         content.layoutSubtreeIfNeeded()
         split.setPosition(220, ofDividerAt: 0)
         split.setPosition(max(580, split.bounds.width - 300), ofDividerAt: 1)
-        status.lineBreakMode = .byTruncatingMiddle; status.textColor = .secondaryLabelColor
+        status.lineBreakMode = .byTruncatingMiddle; status.maximumNumberOfLines = 1; status.textColor = .secondaryLabelColor
         status.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         tree.onSelect = { [weak self] node in self?.loadFolder(node.url, lease: node.lease) }
         tagStore.load { [weak self] result in
@@ -237,8 +241,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     @objc private func openFolder() {
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
+        panel.directoryURL = currentFolder
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        tree.select(url, lease: FolderLease(url))
+        tree.select(url, lease: FolderLease(url), renewAccess: true)
         window?.makeFirstResponder(grid)
     }
     @objc private func refreshFolder() {
@@ -268,8 +273,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                     self.synchronizeGrid(reload: true)
                     if let index = self.list.selectedIndex { self.showPhoto(index) }
                 case .failure(let error):
-                    self.setStatus("폴더 읽기 실패: \(error.localizedDescription)", error: true)
-                    self.preview.detail.stringValue = error.localizedDescription
+                    let message = FolderReader.errorMessage(for: error)
+                    self.setStatus("폴더 읽기 실패: \(message)", error: true)
+                    self.preview.detail.stringValue = message
                 }
             }
         }

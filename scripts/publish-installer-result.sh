@@ -8,6 +8,11 @@ fi
 
 mkdir -p downloads
 cp "$RUNNER_TEMP/PhotoSelect-build.log" downloads/build.log
+if [[ -f .build/browser-layout.png ]]; then
+    cp .build/browser-layout.png downloads/browser-layout.png
+else
+    rm -f downloads/browser-layout.png
+fi
 artifact="PhotoSelect-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
 filename="PhotoSelect-${PHOTOSELECT_VERSION}-arm64.dmg"
 if [[ "$PACKAGE_OUTCOME" == success ]]; then
