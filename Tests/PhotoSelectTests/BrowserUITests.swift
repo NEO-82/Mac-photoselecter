@@ -56,7 +56,7 @@ final class BrowserUITests: XCTestCase {
         let window = try XCTUnwrap(browser.window)
         let content = try XCTUnwrap(window.contentView)
         let views = descendants(content)
-        let toolbar = try XCTUnwrap(views.first { $0.identifier?.rawValue == "PhotoBrowserToolbar" })
+        let toolbar = try XCTUnwrap(views.first { $0.identifier?.rawValue == "PhotoBrowserToolbar" } as? NSStackView)
         let split = try XCTUnwrap(views.compactMap { $0 as? NSSplitView }.first)
         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
         waitUntil("preview ready for layout check") { preview.imageView.image != nil }
@@ -65,6 +65,16 @@ final class BrowserUITests: XCTestCase {
             content.layoutSubtreeIfNeeded(); window.displayIfNeeded()
             XCTAssertLessThanOrEqual(toolbar.frame.height, 44)
             XCTAssertGreaterThanOrEqual(toolbar.frame.height, 24)
+            let buttons = toolbar.arrangedSubviews.compactMap { $0 as? NSButton }
+            XCTAssertEqual(buttons.count, 3)
+            for button in buttons {
+                let rect = button.convert(button.bounds, to: toolbar)
+                XCTAssertGreaterThan(rect.width, 40)
+                XCTAssertGreaterThan(rect.height, 16)
+                XCTAssertGreaterThanOrEqual(rect.minY, -1)
+                XCTAssertLessThanOrEqual(rect.maxY, toolbar.bounds.height + 1)
+                XCTAssertFalse(button.isHiddenOrHasHiddenAncestor)
+            }
             XCTAssertGreaterThanOrEqual(split.frame.height, content.bounds.height - 80)
             XCTAssertGreaterThanOrEqual(split.frame.height, 400)
             for pane in split.arrangedSubviews {
@@ -78,7 +88,17 @@ final class BrowserUITests: XCTestCase {
             try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
             let bitmap = try XCTUnwrap(content.bitmapImageRepForCachingDisplay(in: content.bounds))
             content.cacheDisplay(in: content.bounds, to: bitmap)
-            try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: output)
+            // A view snapshot omits the NSWindow backdrop; supply that same backdrop
+            // so transparent gaps/labels remain readable in the exported evidence.
+            let flattened = try XCTUnwrap(NSBitmapImageRep(bitmapDataPlanes: nil,
+                pixelsWide: bitmap.pixelsWide, pixelsHigh: bitmap.pixelsHigh, bitsPerSample: 8,
+                samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+                bytesPerRow: 0, bitsPerPixel: 0))
+            let context = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: flattened)).cgContext
+            let rect = CGRect(x: 0, y: 0, width: CGFloat(bitmap.pixelsWide), height: CGFloat(bitmap.pixelsHigh))
+            context.setFillColor(NSColor.windowBackgroundColor.cgColor); context.fill(rect)
+            context.draw(try XCTUnwrap(bitmap.cgImage), in: rect)
+            try XCTUnwrap(flattened.representation(using: .png, properties: [:])).write(to: output)
         }
     }
     @MainActor
