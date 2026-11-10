@@ -48,23 +48,24 @@ enum WindowLayout {
         visible.insetBy(dx: min(12, visible.width * 0.02), dy: min(12, visible.height * 0.02))
     }
     static func minimumSize(in visible: CGRect, kind: Kind) -> CGSize {
-        let safe = usableFrame(in: visible)
+        let safe = kind == .viewer ? visible : usableFrame(in: visible)
         let preferred = kind == .browser ? CGSize(width: 900, height: 560) : CGSize(width: 640, height: 480)
         return CGSize(width: min(preferred.width, safe.width), height: min(preferred.height, safe.height))
     }
     static func initialFrame(in visible: CGRect, kind: Kind) -> CGRect {
+        // Fill the available screen with the outer window frame, title bar included.
+        // visibleFrame already excludes the menu bar and a visible Dock.
+        if kind == .viewer { return visible }
         let safe = usableFrame(in: visible)
         let minimum = minimumSize(in: visible, kind: kind)
-        let preferred = kind == .browser ?
-            CGSize(width: min(1600, visible.width * 0.92), height: min(1000, visible.height * 0.90)) :
-            CGSize(width: visible.width * 0.94, height: visible.height * 0.94)
+        let preferred = CGSize(width: min(1600, visible.width * 0.92), height: min(1000, visible.height * 0.90))
         let size = CGSize(width: min(safe.width, max(minimum.width, preferred.width)),
                           height: min(safe.height, max(minimum.height, preferred.height)))
         return CGRect(x: visible.midX - size.width / 2, y: visible.midY - size.height / 2,
                       width: size.width, height: size.height)
     }
     static func fittedFrame(_ frame: CGRect, in visible: CGRect, kind: Kind) -> CGRect {
-        let safe = usableFrame(in: visible)
+        let safe = kind == .viewer ? visible : usableFrame(in: visible)
         let minimum = minimumSize(in: visible, kind: kind)
         let size = CGSize(width: min(safe.width, max(minimum.width, frame.width)),
                           height: min(safe.height, max(minimum.height, frame.height)))

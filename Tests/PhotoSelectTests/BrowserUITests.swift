@@ -281,7 +281,7 @@ final class BrowserUITests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: trash.appendingPathComponent("2.jpg")), data)
     }
     @MainActor
-    func testViewerStartsAsNormalWindowInsideVisibleScreen() throws {
+    func testViewerStartsAsMaximizedWindowInsideVisibleScreen() throws {
         _ = NSApplication.shared
         let screen = try XCTUnwrap(NSScreen.main)
         let viewer = ViewerController(); defer { viewer.close() }
@@ -290,8 +290,16 @@ final class BrowserUITests: XCTestCase {
         XCTAssertTrue(window.styleMask.contains(.titled)); XCTAssertTrue(window.styleMask.contains(.resizable))
         XCTAssertFalse(window.styleMask.contains(.fullScreen))
         XCTAssertFalse(window.collectionBehavior.contains(.fullScreenAuxiliary))
-        XCTAssertGreaterThanOrEqual(window.frame.minY, screen.visibleFrame.minY - 1)
-        XCTAssertLessThanOrEqual(window.frame.maxY, screen.visibleFrame.maxY + 1)
+        func assertFillsAvailableScreen() {
+            XCTAssertEqual(window.frame.minX, screen.visibleFrame.minX, accuracy: 1)
+            XCTAssertEqual(window.frame.minY, screen.visibleFrame.minY, accuracy: 1)
+            XCTAssertEqual(window.frame.width, screen.visibleFrame.width, accuracy: 1)
+            XCTAssertEqual(window.frame.height, screen.visibleFrame.height, accuracy: 1)
+        }
+        assertFillsAvailableScreen()
+        viewer.windowDidChangeBackingProperties(Notification(name: NSWindow.didChangeBackingPropertiesNotification, object: window))
+        viewer.windowDidChangeScreen(Notification(name: NSWindow.didChangeScreenNotification, object: window))
+        assertFillsAvailableScreen()
     }
     @MainActor
     func testPresentingVisibleViewerKeepsManualWindowSize() throws {

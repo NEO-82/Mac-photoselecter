@@ -27,9 +27,16 @@ final class WindowLayoutTests: XCTestCase {
                 let frame = WindowLayout.initialFrame(in: screen, kind: kind)
                 XCTAssertLessThanOrEqual(minimum.width, frame.width)
                 XCTAssertLessThanOrEqual(minimum.height, frame.height)
-                XCTAssertLessThan(frame.width, screen.width)
-                XCTAssertLessThan(frame.height, screen.height)
+                XCTAssertLessThanOrEqual(frame.width, screen.width)
+                XCTAssertLessThanOrEqual(frame.height, screen.height)
             }
+        }
+    }
+    func testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt() {
+        for screen in screens {
+            let frame = WindowLayout.initialFrame(in: screen, kind: .viewer)
+            XCTAssertEqual(frame, screen)
+            XCTAssertEqual(WindowLayout.fittedFrame(frame, in: screen, kind: .viewer), screen)
         }
     }
     func testMovedOrDisconnectedDisplayFrameFitsNewScreen() {
