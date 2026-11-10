@@ -337,12 +337,19 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         if let index = list.selectedIndex { showPhoto(index + 1) }
     }
     @objc func toggleTagFromMenu() {
-        if let event = NSApp.currentEvent, event.type == .keyDown, event.isARepeat { return }
+        guard acceptsPhotoMenuEvent() else { return }
         toggleCurrentTag()
     }
     @objc func trashFromMenu() {
-        if let event = NSApp.currentEvent, event.type == .keyDown, event.isARepeat { return }
+        guard acceptsPhotoMenuEvent() else { return }
         trashCurrentPhoto()
+    }
+    private func acceptsPhotoMenuEvent() -> Bool {
+        guard let event = NSApp.currentEvent, event.type == .keyDown else { return true }
+        guard !event.isARepeat else { return false }
+        // Menu key equivalents must retain the existing grid/viewer focus rule.
+        let responder = NSApp.keyWindow?.firstResponder
+        return responder === grid || (viewer.map { responder === $0.canvas } ?? false)
     }
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         guard !finishingTagWrites, NSApp.modalWindow == nil else { return false }
