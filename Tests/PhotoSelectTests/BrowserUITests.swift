@@ -178,6 +178,77 @@ final class BrowserUITests: XCTestCase {
         waitUntil("second preview decoded") { preview.filename.stringValue == "2.jpg" && preview.imageView.image != nil }
     }
     @MainActor
+    func testTagBadgeReturnsAfterClosingAndRecreatingBrowser() throws {
+        _ = NSApplication.shared
+        let root = try folder(), file = root.appendingPathComponent("metadata/tags.json")
+        try jpegData().write(to: root.appendingPathComponent("1.jpg"))
+        let first = BrowserController(tagStore: TagStore(fileURL: file), initialFolder: root)
+        defer { first.close() }
+        let views = descendants(first.window!.contentView!)
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("first session ready") { preview.imageView.image != nil }
+        grid.toggleTag?()
+        let finished = expectation(description: "normal exit saves pending tag")
+        first.finishPendingTagWrites { finished.fulfill() }
+        grid.toggleTag?() // Input received after exit starts must not enqueue a late write.
+        wait(for: [finished], timeout: 5)
+        XCTAssertFalse(preview.tagMarker.isHidden)
+        first.close()
+        let second = BrowserController(tagStore: TagStore(fileURL: file), initialFolder: root)
+        defer { second.close() }
+        let secondViews = descendants(second.window!.contentView!)
+        let secondPreview = try XCTUnwrap(secondViews.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("new browser restores red badge") {
+            secondPreview.imageView.image != nil && !secondPreview.tagMarker.isHidden
+        }
+    }
+    @MainActor
+    func testStandardMenusDisablePhotoActionsUntilFolderHasPhotos() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: nil)
+        defer { browser.close() }
+        let menu = AppMenus.make(for: browser)
+        XCTAssertEqual(menu.items.map(\.title), [AppBranding.displayName, "파일", "보기", "사진", "윈도우"])
+        let file = try XCTUnwrap(menu.item(withTitle: "파일")?.submenu)
+        let open = try XCTUnwrap(file.item(withTitle: "폴더 열기…"))
+        XCTAssertEqual(open.keyEquivalent, "o"); XCTAssertEqual(open.keyEquivalentModifierMask, .command)
+        file.update(); XCTAssertTrue(open.isEnabled)
+        let view = try XCTUnwrap(menu.item(withTitle: "보기")?.submenu)
+        let photo = try XCTUnwrap(menu.item(withTitle: "사진")?.submenu)
+        view.update(); photo.update()
+        XCTAssertFalse(try XCTUnwrap(view.item(withTitle: "선택 사진 크게 보기")).isEnabled)
+        for item in photo.items where !item.isSeparatorItem { XCTAssertFalse(item.isEnabled) }
+    }
+    @MainActor
+    func testNativeMenuCommandsNavigateAndTagCurrentPhoto() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        for name in ["1.jpg", "2.jpg"] { try jpegData().write(to: root.appendingPathComponent(name)) }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: root)
+        defer { browser.close() }
+        let preview = try XCTUnwrap(descendants(browser.window!.contentView!).compactMap { $0 as? PreviewPane }.first)
+        waitUntil("menu folder ready") { preview.imageView.image != nil }
+        let menu = try XCTUnwrap(AppMenus.make(for: browser).item(withTitle: "사진")?.submenu)
+        menu.update()
+        XCTAssertFalse(try XCTUnwrap(menu.item(withTitle: "이전 사진")).isEnabled)
+        let next = try XCTUnwrap(menu.item(withTitle: "다음 사진"))
+        XCTAssertTrue(next.isEnabled)
+        XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(next.action), to: next.target, from: next))
+        waitUntil("next menu displays second photo") { preview.filename.stringValue == "2.jpg" && preview.imageView.image != nil }
+        menu.update(); XCTAssertFalse(next.isEnabled)
+        let tag = try XCTUnwrap(menu.item(withTitle: "태그 지정/해제"))
+        XCTAssertTrue(tag.isEnabled); XCTAssertEqual(tag.keyEquivalent, "\\")
+        XCTAssertEqual(tag.keyEquivalentModifierMask, [])
+        XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(tag.action), to: tag.target, from: tag))
+        waitUntil("tag menu updates red badge") { !preview.tagMarker.isHidden }
+        let previous = try XCTUnwrap(menu.item(withTitle: "이전 사진"))
+        XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(previous.action), to: previous.target, from: previous))
+        waitUntil("previous menu restores first photo") { preview.filename.stringValue == "1.jpg" && preview.imageView.image != nil }
+        XCTAssertTrue(preview.tagMarker.isHidden)
+    }
+    @MainActor
     func testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge() throws {
         _ = NSApplication.shared
         let root = try folder(), trash = try folder()

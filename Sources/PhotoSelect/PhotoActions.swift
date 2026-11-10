@@ -65,6 +65,11 @@ final class TagStore {
             DispatchQueue.main.async { completion(result) }
         }
     }
+    // Complete after already queued writes and their main-queue callbacks.
+    // The caller stops accepting new tags before requesting normal app exit.
+    func finishPendingWrites(completion: @escaping () -> Void) {
+        queue.async { DispatchQueue.main.async(execute: completion) }
+    }
 }
 
 final class PhotoTrash {

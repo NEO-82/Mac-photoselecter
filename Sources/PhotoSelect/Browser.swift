@@ -120,7 +120,7 @@ final class PreviewPane: NSView {
     }
 }
 
-final class BrowserController: NSWindowController, NSCollectionViewDataSource, NSCollectionViewDelegate, NSWindowDelegate, NSSplitViewDelegate {
+final class BrowserController: NSWindowController, NSCollectionViewDataSource, NSCollectionViewDelegate, NSWindowDelegate, NSSplitViewDelegate, NSMenuItemValidation {
     private let pipeline = ImagePipeline()
     private let thumbnails = ImagePipeline()
     private let tree = FolderTree()
@@ -136,6 +136,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let trashService: PhotoTrash
     private var taggedPaths: Set<String> = []
     private var tagStorageError: String?
+    private var finishingTagWrites = false
     private var list = PhotoList()
     private var lease: FolderLease?
     private var currentFolder: URL?
@@ -310,7 +311,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         status.toolTip = message + (tagStorageError.map { "\n태그: " + $0 } ?? "")
         status.textColor = error || tagStorageError != nil ? .systemRed : .secondaryLabelColor
     }
-    @objc private func openFolder() {
+    @objc func openFolder() {
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.directoryURL = currentFolder
@@ -318,13 +319,45 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         tree.select(url, lease: FolderLease(url), renewAccess: true)
         window?.makeFirstResponder(grid)
     }
-    @objc private func refreshFolder() {
+    @objc func refreshFolder() {
         tree.refresh()
         if let currentFolder, let lease { loadFolder(currentFolder, lease: lease) }
     }
-    @objc private func parentFolder() {
+    @objc func parentFolder() {
         guard let currentFolder, let lease, currentFolder != lease.url else { return }
         tree.select(currentFolder.deletingLastPathComponent(), lease: lease)
+    }
+    @objc func openSelectedPhoto() {
+        if let index = list.selectedIndex { openViewer(at: index) }
+    }
+    @objc func previousPhoto() {
+        if let index = list.selectedIndex { showPhoto(index - 1) }
+    }
+    @objc func nextPhoto() {
+        if let index = list.selectedIndex { showPhoto(index + 1) }
+    }
+    @objc func toggleTagFromMenu() {
+        if NSApp.currentEvent?.isARepeat != true { toggleCurrentTag() }
+    }
+    @objc func trashFromMenu() {
+        if NSApp.currentEvent?.isARepeat != true { trashCurrentPhoto() }
+    }
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        guard !finishingTagWrites, NSApp.modalWindow == nil else { return false }
+        switch menuItem.action {
+        case #selector(openFolder): return true
+        case #selector(parentFolder): return up.isEnabled
+        case #selector(refreshFolder): return currentFolder != nil
+        case #selector(previousPhoto): return (list.selectedIndex ?? 0) > 0
+        case #selector(nextPhoto): return list.selectedIndex.map { $0 + 1 < list.photos.count } ?? false
+        case #selector(trashFromMenu): return list.selectedPhoto != nil && !isTrashing
+        case #selector(openSelectedPhoto), #selector(toggleTagFromMenu): return list.selectedPhoto != nil
+        default: return false
+        }
+    }
+    func finishPendingTagWrites(completion: @escaping () -> Void) {
+        finishingTagWrites = true
+        tagStore.finishPendingWrites(completion: completion)
     }
     private func loadFolder(_ url: URL, lease: FolderLease) {
         generation = UUID(); let token = generation
@@ -471,7 +504,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         }
     }
     private func toggleCurrentTag() {
-        guard let photo = list.selectedPhoto else { return }
+        guard !finishingTagWrites, let photo = list.selectedPhoto else { return }
         tagStore.toggle(photo.url) { [weak self] result in
             guard let self else { return }
             switch result {

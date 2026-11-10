@@ -64,6 +64,39 @@ final class PhotoActionsTests: XCTestCase {
         TagStore(fileURL: file).load { result in XCTAssertEqual(try? result.get(), []); loaded.fulfill() }
         wait(for: [loaded], timeout: 5)
     }
+    func testImmediateFinishPersistsTagsAndUntaggingAcrossSessions() throws {
+        let file = try folder().appendingPathComponent("metadata/tags.json")
+        let raw = URL(fileURLWithPath: "/photos/DSC.ARW"), jpg = URL(fileURLWithPath: "/photos/DSC.JPG")
+        let first = TagStore(fileURL: file)
+        var callbacks: [Bool] = []
+        for url in [raw, jpg, raw] {
+            first.toggle(url) { result in
+                do { callbacks.append(try result.get()) } catch { XCTFail(error.localizedDescription) }
+            }
+        }
+        // Request normal exit immediately, without waiting for any save callback.
+        let finished = expectation(description: "all writes and callbacks finished")
+        first.finishPendingWrites {
+            XCTAssertTrue(Thread.isMainThread)
+            XCTAssertEqual(callbacks, [true, true, false]); finished.fulfill()
+        }
+        wait(for: [finished], timeout: 5)
+        let second = TagStore(fileURL: file)
+        let restored = expectation(description: "new session reads disk")
+        second.load { result in
+            XCTAssertEqual(try? result.get(), Set([TagStore.key(jpg)])); restored.fulfill()
+        }
+        wait(for: [restored], timeout: 5)
+        second.toggle(jpg) { result in XCTAssertEqual(try? result.get(), false) }
+        let finishedAgain = expectation(description: "untag written before exit")
+        second.finishPendingWrites { finishedAgain.fulfill() }
+        wait(for: [finishedAgain], timeout: 5)
+        let empty = expectation(description: "untag survives another session")
+        TagStore(fileURL: file).load { result in
+            XCTAssertEqual(try? result.get(), []); empty.fulfill()
+        }
+        wait(for: [empty], timeout: 5)
+    }
     func testCorruptTagMetadataIsPreserved() throws {
         let file = try folder().appendingPathComponent("tags.json")
         let bytes = Data("invalid existing metadata".utf8); try bytes.write(to: file)
@@ -78,10 +111,13 @@ final class PhotoActionsTests: XCTestCase {
         let root = try folder(); let blocker = root.appendingPathComponent("not-a-directory")
         try Data("keep".utf8).write(to: blocker)
         let done = expectation(description: "write failure")
-        TagStore(fileURL: blocker.appendingPathComponent("tags.json")).toggle(URL(fileURLWithPath: "/1.jpg")) { result in
+        let store = TagStore(fileURL: blocker.appendingPathComponent("tags.json"))
+        store.toggle(URL(fileURLWithPath: "/1.jpg")) { result in
             if case .success = result { XCTFail("Must report metadata failure") }; done.fulfill()
         }
-        wait(for: [done], timeout: 5)
+        let finished = expectation(description: "failed save does not hang normal exit")
+        store.finishPendingWrites { finished.fulfill() }
+        wait(for: [done, finished], timeout: 5, enforceOrder: true)
         XCTAssertEqual(try Data(contentsOf: blocker), Data("keep".utf8))
     }
     func testTrashMovesOnlyRequestedFileAndKeepsPair() throws {
