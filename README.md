@@ -2,13 +2,16 @@
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[0.2.2 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.2.2-arm64.dmg)
+[0.2.3 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.2.3-arm64.dmg)
 
 DMG를 열고 **정광이의 MAC 포토셀렉터.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 앱을 종료한 뒤 새 버전으로 교체하세요. 예전 `PhotoSelect.app`이 남아 있다면 이전 앱만 휴지통으로 옮기세요.
 Developer ID 서명/Apple 공증이 없는 개인 테스트용입니다. macOS가 차단하면 출처를 확인한 후 개인정보 보호 및 보안의 실행 허용 안내를 따르세요.
 
 ## 사용
+
+화면 최상단 macOS 메뉴 막대에 **파일·보기·사진·윈도우** 메뉴를 제공합니다. 창 안의 작은 도구바 아래에 세 영역이 나란히 배치됩니다.
+파일 메뉴의 폴더 열기는 `⌘O`, 새로고침은 `⌘R`, 상위 폴더는 `⌘↑`, 선택 사진 크게 보기는 보기 메뉴 또는 Return입니다.
 
 - **왼쪽:** 홈·데스크탑·이 Mac·저장장치 폴더 트리. 폴더를 선택하면 해당 폴더의 사진을 비동기로 읽습니다.
 - **가운데:** 현재 폴더의 지원 사진 전체를 썸네일로 표시합니다. 파일명은 아래에 두 줄까지, 전체 이름은 툴팁으로 확인합니다.
@@ -21,7 +24,7 @@ Developer ID 서명/Apple 공증이 없는 개인 테스트용입니다. macOS�
 
 태그와 삭제는 파일 목록 또는 큰 사진 창에 키보드 초점이 있을 때 작동합니다. Delete/태그의 키 자동 반복은 무시합니다.
 휴지통 이동은 확인 창 없이 한 장씩 실행하며, 실패 시 영구 삭제로 대체하지 않습니다. RAW/JPEG 동명 쌍은 독립 파일입니다.
-태그는 원본을 수정하지 않고 `~/Library/Application Support/dev.photoselect.app/tags.json`에 원자적으로 저장합니다.
+태그는 원본을 수정하지 않고 `~/Library/Application Support/dev.photoselect.app/tags.json`에 원자적으로 저장합니다. 앱을 다시 열거나 Mac을 정상 재부팅한 뒤 같은 사진 폴더를 선택하면 태그를 복원합니다. 마지막 태그 직후 앱을 종료해도 대기 중인 저장을 마친 뒤 정상 종료합니다.
 프로그램과 큰 사진 창은 화면의 논리 포인트 크기에 맞춰 열고, 모니터 이동·분리·배율 변경 시 화면 안으로 조정합니다. 열린 뷰어에서 직접 조절한 크기는 같은 화면에서 다른 사진을 열어도 유지합니다.
 Dock 자동 가리기는 macOS 설정을 따릅니다. 데스크탑 접근이 거부됐었다면 **폴더 열기**로 데스크탑을 다시 선택하세요. 새 접근 권한으로 실패 캐시를 비우고 폴더를 다시 읽습니다.
 
@@ -35,7 +38,7 @@ macOS 13+, Xcode 15+가 필요합니다. 외부 패키지, 서버, API 키는 �
 2. `bash scripts/validate-macos.sh`로 앱 빌드와 Swift Package XCTest 실행.
 3. `설치파일-만들기.command`를 더블클릭하거나 `bash scripts/package-macos.sh`로 테스트·Release 빌드·DMG 검증 실행.
 
-기본 결과물은 `dist/PhotoSelect-0.2.2-1-arm64/PhotoSelect-0.2.2-1-arm64.dmg`와 `SHA256SUMS`입니다.
+기본 결과물은 `dist/PhotoSelect-0.2.3-1-arm64/PhotoSelect-0.2.3-1-arm64.dmg`와 `SHA256SUMS`입니다.
 다시 만들 때는 `PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh`처럼 빌드 번호를 늘리세요.
 Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배포용 앱과 아이콘은 Xcode 프로젝트로 만듭니다.
 각 작업은 격리된 체크아웃을 사용하므로 별도 worktree는 필요하지 않습니다.
@@ -46,7 +49,7 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 
 ## 구조 및 제한
 
-- `App.swift`: 앱 생명주기, 이름, 메뉴
+- `App.swift`: 앱 생명주기, 이름, 표준 메뉴, 종료 전 태그 저장 대기
 - `Browser.swift`: 3영역 화면, 썸네일/미리보기, 선택·태그·휴지통 UI 연결
 - `FolderTree.swift`: 지연 로딩 폴더 트리와 접근 수명
 - `PhotoModel.swift`: 지원 파일, 삭제 후 선택 상태, 화면별 창/분할 크기, Retina 확대 좌표
