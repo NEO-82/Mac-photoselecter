@@ -337,10 +337,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         if let index = list.selectedIndex { showPhoto(index + 1) }
     }
     @objc func toggleTagFromMenu() {
-        if NSApp.currentEvent?.isARepeat != true { toggleCurrentTag() }
+        if let event = NSApp.currentEvent, event.type == .keyDown, event.isARepeat { return }
+        toggleCurrentTag()
     }
     @objc func trashFromMenu() {
-        if NSApp.currentEvent?.isARepeat != true { trashCurrentPhoto() }
+        if let event = NSApp.currentEvent, event.type == .keyDown, event.isARepeat { return }
+        trashCurrentPhoto()
     }
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         guard !finishingTagWrites, NSApp.modalWindow == nil else { return false }
