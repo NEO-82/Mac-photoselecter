@@ -73,11 +73,11 @@ enum WindowLayout {
                       y: min(max(frame.minY, safe.minY), safe.maxY - size.height),
                       width: size.width, height: size.height)
     }
-    static func columns(for width: CGFloat, divider: CGFloat = 1) -> Columns {
+    static func columns(for width: CGFloat, divider: CGFloat = 1, preferredFolders: CGFloat? = nil, preferredPreview: CGFloat? = nil) -> Columns {
         let usable = max(0, width - divider * 2)
-        var folders = min(240, max(144, usable * 0.18))
-        var preview = min(320, max(168, usable * 0.22))
-        let photoMinimum = min(300, usable * 0.5)
+        var folders = max(144, preferredFolders ?? min(240, max(144, usable * 0.18)))
+        var preview = max(168, preferredPreview ?? min(320, max(168, usable * 0.22)))
+        let photoMinimum = (preferredFolders != nil || preferredPreview != nil) ? min(300, usable * 0.5) : usable * 0.5
         let sideBudget = usable - photoMinimum
         if folders + preview > sideBudget {
             let scale = sideBudget / (folders + preview)

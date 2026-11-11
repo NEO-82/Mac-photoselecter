@@ -21,13 +21,38 @@ final class FolderNode: NSObject {
     }
 }
 
+// Keep AppKit's target/action and hit testing for disclosure. Supplying a real
+// NSTableCellView below prevents content views from covering its reserved gutter.
+final class FileOutlineView: NSOutlineView {
+    override func makeView(withIdentifier identifier: NSUserInterfaceItemIdentifier, owner: Any?) -> NSView? {
+        let result = super.makeView(withIdentifier: identifier, owner: owner)
+        if identifier == NSOutlineView.disclosureButtonIdentifier, let button = result as? NSButton {
+            let configuration = NSImage.SymbolConfiguration(pointSize: 10, weight: .semibold)
+            button.image = NSImage(systemSymbolName: "chevron.right", accessibilityDescription: "폴더 펼치기")?.withSymbolConfiguration(configuration)
+            button.alternateImage = NSImage(systemSymbolName: "chevron.down", accessibilityDescription: "폴더 접기")?.withSymbolConfiguration(configuration)
+            button.contentTintColor = ProTheme.secondary
+        }
+        return result
+    }
+}
+
+private final class FolderRowView: NSTableRowView {
+    override func drawSelection(in dirtyRect: NSRect) {
+        guard selectionHighlightStyle != .none else { return }
+        ProTheme.selection.setFill()
+        NSBezierPath(roundedRect: bounds.insetBy(dx: 4, dy: 2), xRadius: 5, yRadius: 5).fill()
+    }
+}
+
 final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate {
-    let view = NSOutlineView()
+    let view = FileOutlineView()
     var onSelect: ((FolderNode) -> Void)?
     private(set) var roots: [FolderNode]
-    var showHidden = false { didSet { refresh(all: true) } }
+    var showHidden = false { didSet { if oldValue != showHidden { refresh(all: true) } } }
     private let directoryReader: (URL) throws -> [URL]
     private var suppressSelection = false
+    private var expandedLocations: Set<String> = []
+    private var selectionToRestore: URL?
 
     init(roots: [FolderNode]? = nil, directoryReader: @escaping (URL) throws -> [URL] = {
         try FolderReader.entries($0, directories: true, allFiles: true, showHidden: true)
@@ -44,9 +69,16 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
         self.directoryReader = directoryReader
         super.init()
         let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("folder"))
-        column.title = "폴더"; column.width = 210
+        column.title = "파일 탐색기"; column.width = 250; column.minWidth = 80
         view.addTableColumn(column); view.outlineTableColumn = column
-        view.headerView = nil; view.rowHeight = 26
+        view.headerView = nil; view.rowHeight = 28
+        view.style = .sourceList
+        view.indentationPerLevel = 18
+        view.indentationMarkerFollowsCell = true
+        view.intercellSpacing = NSSize(width: 0, height: 2)
+        view.backgroundColor = ProTheme.panel
+        view.selectionHighlightStyle = .regular
+        view.usesAlternatingRowBackgroundColors = false
         view.autoresizingMask = [.width]
         view.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
         view.dataSource = self; view.delegate = self
@@ -59,6 +91,28 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
             second.standardizedFileURL.path.precomposedStringWithCanonicalMapping
     }
 
+    private func location(_ url: URL) -> String {
+        url.standardizedFileURL.path.precomposedStringWithCanonicalMapping
+    }
+
+    private func rememberExpanded(_ nodes: [FolderNode]) {
+        for node in nodes {
+            if node.expanded { expandedLocations.insert(location(node.url)) }
+            rememberExpanded(node.children ?? [])
+        }
+    }
+
+    private func restoreSelectionIfVisible() {
+        guard let url = selectionToRestore else { return }
+        for row in 0..<view.numberOfRows {
+            if let node = view.item(atRow: row) as? FolderNode, sameLocation(node.url, url) {
+                view.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+                selectionToRestore = nil
+                return
+            }
+        }
+    }
+
     func select(_ url: URL, lease: FolderLease? = nil, renewAccess: Bool = false) {
         func findPath(_ nodes: [FolderNode]) -> [FolderNode]? {
             for node in nodes {
@@ -67,6 +121,7 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
             }
             return nil
         }
+        selectionToRestore = nil
         let node: FolderNode
         var path = roots.first(where: { sameLocation($0.url, url) }).map { [$0] } ?? findPath(roots)
         suppressSelection = true
@@ -89,26 +144,34 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
         } else if let lease { node.lease = lease }
         for ancestor in (path ?? []).dropLast() {
             ancestor.expanded = true
+            expandedLocations.insert(location(ancestor.url))
             view.expandItem(ancestor)
         }
         let row = view.row(forItem: node)
         if row >= 0 { view.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false) }
         suppressSelection = false
         node.expanded = true
+        expandedLocations.insert(location(node.url))
         load(node)
         view.expandItem(node)
         onSelect?(node)
     }
 
     func refresh(all: Bool = false) {
+        rememberExpanded(roots)
         suppressSelection = true
         let selected = view.item(atRow: view.selectedRow) as? FolderNode
+        if let selected {
+            let hidden = selected.url.lastPathComponent.hasPrefix(".") || (try? selected.url.resourceValues(forKeys: [.isHiddenKey]).isHidden) == true
+            selectionToRestore = !showHidden && hidden ? selected.url.deletingLastPathComponent() : selected.url
+        }
         let nodes = all ? roots : selected.flatMap { $0.isDirectory ? [$0] : nil } ?? roots
         for node in nodes {
             node.invalidate()
             view.reloadItem(node, reloadChildren: true)
         }
         for node in nodes where node.expanded { load(node) }
+        restoreSelectionIfVisible()
         suppressSelection = false
     }
 
@@ -123,8 +186,10 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
             return nil
         }
         guard let node = find(roots) else { return }
+        rememberExpanded(roots)
         let selected = view.item(atRow: view.selectedRow) as? FolderNode
         let selectFolder = selected === node || node.children?.contains(where: { $0 === selected }) == true
+        if let selected { selectionToRestore = selectFolder ? node.url : selected.url }
         suppressSelection = true
         node.invalidate()
         view.reloadItem(node, reloadChildren: true)
@@ -173,6 +238,12 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
                 self.suppressSelection = true
                 self.view.reloadItem(node, reloadChildren: true)
                 if node.error == nil && node.expanded { self.view.expandItem(node) }
+                for child in node.children ?? [] where child.isDirectory && self.expandedLocations.contains(self.location(child.url)) {
+                    child.expanded = true
+                    self.view.expandItem(child)
+                    self.load(child)
+                }
+                self.restoreSelectionIfVisible()
                 self.suppressSelection = false
             }
         }
@@ -193,11 +264,19 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
     func outlineView(_ outlineView: NSOutlineView, shouldExpandItem item: Any) -> Bool {
         guard let node = item as? FolderNode, node.isDirectory else { return false }
         if node.error != nil && !suppressSelection { node.invalidate() }
-        node.expanded = true; load(node); return true
+        node.expanded = true; expandedLocations.insert(location(node.url)); load(node); return true
     }
     func outlineView(_ outlineView: NSOutlineView, shouldCollapseItem item: Any) -> Bool {
-        (item as? FolderNode)?.expanded = false
+        if !suppressSelection, let node = item as? FolderNode {
+            node.expanded = false; expandedLocations.remove(location(node.url))
+        }
         return true
+    }
+    func outlineView(_ outlineView: NSOutlineView, shouldShowOutlineCellForItem item: Any) -> Bool {
+        self.outlineView(outlineView, isItemExpandable: item)
+    }
+    func outlineView(_ outlineView: NSOutlineView, rowViewForItem item: Any) -> NSTableRowView? {
+        FolderRowView()
     }
     func outlineViewSelectionDidChange(_ notification: Notification) {
         guard !suppressSelection, let node = view.item(atRow: view.selectedRow) as? FolderNode else { return }
@@ -211,14 +290,29 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
     }
     func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
         guard let node = item as? FolderNode else { return nil }
+        let cell = NSTableCellView()
         let label = NSTextField(labelWithString: node.title)
-        let icon = NSImageView(image: NSWorkspace.shared.icon(forFile: node.url.path))
-        icon.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([icon.widthAnchor.constraint(equalToConstant: 18), icon.heightAnchor.constraint(equalToConstant: 18)])
-        let row = NSStackView(views: [icon, label]); row.spacing = 8; row.alignment = .centerY
+        label.font = .systemFont(ofSize: 12)
+        label.textColor = node.error == nil ? ProTheme.text : .systemRed
         label.lineBreakMode = .byTruncatingMiddle
-        label.toolTip = node.error.map { $0 + "\n" + node.url.path } ?? node.url.path
-        if node.error != nil { label.textColor = .systemRed }
-        return row
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        let icon = NSImageView()
+        if node.isDirectory {
+            icon.image = NSImage(systemSymbolName: "folder.fill", accessibilityDescription: "폴더")
+            icon.contentTintColor = ProTheme.accent
+        } else { icon.image = NSWorkspace.shared.icon(forFile: node.url.path) }
+        icon.imageScaling = .scaleProportionallyDown
+        for child in [icon, label] { child.translatesAutoresizingMaskIntoConstraints = false; cell.addSubview(child) }
+        cell.imageView = icon; cell.textField = label
+        cell.toolTip = node.error.map { $0 + "\n" + node.url.path } ?? node.url.path
+        NSLayoutConstraint.activate([
+            icon.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 2),
+            icon.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
+            icon.widthAnchor.constraint(equalToConstant: 17), icon.heightAnchor.constraint(equalToConstant: 17),
+            label.leadingAnchor.constraint(equalTo: icon.trailingAnchor, constant: 7),
+            label.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -6),
+            label.centerYAnchor.constraint(equalTo: cell.centerYAnchor)
+        ])
+        return cell
     }
 }

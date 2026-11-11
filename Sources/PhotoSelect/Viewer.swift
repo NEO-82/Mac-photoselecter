@@ -37,6 +37,8 @@ final class PhotoCanvas: NSView {
     var trashCurrent: (() -> Void)?
     var toggleTag: (() -> Void)?
     private var pressed = false
+    private var mouseHeld = false
+    private var zoomTimer: Timer?
     private var cursor = CGPoint.zero
     override var acceptsFirstResponder: Bool { true }
     override func draw(_ dirtyRect: NSRect) {
@@ -59,16 +61,37 @@ final class PhotoCanvas: NSView {
         context.draw(image, in: rect)
     }
     override func mouseDown(with event: NSEvent) {
-        // The second press closes before it can request another full decode.
-        if event.clickCount == 2 { resetZoom(); close?(); return }
-        pressed = true; cursor = convert(event.locationInWindow, from: nil)
-        zoomChanged?(true); needsDisplay = true
+        // A quick double-click must not briefly zoom or request the RAW original.
+        // Resolve a stationary press using the user's macOS double-click interval;
+        // dragging makes the intent to inspect unambiguous and zooms immediately.
+        if event.clickCount >= 2 { resetZoom(); close?(); return }
+        resetZoom()
+        mouseHeld = true; cursor = convert(event.locationInWindow, from: nil)
+        let timer = Timer(timeInterval: NSEvent.doubleClickInterval, repeats: false) { [weak self] _ in
+            self?.activateZoom()
+        }
+        zoomTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+    private func activateZoom() {
+        guard mouseHeld, !pressed else { return }
+        zoomTimer?.invalidate(); zoomTimer = nil
+        pressed = true; zoomChanged?(true); needsDisplay = true
     }
     override func mouseDragged(with event: NSEvent) {
-        cursor = convert(event.locationInWindow, from: nil); needsDisplay = true
+        cursor = convert(event.locationInWindow, from: nil)
+        activateZoom(); needsDisplay = true
     }
     override func mouseUp(with event: NSEvent) { resetZoom() }
-    func resetZoom() { pressed = false; zoomChanged?(false); needsDisplay = true }
+    func resetZoom() {
+        zoomTimer?.invalidate(); zoomTimer = nil; mouseHeld = false
+        if pressed { pressed = false; zoomChanged?(false) }
+        needsDisplay = true
+    }
+    override func viewWillMove(toWindow newWindow: NSWindow?) {
+        if newWindow == nil { resetZoom() }
+        super.viewWillMove(toWindow: newWindow)
+    }
     override func keyDown(with event: NSEvent) {
         if let action = PhotoShortcuts.editingAction(event) {
             if !event.isARepeat {

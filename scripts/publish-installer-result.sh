@@ -13,6 +13,11 @@ if [[ -f .build/browser-layout.png ]]; then
 else
     rm -f downloads/browser-layout.png
 fi
+for theme in dark light; do
+    if [[ -f ".build/browser-$theme.png" ]]; then
+        cp ".build/browser-$theme.png" "downloads/browser-$theme.png"
+    fi
+done
 artifact="PhotoSelect-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
 filename="PhotoSelect-${PHOTOSELECT_VERSION}-arm64.dmg"
 if [[ "$PACKAGE_OUTCOME" == success ]]; then

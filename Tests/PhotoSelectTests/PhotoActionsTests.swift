@@ -145,4 +145,87 @@ final class PhotoActionsTests: XCTestCase {
         wait(for: [done], timeout: 5)
         XCTAssertEqual(try Data(contentsOf: photo), bytes)
     }
+    func testTrashReceiptCapturesDestinationAndExternalSpaceGuidance() throws {
+        let root = try folder(), destinationFolder = try folder()
+        let photo = root.appendingPathComponent("photo.jpg")
+        let destination = destinationFolder.appendingPathComponent("photo.jpg")
+        try Data("receipt fixture".utf8).write(to: photo)
+        let service = PhotoTrash.recordingMove { url in
+            try FileManager.default.moveItem(at: url, to: destination)
+            return destination
+        }
+        let done = expectation(description: "trash receipt returned")
+        service.trash(Photo(url: photo), lease: FolderLease(root)) { result in
+            switch result {
+            case .success(let receipt):
+                XCTAssertEqual(receipt.originalURL, photo)
+                XCTAssertEqual(receipt.trashURL, destination)
+            case .failure(let error): XCTFail(error.localizedDescription)
+            }
+            done.fulfill()
+        }
+        wait(for: [done], timeout: 5)
+        let external = TrashReceipt(originalURL: photo, trashURL: destination, volumeName: "TEST SD", isExternalVolume: true)
+        XCTAssertTrue(external.storageNotice?.contains("TEST SD") == true)
+        XCTAssertTrue(external.storageNotice?.contains("저장 공간") == true)
+        XCTAssertTrue(external.storageNotice?.contains("연결") == true)
+        XCTAssertNil(TrashReceipt(originalURL: photo, trashURL: destination, volumeName: nil, isExternalVolume: false).storageNotice)
+    }
+
+    func testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting() throws {
+        let root = try folder(), photo = root.appendingPathComponent("keep.jpg")
+        let bytes = Data("preserve this original".utf8)
+        try bytes.write(to: photo)
+        let cases: [(CocoaError.Code, String)] = [(.featureUnsupported, "지원하지"),
+            (.fileWriteVolumeReadOnly, "읽기 전용"), (.fileWriteNoPermission, "쓰기 권한"),
+            (.fileReadNoSuchFile, "찾을 수 없")]
+        for (code, expected) in cases {
+            let service = PhotoTrash { _ in throw CocoaError(code) }
+            let done = expectation(description: "trash fails safely: \(code.rawValue)")
+            service.trash(Photo(url: photo), lease: FolderLease(root)) { result in
+                switch result {
+                case .success: XCTFail("A rejected trash operation must not succeed")
+                case .failure(let error):
+                    XCTAssertTrue(PhotoTrash.errorMessage(for: error).contains(expected))
+                    XCTAssertTrue(PhotoTrash.errorMessage(for: error).contains("영구 삭제하지 않았습니다"))
+                }
+                done.fulfill()
+            }
+            wait(for: [done], timeout: 5)
+            XCTAssertEqual(try Data(contentsOf: photo), bytes)
+        }
+    }
+
+    // Exercise the real macOS API only with a uniquely named disposable fixture.
+    // Restore the returned item; never empty Trash or touch any unrelated item.
+    func testNativeMacOSTrashReturnsRecoverableFixture() throws {
+        let root = try folder()
+        let photo = root.appendingPathComponent("PhotoSelect-trash-test-" + UUID().uuidString + ".jpg")
+        let bytes = Data("native macOS trash fixture".utf8)
+        try bytes.write(to: photo)
+        let done = expectation(description: "native Trash API completed")
+        var receipt: TrashReceipt?
+        var failure: Error?
+        PhotoTrash().trash(Photo(url: photo), lease: FolderLease(root)) { result in
+            switch result {
+            case .success(let value): receipt = value
+            case .failure(let error): failure = error
+            }
+            done.fulfill()
+        }
+        wait(for: [done], timeout: 10)
+        if let failure { throw failure }
+        let destination = try XCTUnwrap(receipt?.trashURL)
+        addTeardownBlock {
+            // Only the exact UUID fixture returned by the OS can be removed.
+            if destination.lastPathComponent == photo.lastPathComponent {
+                try? FileManager.default.removeItem(at: destination)
+            }
+        }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: photo.path))
+        XCTAssertEqual(try Data(contentsOf: destination), bytes)
+        try FileManager.default.moveItem(at: destination, to: photo)
+        XCTAssertEqual(try Data(contentsOf: photo), bytes)
+    }
+
 }

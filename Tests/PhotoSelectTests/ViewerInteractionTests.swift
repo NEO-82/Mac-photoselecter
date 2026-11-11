@@ -19,6 +19,19 @@ final class ViewerInteractionTests: XCTestCase {
     }
 
     @MainActor
+    private func waitPastClickInterval() {
+        let elapsed = expectation(description: "macOS double-click interval elapsed")
+        DispatchQueue.main.asyncAfter(deadline: .now() + NSEvent.doubleClickInterval + 0.05) { elapsed.fulfill() }
+        wait(for: [elapsed], timeout: NSEvent.doubleClickInterval + 2)
+    }
+
+    @MainActor
+    private func holdUntilZoomStarts(_ canvas: PhotoCanvas) {
+        canvas.mouseDown(with: mouse(.leftMouseDown))
+        waitPastClickInterval()
+    }
+
+    @MainActor
     private func arrow(_ code: UInt16, repeated: Bool = false) -> NSEvent {
         let character = code == 123 ? "\u{F702}" : code == 124 ? "\u{F703}" : "\u{1B}"
         return NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
@@ -37,7 +50,7 @@ final class ViewerInteractionTests: XCTestCase {
     }
 
     @MainActor
-    func testDoubleClickClosesWithoutStartingAnotherZoom() {
+    func testQuickDoubleClickClosesWithoutEverStartingZoom() {
         let canvas = makeCanvas()
         var closes = 0
         var zooms: [Bool] = []
@@ -47,7 +60,60 @@ final class ViewerInteractionTests: XCTestCase {
         canvas.mouseUp(with: mouse(.leftMouseUp))
         canvas.mouseDown(with: mouse(.leftMouseDown, clicks: 2))
         XCTAssertEqual(closes, 1)
-        XCTAssertEqual(zooms, [true, false, false])
+        waitPastClickInterval()
+        XCTAssertEqual(zooms, [])
+    }
+
+    @MainActor
+    func testShortClickReleaseDoesNotCauseDelayedZoom() {
+        let canvas = makeCanvas()
+        canvas.decoded = image(raw: false)
+        var zooms: [Bool] = []
+        canvas.zoomChanged = { zooms.append($0) }
+        canvas.mouseDown(with: mouse(.leftMouseDown))
+        canvas.mouseUp(with: mouse(.leftMouseUp))
+        waitPastClickInterval()
+        XCTAssertTrue(zooms.isEmpty)
+        XCTAssertFalse(isRenderedZoomed(canvas))
+    }
+
+    @MainActor
+    func testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer() {
+        let canvas = makeCanvas()
+        canvas.decoded = image(raw: false)
+        canvas.mouseDown(with: mouse(.leftMouseDown))
+        XCTAssertFalse(isRenderedZoomed(canvas))
+        canvas.mouseDragged(with: mouse(.leftMouseDragged))
+        XCTAssertTrue(isRenderedZoomed(canvas))
+        canvas.mouseUp(with: mouse(.leftMouseUp))
+        XCTAssertFalse(isRenderedZoomed(canvas))
+    }
+
+    @MainActor
+    func testEscapeCancelsPendingZoomBeforeClosing() {
+        let canvas = makeCanvas()
+        var closes = 0
+        var zooms: [Bool] = []
+        canvas.close = { closes += 1 }
+        canvas.zoomChanged = { zooms.append($0) }
+        canvas.mouseDown(with: mouse(.leftMouseDown))
+        canvas.keyDown(with: arrow(53))
+        waitPastClickInterval()
+        XCTAssertEqual(closes, 1)
+        XCTAssertTrue(zooms.isEmpty)
+    }
+
+    @MainActor
+    func testDeactivationCancelsPendingZoom() {
+        _ = NSApplication.shared
+        let viewer = ViewerController()
+        defer { viewer.close() }
+        var zooms: [Bool] = []
+        viewer.canvas.zoomChanged = { zooms.append($0) }
+        viewer.canvas.mouseDown(with: mouse(.leftMouseDown))
+        NotificationCenter.default.post(name: NSApplication.didResignActiveNotification, object: NSApp)
+        waitPastClickInterval()
+        XCTAssertTrue(zooms.isEmpty)
     }
 
     // The 2:1 image leaves this sample black in Fit; at 1:1 it fills the view.
@@ -71,7 +137,7 @@ final class ViewerInteractionTests: XCTestCase {
         let canvas = makeCanvas()
         canvas.decoded = image(raw: false)
         XCTAssertFalse(isRenderedZoomed(canvas))
-        canvas.mouseDown(with: mouse(.leftMouseDown))
+        holdUntilZoomStarts(canvas)
         XCTAssertTrue(isRenderedZoomed(canvas))
         canvas.mouseUp(with: mouse(.leftMouseUp))
         XCTAssertFalse(isRenderedZoomed(canvas))
@@ -96,7 +162,7 @@ final class ViewerInteractionTests: XCTestCase {
         }
         defer { canvas.navigate = nil }
 
-        canvas.mouseDown(with: mouse(.leftMouseDown))
+        holdUntilZoomStarts(canvas)
         canvas.keyDown(with: arrow(123)) // At the first photo, zoom must survive a no-op.
         XCTAssertEqual(index, 0)
         XCTAssertTrue(isRenderedZoomed(canvas))
@@ -142,7 +208,7 @@ final class ViewerInteractionTests: XCTestCase {
             }
         }
         defer { canvas.navigate = nil }
-        canvas.mouseDown(with: mouse(.leftMouseDown))
+        holdUntilZoomStarts(canvas)
         canvas.keyDown(with: arrow(124))
         canvas.mouseUp(with: mouse(.leftMouseUp))
         XCTAssertFalse(isRenderedZoomed(canvas))
@@ -156,7 +222,7 @@ final class ViewerInteractionTests: XCTestCase {
         canvas.decoded = image(raw: false)
         var closed = false
         canvas.close = { closed = true }
-        canvas.mouseDown(with: mouse(.leftMouseDown))
+        holdUntilZoomStarts(canvas)
         canvas.keyDown(with: arrow(53))
         XCTAssertTrue(closed)
         XCTAssertFalse(isRenderedZoomed(canvas))
@@ -172,7 +238,7 @@ final class ViewerInteractionTests: XCTestCase {
                              windowNumber: 0, context: nil, characters: characters,
                              charactersIgnoringModifiers: characters, isARepeat: repeated, keyCode: code)!
         }
-        canvas.mouseDown(with: mouse(.leftMouseDown))
+        holdUntilZoomStarts(canvas)
         canvas.keyDown(with: key(51, "\u{7F}"))
         canvas.keyDown(with: key(51, "\u{7F}", repeated: true))
         canvas.keyDown(with: key(117, "\u{F728}"))

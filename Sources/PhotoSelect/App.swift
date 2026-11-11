@@ -4,6 +4,37 @@ enum AppBranding {
     static let displayName = "정광이의 MAC 포토셀렉터"
 }
 
+// Semantic colors resolve for the view's effective appearance, including live theme changes.
+enum ProTheme {
+    private static func color(_ dark: UInt32, _ light: UInt32) -> NSColor {
+        NSColor(name: nil) { appearance in
+            let value = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
+            return NSColor(srgbRed: CGFloat((value >> 16) & 255) / 255,
+                           green: CGFloat((value >> 8) & 255) / 255,
+                           blue: CGFloat(value & 255) / 255, alpha: 1)
+        }
+    }
+    static let background = color(0x202329, 0xF4F3F4)
+    static let panel = color(0x2D3037, 0xECEBED)
+    static let canvas = color(0x292C32, 0xFAF9FA)
+    static let selection = color(0x614650, 0xE9D3DA)
+    static let accent = color(0xD4A0AC, 0x95586B)
+    static let text = color(0xF3F3F4, 0x252831)
+    static let secondary = color(0xB9BBC3, 0x666974)
+}
+
+class ProSurfaceView: NSView {
+    var fillColor: NSColor = ProTheme.panel { didSet { needsDisplay = true } }
+    var cornerRadius: CGFloat = 0
+    override func draw(_ dirtyRect: NSRect) {
+        fillColor.setFill()
+        NSBezierPath(roundedRect: bounds, xRadius: cornerRadius, yRadius: cornerRadius).fill()
+    }
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance(); needsDisplay = true
+    }
+}
+
 enum AppMenus {
     static func make(for browser: BrowserController) -> NSMenu {
         let main = NSMenu()
@@ -64,7 +95,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var browser: BrowserController?
     private var terminationPending = false
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.appearance = NSAppearance(named: .darkAqua)
+        let savedTheme = UserDefaults.standard.object(forKey: "appearancePreference") as? Int ?? 2
+        NSApp.appearance = savedTheme == 0 ? nil : NSAppearance(named: savedTheme == 1 ? .aqua : .darkAqua)
         let browser = BrowserController(); self.browser = browser
         NSApp.mainMenu = AppMenus.make(for: browser)
         NSApp.windowsMenu = NSApp.mainMenu?.item(withTitle: "윈도우")?.submenu

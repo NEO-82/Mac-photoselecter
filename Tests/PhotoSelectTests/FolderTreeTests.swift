@@ -100,4 +100,101 @@ final class FolderTreeTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(tree.view.row(forItem: target), 0)
         XCTAssertEqual(tree.view.selectedRow, tree.view.row(forItem: target))
     }
+    @MainActor
+    func testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter() throws {
+        _ = NSApplication.shared
+        let root = try folder(), childURL = root.appendingPathComponent("Child", isDirectory: true)
+        let lease = FolderLease(root)
+        let parent = FolderNode(url: root, lease: lease)
+        let child = FolderNode(url: childURL, lease: lease, isDirectory: true)
+        child.children = []; parent.children = [child]
+        let tree = FolderTree(roots: [parent], directoryReader: { _ in [] })
+        let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 320, height: 300))
+        tree.view.frame = scroll.bounds; scroll.documentView = tree.view
+        let window = NSWindow(contentRect: scroll.frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false; window.contentView = scroll
+        defer { window.close() }
+        window.orderFront(nil); window.contentView?.layoutSubtreeIfNeeded(); window.displayIfNeeded()
+        XCTAssertTrue(tree.view.outlineTableColumn === tree.view.tableColumns.first)
+        XCTAssertEqual(tree.view.indentationPerLevel, 18)
+        XCTAssertTrue(tree.outlineView(tree.view, shouldShowOutlineCellForItem: parent))
+        XCTAssertFalse(tree.outlineView(tree.view, shouldShowOutlineCellForItem: child))
+        let gutter = tree.view.frameOfOutlineCell(atRow: 0)
+        XCTAssertGreaterThan(gutter.width, 0)
+        XCTAssertGreaterThan(gutter.height, 0)
+        let cell = try XCTUnwrap(tree.outlineView(tree.view, viewFor: tree.view.outlineTableColumn, item: parent) as? NSTableCellView)
+        XCTAssertNotNil(cell.imageView); XCTAssertNotNil(cell.textField)
+        var selections = 0
+        tree.onSelect = { _ in selections += 1 }
+        // Exercise AppKit's actual disclosure button target/action rather than
+        // calling our delegate directly. Neither click selects the folder.
+        func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap { descendants($0) } }
+        func disclosure() throws -> NSButton {
+            _ = tree.view.rowView(atRow: 0, makeIfNecessary: true)
+            return try XCTUnwrap(descendants(tree.view).compactMap { $0 as? NSButton }.first {
+                $0.identifier == NSOutlineView.disclosureButtonIdentifier
+            })
+        }
+        try disclosure().performClick(nil)
+        XCTAssertTrue(tree.view.isItemExpanded(parent))
+        XCTAssertEqual(tree.view.numberOfRows, 2)
+        try disclosure().performClick(nil)
+        XCTAssertFalse(tree.view.isItemExpanded(parent))
+        XCTAssertEqual(tree.view.numberOfRows, 1)
+        XCTAssertEqual(selections, 0)
+    }
+
+    @MainActor
+    func testHiddenRefreshPreservesExpandedPathAndSelectedFolder() throws {
+        _ = NSApplication.shared
+        let root = try folder(), nested = root.appendingPathComponent("Nested", isDirectory: true)
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        try Data().write(to: nested.appendingPathComponent("visible.jpg"))
+        try Data().write(to: nested.appendingPathComponent(".hidden.txt"))
+        let parent = FolderNode(url: root, lease: FolderLease(root))
+        let tree = FolderTree(roots: [parent])
+        tree.select(root)
+        waitUntil("initial child directory") { parent.children?.count == 1 }
+        tree.select(nested, lease: parent.lease)
+        waitUntil("initial nested entries") { (tree.view.item(atRow: tree.view.selectedRow) as? FolderNode)?.children?.count == 1 }
+        var selections = 0
+        tree.onSelect = { _ in selections += 1 }
+        tree.showHidden = true
+        waitUntil("expanded selection restored with hidden file") {
+            guard let selected = tree.view.item(atRow: tree.view.selectedRow) as? FolderNode else { return false }
+            return selected.url == nested && selected.children?.count == 2 && tree.view.isItemExpanded(selected)
+        }
+        XCTAssertTrue(tree.view.isItemExpanded(parent))
+        XCTAssertEqual(selections, 0)
+        tree.showHidden = false
+        waitUntil("hidden file removed without losing location") {
+            guard let selected = tree.view.item(atRow: tree.view.selectedRow) as? FolderNode else { return false }
+            return selected.url == nested && selected.children?.count == 1 && tree.view.isItemExpanded(selected)
+        }
+        XCTAssertEqual(selections, 0)
+    }
+
+    @MainActor
+    func testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        for index in 0..<750 {
+            for ext in ["ARW", "jpg"] { try Data().write(to: root.appendingPathComponent("image\(index).\(ext)")) }
+        }
+        for name in ["movie.mov", "document.pdf", "archive.zip", "notes.txt"] { try Data().write(to: root.appendingPathComponent(name)) }
+        let node = FolderNode(url: root, lease: FolderLease(root))
+        var reads = 0
+        let tree = FolderTree(roots: [node], directoryReader: { url in
+            XCTAssertFalse(Thread.isMainThread)
+            reads += 1
+            return try FolderReader.entries(url, directories: true, allFiles: true)
+        })
+        XCTAssertEqual(reads, 0)
+        tree.select(root)
+        waitUntil("1500 photos and general files enumerated") { node.children?.count == 1504 && !node.loading }
+        XCTAssertEqual(reads, 1)
+        XCTAssertEqual(try FolderReader.entries(root, directories: false).count, 1500)
+        XCTAssertTrue(node.children?.allSatisfy { !$0.isDirectory } == true)
+    }
+
 }

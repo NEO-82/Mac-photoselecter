@@ -72,18 +72,104 @@ final class TagStore {
     }
 }
 
+struct TrashReceipt {
+    let originalURL: URL
+    let trashURL: URL?
+    let volumeName: String?
+    let isExternalVolume: Bool
+
+    var storageNotice: String? {
+        guard isExternalVolume else { return nil }
+        let name = volumeName.map { "‘\($0)’ " } ?? "외장 "
+        return name + "저장장치의 휴지통으로 이동했습니다. 복원하려면 장치를 연결해 두세요. 휴지통을 비우기 전까지 저장 공간을 차지할 수 있습니다."
+    }
+}
+
+struct PhotoTrashFailure: LocalizedError {
+    let sourceURL: URL
+    let underlyingError: Error
+
+    var errorDescription: String? {
+        let error = underlyingError as NSError
+        if error.domain == NSCocoaErrorDomain {
+            switch error.code {
+            case CocoaError.Code.fileWriteVolumeReadOnly.rawValue:
+                return "읽기 전용 저장장치에서는 휴지통으로 이동할 수 없습니다."
+            case CocoaError.Code.fileWriteNoPermission.rawValue, CocoaError.Code.fileReadNoPermission.rawValue:
+                return "파일 또는 저장장치의 쓰기 권한이 없어 휴지통으로 이동하지 못했습니다."
+            case CocoaError.Code.fileReadNoSuchFile.rawValue, CocoaError.Code.fileNoSuchFile.rawValue:
+                return "파일을 찾을 수 없습니다. 저장장치가 분리되었거나 파일 위치가 변경되었을 수 있습니다."
+            case CocoaError.Code.featureUnsupported.rawValue:
+                return "이 저장장치는 macOS 휴지통 이동을 지원하지 않습니다."
+            default: break
+            }
+        }
+        if error.domain == NSPOSIXErrorDomain {
+            switch error.code {
+            case Int(POSIXErrorCode.EROFS.rawValue):
+                return "읽기 전용 저장장치에서는 휴지통으로 이동할 수 없습니다."
+            case Int(POSIXErrorCode.EACCES.rawValue), Int(POSIXErrorCode.EPERM.rawValue):
+                return "파일 또는 저장장치의 쓰기 권한이 없어 휴지통으로 이동하지 못했습니다."
+            case Int(POSIXErrorCode.ENOENT.rawValue), Int(POSIXErrorCode.ENODEV.rawValue), Int(POSIXErrorCode.ENXIO.rawValue):
+                return "파일 또는 저장장치를 찾을 수 없습니다. 연결 상태를 확인해 주세요."
+            case Int(POSIXErrorCode.ENOTSUP.rawValue):
+                return "이 저장장치는 macOS 휴지통 이동을 지원하지 않습니다."
+            default: break
+            }
+        }
+        return "휴지통으로 이동하지 못했습니다: " + error.localizedDescription
+    }
+    var failureReason: String? { underlyingError.localizedDescription }
+    var recoverySuggestion: String? {
+        "파일을 영구 삭제하지 않았습니다. 저장장치 연결, 쓰기 권한과 휴지통 지원 여부를 확인한 뒤 다시 시도해 주세요."
+    }
+    var message: String {
+        (errorDescription ?? "휴지통 이동 실패") + "\n" + (recoverySuggestion ?? "")
+    }
+}
+
 final class PhotoTrash {
     private let queue = DispatchQueue(label: "dev.photoselect.trash", qos: .userInitiated)
-    private let move: (URL) throws -> Void
-    init(move: @escaping (URL) throws -> Void = { url in
-        try FileManager.default.trashItem(at: url, resultingItemURL: nil)
-    }) { self.move = move }
+    private let move: (URL) throws -> URL?
 
-    func trash(_ photo: Photo, lease: FolderLease, completion: @escaping (Result<Void, Error>) -> Void) {
+    // Existing injected movers remain useful for deterministic tests. Production
+    // always uses the OS Trash API and records its resulting location.
+    init(move: ((URL) throws -> Void)? = nil) {
+        if let move { self.move = { try move($0); return nil } }
+        else {
+            self.move = { url in
+                var resultingURL: NSURL?
+                try FileManager.default.trashItem(at: url, resultingItemURL: &resultingURL)
+                return resultingURL.map { $0 as URL }
+            }
+        }
+    }
+    private init(operation: @escaping (URL) throws -> URL?) { self.move = operation }
+    static func recordingMove(_ move: @escaping (URL) throws -> URL?) -> PhotoTrash { PhotoTrash(operation: move) }
+
+    func trash(_ photo: Photo, lease: FolderLease, completion: @escaping (Result<TrashReceipt, Error>) -> Void) {
         queue.async {
-            let result: Result<Void, Error> = withExtendedLifetime(lease) { Result { try self.move(photo.url) } }
-            // There is deliberately no permanent-delete fallback.
+            let result: Result<TrashReceipt, Error> = withExtendedLifetime(lease) {
+                Result {
+                    do {
+                        let volume = try? photo.url.resourceValues(forKeys: [.volumeIsReadOnlyKey, .volumeIsInternalKey,
+                            .volumeIsRemovableKey, .volumeIsEjectableKey, .volumeNameKey])
+                        // Unknown metadata does not imply unsupported Trash: let
+                        // FileManager perform the authoritative filesystem operation.
+                        if volume?.volumeIsReadOnly == true { throw CocoaError(.fileWriteVolumeReadOnly) }
+                        let destination = try self.move(photo.url)
+                        return TrashReceipt(originalURL: photo.url, trashURL: destination, volumeName: volume?.volumeName,
+                            isExternalVolume: volume?.volumeIsInternal == false || volume?.volumeIsRemovable == true || volume?.volumeIsEjectable == true)
+                    } catch { throw PhotoTrashFailure(sourceURL: photo.url, underlyingError: error) }
+                }
+            }
+            // There is deliberately no permanent-delete fallback or home-trash
+            // emulation: external volumes must use their OS-managed Trash.
             DispatchQueue.main.async { completion(result) }
         }
+    }
+
+    static func errorMessage(for error: Error) -> String {
+        (error as? PhotoTrashFailure)?.message ?? (error.localizedDescription + "\n파일을 영구 삭제하지 않았습니다.")
     }
 }

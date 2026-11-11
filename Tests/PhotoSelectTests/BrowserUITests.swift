@@ -214,6 +214,93 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    func testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll() throws {
+        _ = NSApplication.shared
+        let root = try folder(), data = jpegData()
+        for number in 1...60 { try data.write(to: root.appendingPathComponent(String(format: "%03d.jpg", number))) }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("metadata/tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("initial photo ready before viewer round trip") { preview.imageView.image != nil }
+        let selected = IndexPath(item: 30, section: 0)
+        grid.selectionIndexPaths = [selected]
+        browser.collectionView(grid, didSelectItemsAt: [selected])
+        waitUntil("selected scrolled thumbnail and preview ready") {
+            preview.filename.stringValue == "031.jpg" && preview.imageView.image != nil && grid.item(at: selected) != nil
+        }
+        let originalPreview = try XCTUnwrap(preview.imageView.image)
+        let originalItem = try XCTUnwrap(grid.item(at: selected))
+        let scroll = try XCTUnwrap(grid.enclosingScrollView)
+        let originalOrigin = scroll.contentView.bounds.origin
+        XCTAssertGreaterThan(originalOrigin.y, 0)
+        var originalViewerImage: CGImage?
+        for pass in 0..<2 {
+            browser.openSelectedPhoto()
+            let viewerWindow = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+            let canvas = try XCTUnwrap(viewerWindow.contentView as? PhotoCanvas)
+            let decoded = try XCTUnwrap(canvas.decoded) // Reopening a decoded selection must be synchronous.
+            if pass == 0 { originalViewerImage = decoded.image }
+            else { XCTAssertTrue(decoded.image === originalViewerImage) }
+            viewerWindow.close()
+            // Let queued cache/decode callbacks run; an unnecessary reload would
+            // replace NSImage/collection items even when the bitmap cache hits.
+            let settled = expectation(description: "round trip callbacks settled \(pass)")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { settled.fulfill() }
+            wait(for: [settled], timeout: 2)
+            XCTAssertTrue(preview.imageView.image === originalPreview)
+            XCTAssertTrue(grid.item(at: selected) === originalItem)
+            XCTAssertEqual(scroll.contentView.bounds.origin, originalOrigin)
+            XCTAssertEqual(grid.selectionIndexPaths, [selected])
+        }
+    }
+
+    @MainActor
+    func testSoftRomanticPaletteRendersInDarkAndLightAppearances() throws {
+        _ = NSApplication.shared
+        let previousAppearance = NSApp.appearance
+        defer { NSApp.appearance = previousAppearance }
+        let root = try folder()
+        try jpegData(width: 3200, height: 2200).write(to: root.appendingPathComponent("sample.jpg"))
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("metadata/tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let window = try XCTUnwrap(browser.window)
+        window.setContentSize(NSSize(width: 1100, height: 650))
+        let content = try XCTUnwrap(window.contentView)
+        let preview = try XCTUnwrap(descendants(content).compactMap { $0 as? PreviewPane }.first)
+        waitUntil("photo ready for theme render") { preview.imageView.image != nil }
+        let originalPreview = try XCTUnwrap(preview.imageView.image)
+        for (name, filename, expected) in [
+            (NSAppearance.Name.darkAqua, "browser-dark.png", [32.0 / 255, 35.0 / 255, 41.0 / 255]),
+            (NSAppearance.Name.aqua, "browser-light.png", [244.0 / 255, 243.0 / 255, 244.0 / 255])
+        ] {
+            let appearance = try XCTUnwrap(NSAppearance(named: name))
+            NSApp.appearance = appearance
+            window.appearance = appearance
+            content.layoutSubtreeIfNeeded()
+            for view in descendants(content) { view.needsDisplay = true }
+            window.displayIfNeeded()
+            let bitmap = try XCTUnwrap(content.bitmapImageRepForCachingDisplay(in: content.bounds))
+            appearance.performAsCurrentDrawingAppearance { content.cacheDisplay(in: content.bounds, to: bitmap) }
+            // The centered one-pixel outer margin contains the actual root
+            // surface fill and avoids text, icons, photos and selection color.
+            let pixel = try XCTUnwrap(bitmap.colorAt(x: bitmap.pixelsWide / 2, y: 1)?.usingColorSpace(.sRGB))
+            XCTAssertEqual(pixel.redComponent, CGFloat(expected[0]), accuracy: 0.04)
+            XCTAssertEqual(pixel.greenComponent, CGFloat(expected[1]), accuracy: 0.04)
+            XCTAssertEqual(pixel.blueComponent, CGFloat(expected[2]), accuracy: 0.04)
+            XCTAssertTrue(preview.imageView.image === originalPreview)
+            if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+                let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent(filename)
+                try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: output)
+            }
+        }
+    }
+
+    @MainActor
     func testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList() throws {
         _ = NSApplication.shared
         let root = try folder()

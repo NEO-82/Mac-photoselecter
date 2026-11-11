@@ -19,11 +19,11 @@ final class ThumbnailItem: NSCollectionViewItem {
     var representedURL: URL?
     let tagMarker = TagMarkerView()
     override func loadView() {
-        let container = NSView()
+        let container = ProSurfaceView(); container.fillColor = .clear; container.cornerRadius = 8
         let image = NSImageView(); image.imageScaling = .scaleProportionallyUpOrDown
         let label = NSTextField(labelWithString: "")
         label.lineBreakMode = .byWordWrapping; label.maximumNumberOfLines = 2
-        label.alignment = .center; label.font = .systemFont(ofSize: 11)
+        label.alignment = .center; label.font = .systemFont(ofSize: 11, weight: .medium); label.textColor = ProTheme.text
         for view in [image, label, tagMarker] {
             view.translatesAutoresizingMaskIntoConstraints = false; container.addSubview(view)
         }
@@ -49,9 +49,7 @@ final class ThumbnailItem: NSCollectionViewItem {
     }
     override var isSelected: Bool {
         didSet {
-            view.wantsLayer = true
-            view.layer?.cornerRadius = 8
-            view.layer?.backgroundColor = isSelected ? NSColor(srgbRed: 0.72, green: 0.43, blue: 0.51, alpha: 0.32).cgColor : NSColor.clear.cgColor
+            (view as? ProSurfaceView)?.fillColor = isSelected ? ProTheme.selection : .clear
         }
     }
 }
@@ -62,7 +60,7 @@ final class FittingPreviewImageView: NSImageView {
     }
 }
 
-final class PreviewPane: NSView {
+final class PreviewPane: ProSurfaceView {
     let imageView = FittingPreviewImageView()
     let filename = NSTextField(labelWithString: "선택한 사진 없음")
     let detail = NSTextField(wrappingLabelWithString: "")
@@ -71,12 +69,14 @@ final class PreviewPane: NSView {
         super.init(frame: frameRect)
         let title = NSTextField(labelWithString: "미리보기")
         title.font = .boldSystemFont(ofSize: 12)
-        let imageBox = NSView()
-        imageBox.wantsLayer = true; imageBox.layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+        fillColor = ProTheme.panel
+        let imageBox = ProSurfaceView(); imageBox.fillColor = ProTheme.canvas; imageBox.cornerRadius = 6
+        title.textColor = ProTheme.secondary; filename.textColor = ProTheme.text
+        filename.font = .systemFont(ofSize: 12, weight: .medium)
         imageView.imageScaling = .scaleProportionallyUpOrDown
         filename.alignment = .center; filename.maximumNumberOfLines = 2; filename.lineBreakMode = .byWordWrapping
         filename.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        detail.alignment = .center; detail.textColor = .secondaryLabelColor; detail.font = .systemFont(ofSize: 11)
+        detail.alignment = .center; detail.textColor = ProTheme.secondary; detail.font = .systemFont(ofSize: 11)
         detail.maximumNumberOfLines = 3
         detail.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         for view in [title, imageBox, filename, detail] { view.translatesAutoresizingMaskIntoConstraints = false; addSubview(view) }
@@ -131,6 +131,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var arrangingColumns = false
     private var folderWidth: NSLayoutConstraint?
     private var previewWidth: NSLayoutConstraint?
+    private var preferredFolderWidth: CGFloat?
+    private var preferredPreviewWidth: CGFloat?
+    private let photoActions = NSStackView()
+    private let showButton = NSButton(title: "크게 보기", target: nil, action: nil)
+    private let tagButton = NSButton(title: "태그", target: nil, action: nil)
+    private let trashButton = NSButton(title: "휴지통", target: nil, action: nil)
     private let status = NSTextField(labelWithString: "폴더를 선택하세요")
     private let up = NSButton(title: "상위 폴더", target: nil, action: nil)
     private let tagStore: TagStore
@@ -168,7 +174,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         window.maxSize = available.size
         window.setFrame(WindowLayout.initialFrame(in: available, kind: .browser), display: false)
         super.init(window: window)
-        let content = NSView(); window.contentView = content
+        let content = ProSurfaceView(); content.fillColor = ProTheme.background; window.contentView = content
+        window.backgroundColor = ProTheme.background
         status.translatesAutoresizingMaskIntoConstraints = false; content.addSubview(status)
         let open = NSButton(title: "폴더 열기…", target: self, action: #selector(openFolder))
         up.target = self; up.action = #selector(parentFolder); up.isEnabled = false
@@ -176,20 +183,35 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         for (button, symbol) in [(open, "folder.badge.plus"), (up, "arrow.up"), (refresh, "arrow.clockwise")] {
             button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: button.title)
             button.imagePosition = .imageOnly; button.toolTip = button.title
+            button.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+            button.setAccessibilityLabel(button.title)
             button.bezelStyle = .texturedRounded; button.controlSize = .regular
             button.widthAnchor.constraint(equalToConstant: 44).isActive = true
         }
-        let bar = NSStackView(views: [open, up, refresh, NSView()]); bar.spacing = 8
+        for (button, symbol, action) in [(showButton, "arrow.up.left.and.arrow.down.right", #selector(openSelectedPhoto)),
+                                          (tagButton, "tag", #selector(toggleTagFromMenu)),
+                                          (trashButton, "trash", #selector(trashFromMenu))] {
+            button.target = self; button.action = action; button.bezelStyle = .texturedRounded
+            button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: button.title)
+            button.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 14, weight: .regular)
+            button.imagePosition = .imageOnly; button.toolTip = button.title; button.setAccessibilityLabel(button.title)
+            button.widthAnchor.constraint(equalToConstant: 44).isActive = true; button.isEnabled = false
+            photoActions.addArrangedSubview(button)
+        }
+        photoActions.spacing = 8
+        let bar = NSStackView(views: [open, up, refresh, NSView(), photoActions]); bar.spacing = 8
         bar.orientation = .horizontal; bar.alignment = .centerY; bar.distribution = .fill
         bar.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserToolbar")
         let split = columns; split.isVertical = true; split.dividerStyle = .thin
         split.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserColumns")
         let folderScroll = NSScrollView(); folderScroll.hasVerticalScroller = true; folderScroll.documentView = tree.view
+        folderScroll.drawsBackground = false
         let layout = NSCollectionViewFlowLayout(); layout.itemSize = NSSize(width: 164, height: 154)
         layout.sectionInset = NSEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
         layout.minimumInteritemSpacing = 8; layout.minimumLineSpacing = 8
         grid.collectionViewLayout = layout; grid.dataSource = self; grid.delegate = self
         grid.autoresizingMask = [.width]
+        grid.backgroundColors = [ProTheme.canvas]
         grid.isSelectable = true; grid.allowsMultipleSelection = false
         grid.register(ThumbnailItem.self, forItemWithIdentifier: NSUserInterfaceItemIdentifier("thumbnail"))
         let doubleClick = NSClickGestureRecognizer(target: self, action: #selector(openPhoto(_:)))
@@ -197,6 +219,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         grid.trashCurrent = { [weak self] in self?.trashCurrentPhoto() }
         grid.toggleTag = { [weak self] in self?.toggleCurrentTag() }
         let photoScroll = NSScrollView(); photoScroll.hasVerticalScroller = true; photoScroll.documentView = grid
+        photoScroll.backgroundColor = ProTheme.canvas
         let folderPane = pane(title: "파일 탐색기", content: folderScroll)
         let photoPane = pane(title: "사진", content: photoScroll)
         split.addArrangedSubview(folderPane); split.addArrangedSubview(photoPane); split.addArrangedSubview(preview)
@@ -225,7 +248,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         split.delegate = self
         arrangeColumns()
         window.delegate = self
-        status.lineBreakMode = .byTruncatingMiddle; status.maximumNumberOfLines = 1; status.textColor = .secondaryLabelColor
+        status.font = .systemFont(ofSize: 11); status.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserStatus")
+        status.lineBreakMode = .byTruncatingMiddle; status.maximumNumberOfLines = 1; status.textColor = ProTheme.secondary
         status.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         tree.onSelect = { [weak self] node in
             guard let self else { return }
@@ -266,7 +290,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         guard !arrangingColumns, columns.arrangedSubviews.count == 3, columns.bounds.width > 0 else { return }
         arrangingColumns = true
         defer { arrangingColumns = false }
-        let sizes = WindowLayout.columns(for: columns.bounds.width, divider: columns.dividerThickness)
+        let sizes = WindowLayout.columns(for: columns.bounds.width, divider: columns.dividerThickness, preferredFolders: preferredFolderWidth, preferredPreview: preferredPreviewWidth)
         folderWidth?.constant = sizes.folders; previewWidth?.constant = sizes.preview
         columns.setPosition(sizes.folders, ofDividerAt: 0)
         columns.setPosition(columns.bounds.width - sizes.preview - columns.dividerThickness, ofDividerAt: 1)
@@ -302,15 +326,19 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     func splitView(_ splitView: NSSplitView, constrainSplitPosition proposedPosition: CGFloat, ofSubviewAt dividerIndex: Int) -> CGFloat {
         if !arrangingColumns {
-            if dividerIndex == 0 { folderWidth?.constant = proposedPosition }
-            else { previewWidth?.constant = splitView.bounds.width - proposedPosition - splitView.dividerThickness }
+            if dividerIndex == 0 {
+                preferredFolderWidth = proposedPosition; folderWidth?.constant = proposedPosition
+            } else {
+                preferredPreviewWidth = splitView.bounds.width - proposedPosition - splitView.dividerThickness
+                previewWidth?.constant = preferredPreviewWidth ?? 280
+            }
         }
         return proposedPosition
     }
 
     private func pane(title: String, content: NSView) -> NSView {
-        let box = NSView(); let label = NSTextField(labelWithString: title)
-        label.font = .boldSystemFont(ofSize: 12)
+        let box = ProSurfaceView(); box.fillColor = ProTheme.panel; let label = NSTextField(labelWithString: title)
+        label.font = .systemFont(ofSize: 11, weight: .semibold); label.textColor = ProTheme.secondary
         for view in [label, content] { view.translatesAutoresizingMaskIntoConstraints = false; box.addSubview(view) }
         NSLayoutConstraint.activate([
             label.topAnchor.constraint(equalTo: box.topAnchor, constant: 8),
@@ -324,14 +352,18 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     private func setStatus(_ message: String, error: Bool = false) {
         let suffix = tagStorageError != nil && !message.contains("태그") ? " · 태그 저장소 오류" : ""
-        status.stringValue = message + suffix
-        status.toolTip = message + (tagStorageError.map { "\n태그: " + $0 } ?? "")
-        status.textColor = error || tagStorageError != nil ? .systemRed : .secondaryLabelColor
+        let summary = currentFolder.map { "\($0.path) — \(list.photos.count)장 · \(list.selectedIndex == nil ? 0 : 1)장 선택" }
+        let visible = summary.flatMap { message.contains(currentFolder?.path ?? "") ? nil : $0 + " · " } ?? ""
+        status.stringValue = visible + message + suffix
+        status.setAccessibilityLabel(status.stringValue)
+        status.toolTip = visible + message + (tagStorageError.map { "\n태그: " + $0 } ?? "")
+        status.textColor = error || tagStorageError != nil ? .systemRed : ProTheme.secondary
     }
     @objc func toggleHiddenFiles(_ sender: NSMenuItem) {
         tree.showHidden.toggle(); sender.state = tree.showHidden ? .on : .off
     }
     @objc func changeAppearance(_ sender: NSMenuItem) {
+        UserDefaults.standard.set(sender.tag, forKey: "appearancePreference")
         NSApp.appearance = sender.tag == 1 ? NSAppearance(named: .aqua) : sender.tag == 2 ? NSAppearance(named: .darkAqua) : nil
     }
     @objc func openFolder() {
@@ -377,7 +409,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         guard !finishingTagWrites, NSApp.modalWindow == nil else { return false }
         switch menuItem.action {
-        case #selector(openFolder), #selector(toggleHiddenFiles(_:)), #selector(changeAppearance(_:)): return true
+        case #selector(changeAppearance(_:)):
+            let saved = UserDefaults.standard.object(forKey: "appearancePreference") as? Int ?? 2
+            menuItem.state = menuItem.tag == saved ? .on : .off
+            return true
+        case #selector(toggleHiddenFiles(_:)):
+            menuItem.state = tree.showHidden ? .on : .off; return true
+        case #selector(openFolder): return true
         case #selector(parentFolder): return up.isEnabled
         case #selector(refreshFolder): return currentFolder != nil
         case #selector(previousPhoto): return (list.selectedIndex ?? 0) > 0
@@ -396,6 +434,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         imageGeneration = UUID(); list.replace(with: []); pipeline.clear(); thumbnails.clear()
         viewer?.close(); displayed = nil; preview.clear()
         self.lease = lease; currentFolder = url; actionMessage = nil
+        updateBadges()
         up.isEnabled = url != lease.url
         synchronizeGrid(reload: true)
         setStatus("읽는 중: \(url.path)")
@@ -406,7 +445,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 switch result {
                 case .success(let urls):
                     self.list.replace(with: urls.map { Photo(url: $0) })
-                    self.setStatus("\(url.path) — \(self.list.photos.count)장")
+                    self.setStatus("\(url.path) — \(self.list.photos.count)장 · \(self.list.selectedIndex == nil ? 0 : 1)장 선택")
                     self.synchronizeGrid(reload: true)
                     if let index = self.list.selectedIndex { self.showPhoto(index) }
                 case .failure(let error):
@@ -456,7 +495,6 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         openViewer(at: path.item)
     }
     private func openViewer(at index: Int) {
-        thumbnails.cancelAll()
         if viewer == nil {
             let viewer = ViewerController(); self.viewer = viewer
             viewer.canvas.navigate = { [weak self] step in
@@ -472,14 +510,17 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             viewer.canvas.toggleTag = { [weak self] in self?.toggleCurrentTag() }
             viewer.didClose = { [weak self] in
                 guard let self else { return }
-                self.imageGeneration = UUID(); self.pipeline.cancelAll(); self.displayed = nil
+                // Keep the decoded image, thumbnail views and scroll position on return.
                 self.viewer = nil; self.zoom = false
-                self.synchronizeGrid(reload: true)
-                if let index = self.list.selectedIndex { self.showPhoto(index) }
                 self.window?.makeKeyAndOrderFront(nil); self.window?.makeFirstResponder(self.grid)
             }
         }
-        viewer?.present(on: window?.screen); showPhoto(index)
+        viewer?.present(on: window?.screen)
+        if list.selectedIndex == index {
+            viewer?.canvas.decoded = displayed
+            if displayed == nil { viewer?.hud.stringValue = (list.selectedPhoto?.url.lastPathComponent ?? "") + " — 읽는 중…" }
+            updateHUD(); updateBadges()
+        } else { showPhoto(index) }
     }
     private func showPhoto(_ index: Int) {
         guard let lease, list.select(index), let photo = list.selectedPhoto else { return }
@@ -489,6 +530,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         viewer?.window?.title = photo.url.lastPathComponent + " — " + AppBranding.displayName
         viewer?.hud.stringValue = photo.url.lastPathComponent + " — 읽는 중…"
         synchronizeGrid(); updateBadges()
+        setStatus("\(currentFolder?.path ?? "") — \(list.photos.count)장 · 1장 선택")
         let start = ProcessInfo.processInfo.systemUptime
         request = pipeline.load(photo, lease: lease, quality: .preview) { [weak self] result, hit in
             guard let self, self.imageGeneration == token else { return }
@@ -529,7 +571,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         viewer?.hud.stringValue = "\(index + 1)/\(list.photos.count)  \(photo.url.lastPathComponent)  \(quality)\n←/→ 탐색 · 누르는 동안 100% · \\ 태그 · Delete 휴지통 · Esc/더블클릭 복귀" + (actionMessage.map { "\n" + $0 } ?? "")
     }
     private func updateBadges() {
+        showButton.isEnabled = list.selectedPhoto != nil
+        tagButton.isEnabled = list.selectedPhoto != nil && !finishingTagWrites
+        trashButton.isEnabled = list.selectedPhoto != nil && !isTrashing
         let tagged = list.selectedPhoto.map { taggedPaths.contains(TagStore.key($0.url)) } ?? false
+        tagButton.contentTintColor = tagged ? ProTheme.accent : nil
+        tagButton.state = tagged ? .on : .off
         preview.tagMarker.isHidden = !tagged; viewer?.tagMarker.isHidden = !tagged
         for case let item as ThumbnailItem in grid.visibleItems() {
             item.tagMarker.isHidden = !(item.representedURL.map { taggedPaths.contains(TagStore.key($0)) } ?? false)
@@ -551,14 +598,14 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     private func trashCurrentPhoto() {
         guard !isTrashing, let photo = list.selectedPhoto, let lease else { return }
-        isTrashing = true; let token = generation
+        isTrashing = true; updateBadges(); let token = generation
         actionMessage = "휴지통으로 옮기는 중…"; updateHUD()
         trashService.trash(photo, lease: lease) { [weak self] result in
             guard let self else { return }
-            self.isTrashing = false
+            self.isTrashing = false; self.updateBadges()
             switch result {
-            case .failure(let error): self.reportActionError("휴지통 이동 실패: \(error.localizedDescription)\n파일은 영구 삭제하지 않았습니다. 저장장치 연결·쓰기 권한과 휴지통 지원 여부를 확인해 주세요.", target: photo.url)
-            case .success:
+            case .failure(let error): self.reportActionError(PhotoTrash.errorMessage(for: error), target: photo.url)
+            case .success(let receipt):
                 guard self.generation == token else { return }
                 let selectedURL = self.list.selectedPhoto?.url
                 guard self.list.remove(photo.url) else { return }
@@ -570,9 +617,11 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                     else { self.updateHUD(); self.updateBadges() }
                 } else {
                     self.imageGeneration = UUID(); self.pipeline.cancelAll(); self.displayed = nil
-                    self.viewer?.close(); self.preview.clear()
+                    self.viewer?.close(); self.preview.clear(); self.updateBadges()
                 }
-                self.setStatus("\(self.currentFolder?.path ?? "") — \(self.list.photos.count)장 · \(photo.url.lastPathComponent) 휴지통 이동 완료")
+                let completion = "\(photo.url.lastPathComponent) 휴지통 이동 완료" + (receipt.storageNotice.map { " · " + $0 } ?? "")
+                self.actionMessage = receipt.storageNotice; self.updateHUD()
+                self.setStatus(completion)
             }
         }
     }

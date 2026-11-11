@@ -60,4 +60,14 @@ final class WindowLayoutTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(columns.photos, (width - 2) * 0.5 - 0.01)
         }
     }
+    func testUserSidebarWidthCanGrowAndSurvivesResize() {
+        let wide = WindowLayout.columns(for: 1500, preferredFolders: 460, preferredPreview: 300)
+        XCTAssertEqual(wide.folders, 460, accuracy: 0.01)
+        XCTAssertGreaterThanOrEqual(wide.photos, 300)
+        let compact = WindowLayout.columns(for: 650, preferredFolders: 460, preferredPreview: 300)
+        XCTAssertGreaterThan(compact.folders, 0)
+        XCTAssertGreaterThanOrEqual(compact.photos, 300)
+        XCTAssertEqual(compact.folders + compact.photos + compact.preview + 2, 650, accuracy: 0.01)
+        XCTAssertEqual(WindowLayout.columns(for: 1500, preferredFolders: 460, preferredPreview: 300).folders, 460)
+    }
 }
