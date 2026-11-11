@@ -26,7 +26,9 @@ env:
 
 jobs:
   package:
-    runs-on: macos-latest
+    # Use the Intel macOS pool when arm64 hosted runner capacity is unavailable.
+    # package-macos.sh still builds and verifies an arm64-only application.
+    runs-on: macos-15-intel
     timeout-minutes: 30
     permissions:
       contents: write
