@@ -6,16 +6,17 @@
 
 ## 현재 상태
 
-GitHub의 arm64 macOS 러너(Xcode 26.6)에서 실제 앱/DMG를 생성했습니다.
-[빌드 실행 #15](https://github.com/NEO-82/Mac-photoselecter/actions/runs/42728575403)에서
-XCTest 40개, Release 빌드, 한국어 앱 이름과 ICNS 포함, 앱 서명 검증, DMG 무결성 검사 및 읽기 전용 마운트 후 내부 앱 검증이 통과했습니다.
-표준 메뉴·3영역 배치·뷰어의 사용 가능 화면 전체 배치·화면 변경 알림 후 크기 유지·태그 복원·휴지통 동작 연결은 자동 테스트했으며,
-물리 입력 장치·실제 ARW·외장 저장장치의 휴지통 복구·M1 Pro 성능은 실기기 확인이 필요합니다.
+0.3.0 빌드 17을 GitHub의 Intel macOS 러너(Xcode 16.4)에서 생성했습니다.
+[빌드 실행 #17](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43031581112)에서
+XCTest **44개**, Apple Silicon 전용 arm64 Release 빌드, 한국어 앱 이름과 ICNS 포함,
+앱 ad-hoc 서명 검증, DMG 무결성 검사와 읽기 전용 마운트 후 내부 앱 검증이 통과했습니다.
+최초 arm64 실행기 시도는 GitHub 용량 부족으로 실패해 Intel 실행기에서 테스트하고 arm64 앱을 빌드했습니다.
+실제 Apple Silicon에서의 앱 실행, 물리 입력·실제 ARW·외장 저장장치 휴지통 복구·M1 Pro 성능은 별도 실기기 확인이 필요합니다.
 
-[설치용 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.2.4-arm64.dmg)
+[설치용 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.3.0-arm64.dmg)
 
-GitHub 다운로드 주소에서 HTTP 200으로 실제 파일을 내려받고 저장된 DMG와 SHA-256이 같은지 확인했습니다.
-현재 0.2.4 빌드 15의 파일 크기는 3,322,087바이트이며 무결성 기준은 `downloads/SHA256SUMS`에 저장되어 있습니다.
+실제 다운로드 HTTP 200, **3,363,676바이트**, SHA-256 일치를 확인했습니다.
+체크섬은 `downloads/SHA256SUMS`에 저장되어 있습니다.
 
 `PhotoSelect-Mac-BuildKit.zip`이 제공된 경우 소스와 아래 스크립트만 들어 있는 빌드 묶음입니다.
 완성된 `.app` 또는 `.dmg`로 오인하지 마세요.
@@ -26,7 +27,7 @@ GitHub 다운로드 주소에서 HTTP 200으로 실제 파일을 내려받고 �
 2. 소스 묶음을 압축 해제하고 `설치파일-만들기.command`를 더블클릭합니다.
    터미널에서 실행할 경우 저장소 디렉터리로 이동해 `bash scripts/package-macos.sh`를 실행합니다.
 3. XCTest 및 Release 빌드가 성공하면 `dist` 폴더가 열립니다.
-4. `PhotoSelect-0.2.4-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
+4. `PhotoSelect-0.3.0-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
 5. 디스크 이미지를 추출한 뒤 응용 프로그램 폴더에서 앱을 실행합니다.
 
 완성된 앱의 실행 요건은 M1 이상, macOS 13 이상입니다. 앱 실행에는 Xcode나 Swift 설치가 필요하지 않습니다.
@@ -44,15 +45,15 @@ Locations → Command Line Tools에서 사용할 Xcode를 선택하세요.
 기본 결과물:
 
 ```text
-dist/PhotoSelect-0.2.4-1-arm64/
-  PhotoSelect-0.2.4-1-arm64.dmg
+dist/PhotoSelect-0.3.0-1-arm64/
+  PhotoSelect-0.3.0-1-arm64.dmg
   SHA256SUMS
 ```
 
 같은 버전/빌드 번호의 기존 결과물을 덮어쓰지 않습니다. 새로 빌드할 때 번호를 늘릴 수 있습니다.
 
 ```bash
-PHOTOSELECT_VERSION=0.2.4 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
+PHOTOSELECT_VERSION=0.3.0 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
 ```
 
 DMG가 들어 있는 디렉터리에서 `shasum -a 256 -c SHA256SUMS`로 파일 전송 후 무결성을 확인할 수 있습니다.

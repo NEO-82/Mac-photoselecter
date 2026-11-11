@@ -40,3 +40,15 @@
 ## 0.3.0 macOS 설치 파일 생성 요청
 
 소스 `617eb5b2cf0ddd37f157e9059b359f156eb3c53f`를 전달용 브랜치에 업로드해 [macOS 빌드 #16](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43028430041)을 등록했다. 이 실행은 성공 시 기존 워크플로가 `downloads/PhotoSelect-0.3.0-arm64.dmg`, 체크섬과 빌드 결과를 자동 업로드한다. 2026-11-11 이 실행은 약 15분 대기 후 실패했다. GitHub는 `The job was not acquired by Runner of type hosted even after multiple attempts` 및 macOS arm64 용량 부족을 보고했다. 테스트/빌드 단계는 시작되지 않았고 새 DMG는 생성되지 않았다. 공식 runner-images의 지원 목록에서 확인한 `macos-15-intel` 실행기로 변경하는 후속 설정을 준비했다. macOS XCTest는 Intel에서 실행하며 Release 앱은 기존 ARCHS=arm64 설정과 lipo 검증을 유지한다. 후속 업로드 시 기존 Git 프록시 인증과 제공된 GitHub CLI 인증 모두 실패해 원격 적용/재빌드는 차단된 상태다. GitHub 연결 복구 후 아래 후속 설정 커밋을 업로드해야 한다. 후속 작업에서는 이 실행의 결과와 `downloads/build-status.json`의 source_commit을 확인하고, 실패 시 해당 로그를 분석한 뒤 수정/재빌드한다. 성공 시 실제 다운로드 SHA-256을 검증한 후 README의 최신 다운로드 링크와 검증 기록을 갱신한다. 기존 0.2.4 파일을 이번 변경분의 결과로 취급하지 않는다.
+
+
+## 재시도 완료 — 0.3.0 빌드 17
+
+GitHub 연결 복구 후 대체 실행기 설정을 업로드했고 [빌드 #17](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43031581112)이 성공했다. 위 빌드/인증 차단 기록은 최초 시도의 이력이다.
+
+- 검증 소스: `28f5ac39ab5e3311fcdc729c4907957511cf3ecd`.
+- Intel macOS/Xcode 16.4에서 XCTest 44개 실행 및 통과. 기존 테스트와 일반 파일 선택·혼합 필터·더블클릭 복귀 테스트가 포함된다.
+- Release 앱은 `ARCHS=arm64`로 빌드하고 `lipo`로 arm64 단일 아키텍처를 확인했다. 앱 이름/아이콘, ad-hoc 서명, DMG 무결성 및 읽기 전용 마운트된 앱 서명 검증 통과.
+- `downloads/PhotoSelect-0.3.0-arm64.dmg` 업로드 완료. 실제 다운로드 HTTP 200, 3,363,676바이트, SHA-256 `97103ddd650598b76e7193e736f735dd89edda42845efa7c144d467e57e898d1` 일치.
+- 네이티브 UI 캡처 `downloads/browser-layout.png`에서 세 영역, 일반 파일 표시, 툴바, 하단 상태줄 및 로즈 선택 배경을 확인했다. 테스트 캡처는 라이트 테마이고 앱 기본 다크 테마는 별도 실기기 확인이 필요하다.
+- 실제 Apple Silicon에서 설치·실행, 실제 ARW, 대량 폴더 성능, SD/외장 저장장치 휴지통과 물리 입력은 여전히 미검증이다. 위 실기기 절차를 따른다. Apple Developer ID 서명과 Apple 공증은 포함하지 않은 개인 테스트용이다.
