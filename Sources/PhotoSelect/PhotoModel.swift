@@ -123,13 +123,14 @@ enum FolderReader {
         }
         return error.localizedDescription
     }
-    static func entries(_ url: URL, directories: Bool) throws -> [URL] {
+    static func entries(_ url: URL, directories: Bool, allFiles: Bool = false, showHidden: Bool = false) throws -> [URL] {
         let keys: Set<URLResourceKey> = [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey]
         return try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: Array(keys),
-            options: [.skipsHiddenFiles]).filter { item in
+            options: showHidden ? [] : [.skipsHiddenFiles]).filter { item in
                 let values = try item.resourceValues(forKeys: keys)
                 // Do not follow symlinks outside the selected security scope.
                 guard values.isSymbolicLink != true else { return false }
+                if allFiles { return true }
                 return directories ? values.isDirectory == true : values.isRegularFile == true && Photo.accepts(item)
             }.sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
     }

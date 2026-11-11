@@ -59,6 +59,8 @@ final class PhotoCanvas: NSView {
         context.draw(image, in: rect)
     }
     override func mouseDown(with event: NSEvent) {
+        // The second press closes before it can request another full decode.
+        if event.clickCount == 2 { resetZoom(); close?(); return }
         pressed = true; cursor = convert(event.locationInWindow, from: nil)
         zoomChanged?(true); needsDisplay = true
     }

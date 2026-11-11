@@ -178,6 +178,82 @@ final class BrowserUITests: XCTestCase {
         waitUntil("second preview decoded") { preview.filename.stringValue == "2.jpg" && preview.imageView.image != nil }
     }
     @MainActor
+    func testViewerDoubleClickReturnsToSamePhotoAndFolder() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        for name in ["1.jpg", "2.jpg"] { try jpegData().write(to: root.appendingPathComponent(name)) }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let outline = try XCTUnwrap(views.compactMap { $0 as? NSOutlineView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("photos ready before opening viewer") { preview.imageView.image != nil }
+        let selected = IndexPath(item: 1, section: 0)
+        grid.selectionIndexPaths = [selected]
+        browser.collectionView(grid, didSelectItemsAt: [selected])
+        waitUntil("second photo ready before opening viewer") { preview.filename.stringValue == "2.jpg" && preview.imageView.image != nil }
+        browser.openSelectedPhoto()
+        let viewerWindow = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        defer { viewerWindow.close() }
+        let canvas = try XCTUnwrap(viewerWindow.contentView as? PhotoCanvas)
+        waitUntil("viewer decoded selected photo") { canvas.decoded != nil }
+        let event = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDown,
+            location: NSPoint(x: 50, y: 50), modifierFlags: [], timestamp: 0,
+            windowNumber: viewerWindow.windowNumber, context: nil, eventNumber: 0,
+            clickCount: 2, pressure: 1))
+        canvas.mouseDown(with: event)
+        waitUntil("double click returns to selected photo") {
+            !viewerWindow.isVisible && preview.filename.stringValue == "2.jpg" && preview.imageView.image != nil
+        }
+        XCTAssertEqual(grid.selectionIndexPaths, [selected])
+        XCTAssertEqual(grid.numberOfItems(inSection: 0), 2)
+        XCTAssertEqual((outline.item(atRow: outline.selectedRow) as? FolderNode)?.url, root)
+        XCTAssertTrue(browser.window?.firstResponder === grid)
+    }
+
+    @MainActor
+    func testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        try jpegData().write(to: root.appendingPathComponent("photo.jpg"))
+        // These deliberately are not decodable images; selecting them must not
+        // replace the current photo or attempt the image error display path.
+        for name in ["notes.pdf", "movie.mov", "archive.zip"] {
+            try Data("general file fixture".utf8).write(to: root.appendingPathComponent(name))
+        }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let outline = try XCTUnwrap(views.compactMap { $0 as? NSOutlineView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("photo and general files ready") {
+            preview.imageView.image != nil && (0..<outline.numberOfRows).contains {
+                (outline.item(atRow: $0) as? FolderNode)?.url.lastPathComponent == "notes.pdf"
+            }
+        }
+        let originalImage = try XCTUnwrap(preview.imageView.image)
+        let originalDetail = preview.detail.stringValue
+        for name in ["notes.pdf", "movie.mov", "archive.zip"] {
+            let row = try XCTUnwrap((0..<outline.numberOfRows).first {
+                (outline.item(atRow: $0) as? FolderNode)?.url.lastPathComponent == name
+            })
+            let node = try XCTUnwrap(outline.item(atRow: row) as? FolderNode)
+            XCTAssertFalse(node.isDirectory)
+            XCTAssertFalse(outline.isExpandable(node))
+            outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+            XCTAssertEqual(preview.filename.stringValue, "photo.jpg")
+            XCTAssertTrue(preview.imageView.image === originalImage)
+            XCTAssertEqual(preview.detail.stringValue, originalDetail)
+            XCTAssertEqual(grid.numberOfItems(inSection: 0), 1)
+            XCTAssertEqual(grid.selectionIndexPaths, [IndexPath(item: 0, section: 0)])
+        }
+    }
+
+    @MainActor
     func testTagBadgeReturnsAfterClosingAndRecreatingBrowser() throws {
         _ = NSApplication.shared
         let root = try folder(), file = root.appendingPathComponent("metadata/tags.json")

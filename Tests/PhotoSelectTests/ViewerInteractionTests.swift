@@ -12,10 +12,10 @@ final class ViewerInteractionTests: XCTestCase {
     // These events exercise our AppKit handlers without posting system-wide input
     // or requiring Accessibility permissions. Physical event routing is manual-tested.
     @MainActor
-    private func mouse(_ type: NSEvent.EventType) -> NSEvent {
+    private func mouse(_ type: NSEvent.EventType, clicks: Int = 1) -> NSEvent {
         NSEvent.mouseEvent(with: type, location: NSPoint(x: 50, y: 50), modifierFlags: [],
                           timestamp: 0, windowNumber: 0, context: nil, eventNumber: 0,
-                          clickCount: 1, pressure: type == .leftMouseUp ? 0 : 1)!
+                          clickCount: clicks, pressure: type == .leftMouseUp ? 0 : 1)!
     }
 
     @MainActor
@@ -34,6 +34,20 @@ final class ViewerInteractionTests: XCTestCase {
         context.fill(CGRect(x: 0, y: 0, width: 200, height: 100))
         return DecodedImage(image: context.makeImage()!, sourceSize: CGSize(width: 200, height: 100),
                             fullResolution: full, raw: raw)
+    }
+
+    @MainActor
+    func testDoubleClickClosesWithoutStartingAnotherZoom() {
+        let canvas = makeCanvas()
+        var closes = 0
+        var zooms: [Bool] = []
+        canvas.close = { closes += 1 }
+        canvas.zoomChanged = { zooms.append($0) }
+        canvas.mouseDown(with: mouse(.leftMouseDown))
+        canvas.mouseUp(with: mouse(.leftMouseUp))
+        canvas.mouseDown(with: mouse(.leftMouseDown, clicks: 2))
+        XCTAssertEqual(closes, 1)
+        XCTAssertEqual(zooms, [true, false, false])
     }
 
     // The 2:1 image leaves this sample black in Fit; at 1:1 it fills the view.

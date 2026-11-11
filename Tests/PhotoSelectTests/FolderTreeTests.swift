@@ -19,6 +19,17 @@ final class FolderTreeTests: XCTestCase {
         addTeardownBlock { try? FileManager.default.removeItem(at: url) }
         return url
     }
+    func testGeneralEntriesStaySeparateFromPhotoDecodeList() throws {
+        let root = try folder()
+        for name in ["a.jpg", "b.ARW", "notes.pdf", "movie.mov", "archive.zip", ".hidden.jpg"] {
+            try Data().write(to: root.appendingPathComponent(name))
+        }
+        try FileManager.default.createDirectory(at: root.appendingPathComponent("Folder"), withIntermediateDirectories: true)
+        XCTAssertEqual(try FolderReader.entries(root, directories: false).map(\.lastPathComponent), ["a.jpg", "b.ARW"])
+        XCTAssertEqual(try FolderReader.entries(root, directories: true, allFiles: true).count, 6)
+        XCTAssertEqual(try FolderReader.entries(root, directories: true, allFiles: true, showHidden: true).count, 7)
+    }
+
     @MainActor
     func testDesktopShortcutUsesSystemDesktopLocation() throws {
         _ = NSApplication.shared

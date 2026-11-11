@@ -18,7 +18,7 @@ enum AppMenus {
             item.keyEquivalentModifierMask = modifiers; item.target = target; menu.addItem(item)
         }
         let app = submenu(AppBranding.displayName)
-        add(app, AppBranding.displayName + " 정보", #selector(NSApplication.orderFrontStandardAboutPanel(_:)))
+        add(app, AppBranding.displayName + " 정보", #selector(AppDelegate.showAbout(_:)), target: NSApp.delegate as AnyObject?)
         app.addItem(.separator())
         add(app, AppBranding.displayName + " 가리기", #selector(NSApplication.hide(_:)), key: "h")
         add(app, "기타 가리기", #selector(NSApplication.hideOtherApplications(_:)), key: "h", modifiers: [.command, .option])
@@ -35,6 +35,11 @@ enum AppMenus {
 
         let view = submenu("보기")
         add(view, "선택 사진 크게 보기", #selector(BrowserController.openSelectedPhoto), key: "\r", modifiers: [], target: browser)
+        add(view, "숨김 파일 표시", #selector(BrowserController.toggleHiddenFiles(_:)), key: ".", modifiers: [.command, .shift], target: browser)
+        for (title, tag) in [("시스템 테마", 0), ("라이트 모드", 1), ("다크 모드", 2)] {
+            let item = NSMenuItem(title: title, action: #selector(BrowserController.changeAppearance(_:)), keyEquivalent: "")
+            item.target = browser; item.tag = tag; view.addItem(item)
+        }
         let photo = submenu("사진")
         add(photo, "이전 사진", #selector(BrowserController.previousPhoto), target: browser)
         add(photo, "다음 사진", #selector(BrowserController.nextPhoto), target: browser)
@@ -52,9 +57,14 @@ enum AppMenus {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    @objc func showAbout(_ sender: Any?) {
+        let credits = NSAttributedString(string: "Made with love ♡", attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+    }
     private var browser: BrowserController?
     private var terminationPending = false
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.appearance = NSAppearance(named: .darkAqua)
         let browser = BrowserController(); self.browser = browser
         NSApp.mainMenu = AppMenus.make(for: browser)
         NSApp.windowsMenu = NSApp.mainMenu?.item(withTitle: "윈도우")?.submenu

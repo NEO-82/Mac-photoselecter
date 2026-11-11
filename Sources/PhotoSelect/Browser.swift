@@ -50,7 +50,8 @@ final class ThumbnailItem: NSCollectionViewItem {
     override var isSelected: Bool {
         didSet {
             view.wantsLayer = true
-            view.layer?.backgroundColor = isSelected ? NSColor.selectedContentBackgroundColor.cgColor : NSColor.clear.cgColor
+            view.layer?.cornerRadius = 8
+            view.layer?.backgroundColor = isSelected ? NSColor(srgbRed: 0.72, green: 0.43, blue: 0.51, alpha: 0.32).cgColor : NSColor.clear.cgColor
         }
     }
 }
@@ -168,10 +169,17 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         window.setFrame(WindowLayout.initialFrame(in: available, kind: .browser), display: false)
         super.init(window: window)
         let content = NSView(); window.contentView = content
+        status.translatesAutoresizingMaskIntoConstraints = false; content.addSubview(status)
         let open = NSButton(title: "폴더 열기…", target: self, action: #selector(openFolder))
         up.target = self; up.action = #selector(parentFolder); up.isEnabled = false
         let refresh = NSButton(title: "새로고침", target: self, action: #selector(refreshFolder))
-        let bar = NSStackView(views: [open, up, refresh, status]); bar.spacing = 12
+        for (button, symbol) in [(open, "folder.badge.plus"), (up, "arrow.up"), (refresh, "arrow.clockwise")] {
+            button.image = NSImage(systemSymbolName: symbol, accessibilityDescription: button.title)
+            button.imagePosition = .imageOnly; button.toolTip = button.title
+            button.bezelStyle = .texturedRounded; button.controlSize = .regular
+            button.widthAnchor.constraint(equalToConstant: 44).isActive = true
+        }
+        let bar = NSStackView(views: [open, up, refresh, NSView()]); bar.spacing = 8
         bar.orientation = .horizontal; bar.alignment = .centerY; bar.distribution = .fill
         bar.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserToolbar")
         let split = columns; split.isVertical = true; split.dividerStyle = .thin
@@ -189,7 +197,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         grid.trashCurrent = { [weak self] in self?.trashCurrentPhoto() }
         grid.toggleTag = { [weak self] in self?.toggleCurrentTag() }
         let photoScroll = NSScrollView(); photoScroll.hasVerticalScroller = true; photoScroll.documentView = grid
-        let folderPane = pane(title: "폴더", content: folderScroll)
+        let folderPane = pane(title: "파일 탐색기", content: folderScroll)
         let photoPane = pane(title: "사진", content: photoScroll)
         split.addArrangedSubview(folderPane); split.addArrangedSubview(photoPane); split.addArrangedSubview(preview)
         // setPosition alone is only an initial frame hint. Auto Layout can discard
@@ -201,14 +209,17 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         self.folderWidth = folderWidth; self.previewWidth = previewWidth
         for view in [bar, split] { view.translatesAutoresizingMaskIntoConstraints = false; content.addSubview(view) }
         NSLayoutConstraint.activate([
-            bar.topAnchor.constraint(equalTo: content.topAnchor, constant: 10),
+            bar.topAnchor.constraint(equalTo: content.topAnchor, constant: 8),
             bar.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 12),
             bar.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -12),
             bar.heightAnchor.constraint(equalToConstant: 32),
-            split.topAnchor.constraint(equalTo: bar.bottomAnchor, constant: 10),
+            split.topAnchor.constraint(equalTo: bar.bottomAnchor, constant: 8),
             split.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             split.trailingAnchor.constraint(equalTo: content.trailingAnchor),
-            split.bottomAnchor.constraint(equalTo: content.bottomAnchor)
+            split.bottomAnchor.constraint(equalTo: status.topAnchor, constant: -4),
+            status.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 12),
+            status.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -12),
+            status.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -4)
         ])
         content.layoutSubtreeIfNeeded()
         split.delegate = self
@@ -216,7 +227,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         window.delegate = self
         status.lineBreakMode = .byTruncatingMiddle; status.maximumNumberOfLines = 1; status.textColor = .secondaryLabelColor
         status.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        tree.onSelect = { [weak self] node in self?.loadFolder(node.url, lease: node.lease) }
+        tree.onSelect = { [weak self] node in
+            guard let self else { return }
+            if node.isDirectory { self.loadFolder(node.url, lease: node.lease) }
+            else if Photo.accepts(node.url), let index = self.list.photos.firstIndex(where: { $0.url == node.url }) {
+                self.showPhoto(index)
+            }
+        }
         tagStore.load { [weak self] result in
             guard let self else { return }
             switch result {
@@ -311,6 +328,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         status.toolTip = message + (tagStorageError.map { "\n태그: " + $0 } ?? "")
         status.textColor = error || tagStorageError != nil ? .systemRed : .secondaryLabelColor
     }
+    @objc func toggleHiddenFiles(_ sender: NSMenuItem) {
+        tree.showHidden.toggle(); sender.state = tree.showHidden ? .on : .off
+    }
+    @objc func changeAppearance(_ sender: NSMenuItem) {
+        NSApp.appearance = sender.tag == 1 ? NSAppearance(named: .aqua) : sender.tag == 2 ? NSAppearance(named: .darkAqua) : nil
+    }
     @objc func openFolder() {
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
@@ -354,7 +377,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         guard !finishingTagWrites, NSApp.modalWindow == nil else { return false }
         switch menuItem.action {
-        case #selector(openFolder): return true
+        case #selector(openFolder), #selector(toggleHiddenFiles(_:)), #selector(changeAppearance(_:)): return true
         case #selector(parentFolder): return up.isEnabled
         case #selector(refreshFolder): return currentFolder != nil
         case #selector(previousPhoto): return (list.selectedIndex ?? 0) > 0
@@ -503,7 +526,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private func updateHUD() {
         guard let photo = list.selectedPhoto, let index = list.selectedIndex, let displayed else { return }
         let quality = fullError ?? (displayed.fullResolution ? "원본 해상도" : "프리뷰 · 확대 정확도 제한")
-        viewer?.hud.stringValue = "\(index + 1)/\(list.photos.count)  \(photo.url.lastPathComponent)  \(quality)\n←/→ 탐색 · 누르는 동안 100% · \\ 태그 · Delete 휴지통 · Esc 복귀" + (actionMessage.map { "\n" + $0 } ?? "")
+        viewer?.hud.stringValue = "\(index + 1)/\(list.photos.count)  \(photo.url.lastPathComponent)  \(quality)\n←/→ 탐색 · 누르는 동안 100% · \\ 태그 · Delete 휴지통 · Esc/더블클릭 복귀" + (actionMessage.map { "\n" + $0 } ?? "")
     }
     private func updateBadges() {
         let tagged = list.selectedPhoto.map { taggedPaths.contains(TagStore.key($0.url)) } ?? false
@@ -521,6 +544,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 if tagged { self.taggedPaths.insert(TagStore.key(photo.url)) }
                 else { self.taggedPaths.remove(TagStore.key(photo.url)) }
                 self.updateBadges()
+                self.setStatus("\(photo.url.lastPathComponent) · \(tagged ? "태그 지정됨" : "태그 해제됨")")
             case .failure(let error): self.reportActionError("태그 저장 실패: \(error.localizedDescription)", target: photo.url)
             }
         }
@@ -533,12 +557,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             guard let self else { return }
             self.isTrashing = false
             switch result {
-            case .failure(let error): self.reportActionError("휴지통 이동 실패: \(error.localizedDescription)", target: photo.url)
+            case .failure(let error): self.reportActionError("휴지통 이동 실패: \(error.localizedDescription)\n파일은 영구 삭제하지 않았습니다. 저장장치 연결·쓰기 권한과 휴지통 지원 여부를 확인해 주세요.", target: photo.url)
             case .success:
                 guard self.generation == token else { return }
                 let selectedURL = self.list.selectedPhoto?.url
                 guard self.list.remove(photo.url) else { return }
                 self.actionMessage = nil
+                if let folder = self.currentFolder { self.tree.refresh(url: folder) }
                 self.synchronizeGrid(reload: true)
                 if let index = self.list.selectedIndex {
                     if selectedURL == photo.url { self.showPhoto(index) }
