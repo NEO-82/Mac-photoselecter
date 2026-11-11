@@ -170,6 +170,9 @@ final class FolderTreeTests: XCTestCase {
         try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
         try Data().write(to: nested.appendingPathComponent("visible.jpg"))
         try Data().write(to: nested.appendingPathComponent(".hidden.txt"))
+        // FileManager may enumerate the canonical /private/var location while
+        // temporaryDirectory uses its /var alias on macOS. Compare identity.
+        let expectedLocation = nested.resolvingSymlinksInPath().standardizedFileURL
         let parent = FolderNode(url: root, lease: FolderLease(root))
         let tree = FolderTree(roots: [parent])
         let window = mount(tree); defer { window.close() }
@@ -182,16 +185,16 @@ final class FolderTreeTests: XCTestCase {
         tree.showHidden = true
         waitUntil("expanded selection restored with hidden file") {
             guard let selected = tree.view.item(atRow: tree.view.selectedRow) as? FolderNode else { return false }
-            return selected.url == nested && selected.children?.count == 2 && tree.view.isItemExpanded(selected)
+            return selected.url.resolvingSymlinksInPath().standardizedFileURL == expectedLocation && selected.children?.count == 2 && tree.view.isItemExpanded(selected)
         }
         XCTAssertTrue(tree.view.isItemExpanded(parent), state(tree))
-        XCTAssertEqual((tree.view.item(atRow: tree.view.selectedRow) as? FolderNode)?.url, nested, state(tree))
+        XCTAssertEqual((tree.view.item(atRow: tree.view.selectedRow) as? FolderNode)?.url.resolvingSymlinksInPath().standardizedFileURL, expectedLocation, state(tree))
         XCTAssertEqual((tree.view.item(atRow: tree.view.selectedRow) as? FolderNode)?.children?.count, 2, state(tree))
         XCTAssertEqual(selections, 0)
         tree.showHidden = false
         waitUntil("hidden file removed without losing location") {
             guard let selected = tree.view.item(atRow: tree.view.selectedRow) as? FolderNode else { return false }
-            return selected.url == nested && selected.children?.count == 1 && tree.view.isItemExpanded(selected)
+            return selected.url.resolvingSymlinksInPath().standardizedFileURL == expectedLocation && selected.children?.count == 1 && tree.view.isItemExpanded(selected)
         }
         XCTAssertEqual(selections, 0)
     }
