@@ -301,6 +301,40 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    func testDeviceChangeNotificationRetainsErrorWhenReopeningViewer() throws {
+        _ = NSApplication.shared
+        let root = try folder(), photo = root.appendingPathComponent("photo.jpg"), data = jpegData()
+        try data.write(to: photo)
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("metadata/tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("photo ready before simulated device change") { preview.imageView.image != nil }
+        // This posts only the observer notification; it never unmounts a device.
+        NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didUnmountNotification,
+            object: nil, userInfo: [NSWorkspace.volumeURLUserInfoKey: root])
+        waitUntil("device change clears stale preview") { preview.imageView.image == nil }
+        browser.openSelectedPhoto()
+        let viewerWindow = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        defer { viewerWindow.close() }
+        let canvas = try XCTUnwrap(viewerWindow.contentView as? PhotoCanvas)
+        let hud = try XCTUnwrap(canvas.subviews.compactMap { $0 as? NSTextField }.first)
+        XCTAssertNil(canvas.decoded)
+        XCTAssertTrue(hud.stringValue.contains("저장장치 변경"))
+        XCTAssertFalse(hud.stringValue.contains("읽는 중"))
+        let escape = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
+            modifierFlags: [], timestamp: 0, windowNumber: viewerWindow.windowNumber,
+            context: nil, characters: "\u{1B}", charactersIgnoringModifiers: "\u{1B}", isARepeat: false, keyCode: 53))
+        canvas.keyDown(with: escape)
+        XCTAssertFalse(viewerWindow.isVisible)
+        XCTAssertEqual(grid.selectionIndexPaths, [IndexPath(item: 0, section: 0)])
+        XCTAssertTrue(browser.window?.firstResponder === grid)
+        XCTAssertEqual(try Data(contentsOf: photo), data)
+    }
+
+    @MainActor
     func testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch() throws {
         _ = NSApplication.shared
         let root = try folder(), data = jpegData()

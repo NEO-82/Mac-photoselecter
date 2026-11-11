@@ -286,6 +286,8 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
     }
     func outlineViewSelectionDidChange(_ notification: Notification) {
         guard !suppressSelection, let node = view.item(atRow: view.selectedRow) as? FolderNode else { return }
+        // A newer user selection takes precedence over any refresh snapshot.
+        selectionToRestore = nil
         if node.error != nil {
             node.invalidate(); load(node)
             suppressSelection = true

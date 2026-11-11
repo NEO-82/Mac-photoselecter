@@ -200,6 +200,45 @@ final class FolderTreeTests: XCTestCase {
     }
 
     @MainActor
+    func testUserSelectionDuringRefreshOverridesPendingRestoration() throws {
+        _ = NSApplication.shared
+        let firstURL = try folder(), otherURL = try folder()
+        let childURL = firstURL.appendingPathComponent("Child", isDirectory: true)
+        let lease = FolderLease(firstURL)
+        let first = FolderNode(url: firstURL, lease: lease)
+        let child = FolderNode(url: childURL, lease: lease, isDirectory: true)
+        child.children = []; first.children = [child]
+        let other = FolderNode(url: otherURL, lease: FolderLease(otherURL))
+        other.children = []
+        let entered = expectation(description: "refresh worker paused")
+        let release = DispatchSemaphore(value: 0)
+        defer { release.signal() }
+        let tree = FolderTree(roots: [first, other], directoryReader: { url in
+            guard url == firstURL else { return [] }
+            entered.fulfill()
+            guard release.wait(timeout: .now() + 5) == .success else { throw CocoaError(.fileReadUnknown) }
+            return [childURL]
+        })
+        let window = mount(tree); defer { window.close() }
+        tree.select(childURL, lease: lease)
+        var selections: [URL] = []
+        tree.onSelect = { selections.append($0.url) }
+        tree.refresh(all: true)
+        // Only the background reader blocks. The main thread remains available
+        // for a new selection before the old folder's result is delivered.
+        wait(for: [entered], timeout: 2)
+        let otherRow = tree.view.row(forItem: other)
+        XCTAssertGreaterThanOrEqual(otherRow, 0)
+        tree.view.selectRowIndexes(IndexSet(integer: otherRow), byExtendingSelection: false)
+        release.signal()
+        waitUntil("old refresh and child restoration completed") {
+            first.children?.count == 1 && !first.loading && first.children?.first?.loading == false && first.children?.first?.children != nil
+        }
+        XCTAssertEqual((tree.view.item(atRow: tree.view.selectedRow) as? FolderNode)?.url, otherURL, state(tree))
+        XCTAssertEqual(selections, [otherURL])
+    }
+
+    @MainActor
     func testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter() throws {
         _ = NSApplication.shared
         let root = try folder()

@@ -273,6 +273,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 guard let self else { return }
                 self.pipeline.clear(); self.thumbnails.clear(); self.tree.refresh(all: true)
                 self.generation = UUID(); self.imageGeneration = UUID(); self.displayed = nil
+                self.previewError = "저장장치 변경 감지 — 새로고침하거나 폴더를 다시 선택하세요"
                 self.viewer?.canvas.decoded = nil; self.preview.clear()
                 self.viewer?.hud.stringValue = "저장장치 변경 감지 — Esc로 돌아가 폴더를 다시 선택하세요"
                 self.setStatus("저장장치 변경 감지 — 새로고침하거나 폴더를 다시 선택하세요", error: true)
