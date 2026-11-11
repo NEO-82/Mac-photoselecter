@@ -6,21 +6,21 @@ Building for debugging...
 [1/11] Write sources
 [4/11] Write PhotoSelect-entitlement.plist
 [5/11] Write swift-version--79AA4F9932D1E87A.txt
-[7/16] Compiling PhotoSelect App.swift
-[8/16] Compiling PhotoSelect Browser.swift
-[9/16] Compiling PhotoSelect FolderTree.swift
-[10/16] Compiling PhotoSelect ImagePipeline.swift
-[11/16] Emitting module PhotoSelect
+[7/16] Emitting module PhotoSelect
+[8/16] Compiling PhotoSelect App.swift
+[9/16] Compiling PhotoSelect Browser.swift
+[10/16] Compiling PhotoSelect FolderTree.swift
+[11/16] Compiling PhotoSelect ImagePipeline.swift
 [12/19] Compiling PhotoSelect PhotoActions.swift
 [13/19] Compiling PhotoSelect PhotoModel.swift
 [14/19] Compiling PhotoSelect Viewer.swift
 [14/19] Write Objects.LinkFileList
 [15/19] Linking PhotoSelect
 [16/19] Applying PhotoSelect
-[18/23] Compiling PhotoSelectTests BrowserUITests.swift
-[19/23] Compiling PhotoSelectTests FolderTreeTests.swift
-[20/23] Compiling PhotoSelectTests PhotoActionsTests.swift
-[21/23] Emitting module PhotoSelectTests
+[18/23] Emitting module PhotoSelectTests
+[19/23] Compiling PhotoSelectTests BrowserUITests.swift
+[20/23] Compiling PhotoSelectTests FolderTreeTests.swift
+[21/23] Compiling PhotoSelectTests PhotoActionsTests.swift
 [22/26] Compiling PhotoSelectTests PhotoSelectTests.swift
 [23/26] Compiling PhotoSelectTests ViewerInteractionTests.swift
 [24/26] Compiling PhotoSelectTests WindowLayoutTests.swift
@@ -28,105 +28,80 @@ Building for debugging...
 [26/28] Compiling PhotoSelectPackageTests runner.swift
 [26/28] Write Objects.LinkFileList
 [27/28] Linking PhotoSelectPackageTests
-Build complete! (105.95s)
-[1/57] Testing PhotoSelectTests.BrowserUITests/testInitialBrowserFrameFitsActualAvailableScreen
-[2/57] Testing PhotoSelectTests.BrowserUITests/testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded
-[3/57] Testing PhotoSelectTests.BrowserUITests/testBrowserStartsWithTreeGridAndPreviewColumns
-[4/57] Testing PhotoSelectTests.BrowserUITests/testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized
-[5/57] Testing PhotoSelectTests.BrowserUITests/testNativeMenuCommandsNavigateAndTagCurrentPhoto
-[6/57] Testing PhotoSelectTests.BrowserUITests/testPreviewFilenameIsBelowImage
-[7/57] Testing PhotoSelectTests.BrowserUITests/testPresentingVisibleViewerKeepsManualWindowSize
-[8/57] Testing PhotoSelectTests.BrowserUITests/testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList
-[9/57] Testing PhotoSelectTests.BrowserUITests/testSelectingThumbnailChangesRightPreview
-[10/57] Testing PhotoSelectTests.BrowserUITests/testStandardMenusDisablePhotoActionsUntilFolderHasPhotos
-[11/57] Testing PhotoSelectTests.BrowserUITests/testTagBadgeReturnsAfterClosingAndRecreatingBrowser
-[12/57] Testing PhotoSelectTests.BrowserUITests/testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge
-[13/57] Testing PhotoSelectTests.BrowserUITests/testSoftRomanticPaletteRendersInDarkAndLightAppearances
-[14/57] Testing PhotoSelectTests.BrowserUITests/testViewerStartsAsMaximizedWindowInsideVisibleScreen
-[15/57] Testing PhotoSelectTests.FolderTreeTests/testDesktopShortcutUsesSystemDesktopLocation
-[16/57] Testing PhotoSelectTests.FolderTreeTests/testDeniedFolderCanBeExpandedAgainAfterAccessChanges
-[17/57] Testing PhotoSelectTests.FolderTreeTests/testGeneralEntriesStaySeparateFromPhotoDecodeList
-[18/57] Testing PhotoSelectTests.BrowserUITests/testViewerDoubleClickReturnsToSamePhotoAndFolder
-[19/57] Testing PhotoSelectTests.BrowserUITests/testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll
-[20/57] Testing PhotoSelectTests.FolderTreeTests/testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache
-[21/57] Testing PhotoSelectTests.FolderTreeTests/testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter
-[22/57] Testing PhotoSelectTests.PhotoActionsTests/testCorruptTagMetadataIsPreserved
-[23/57] Testing PhotoSelectTests.FolderTreeTests/testSelectingCachedFolderRevealsCollapsedAncestors
-[24/57] Testing PhotoSelectTests.PhotoActionsTests/testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor
-[25/57] Testing PhotoSelectTests.PhotoActionsTests/testDeletingAnotherPhotoPreservesSelectionAndIndependentPair
-[26/57] Testing PhotoSelectTests.PhotoActionsTests/testImmediateFinishPersistsTagsAndUntaggingAcrossSessions
-[27/57] Testing PhotoSelectTests.PhotoActionsTests/testNativeMacOSTrashReturnsRecoverableFixture
-[28/57] Testing PhotoSelectTests.PhotoActionsTests/testRapidTagTogglesSerializeAndEndUntagged
-[29/57] Testing PhotoSelectTests.PhotoActionsTests/testTagSurvivesReloadAndDoesNotChangeRawOrJpeg
-[30/57] Testing PhotoSelectTests.PhotoActionsTests/testTagWriteFailureIsReported
-[31/57] Testing PhotoSelectTests.PhotoActionsTests/testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting
-[32/57] Testing PhotoSelectTests.PhotoActionsTests/testTrashFailureKeepsSourceAndHasNoDeleteFallback
-[33/57] Testing PhotoSelectTests.PhotoActionsTests/testTrashMovesOnlyRequestedFileAndKeepsPair
-[34/57] Testing PhotoSelectTests.PhotoSelectTests/testCorruptImageReturnsFailure
-[35/57] Testing PhotoSelectTests.PhotoActionsTests/testTrashReceiptCapturesDestinationAndExternalSpaceGuidance
-[36/57] Testing PhotoSelectTests.PhotoSelectTests/testExtensionsAndRawJpegPair
-[37/57] Testing PhotoSelectTests.PhotoSelectTests/testFolderEnumerationIsNonRecursiveAndKeepsPairs
-[38/57] Testing PhotoSelectTests.PhotoSelectTests/testRetinaOneSourcePixelPerPhysicalPixel
-[39/57] Testing PhotoSelectTests.PhotoSelectTests/testZoomEdgesNeverRevealEmptySpaceForLargeImage
-[40/57] Testing PhotoSelectTests.ViewerInteractionTests/testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat
-[41/57] Testing PhotoSelectTests.ViewerInteractionTests/testDeactivationCancelsPendingZoom
-[42/57] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeCancelsPendingZoomBeforeClosing
-[43/57] Testing PhotoSelectTests.ViewerInteractionTests/testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer
-[44/57] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeStillResetsZoomAndCloses
-[45/57] Testing PhotoSelectTests.ViewerInteractionTests/testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements
-[46/57] Testing PhotoSelectTests.ViewerInteractionTests/testQuickDoubleClickClosesWithoutEverStartingZoom
-[47/57] Testing PhotoSelectTests.ViewerInteractionTests/testPressAndReleaseStillSwitchBetweenZoomAndFit
-[48/57] Testing PhotoSelectTests.ViewerInteractionTests/testShortClickReleaseDoesNotCauseDelayedZoom
-[49/57] Testing PhotoSelectTests.ViewerInteractionTests/testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit
-[50/57] Testing PhotoSelectTests.WindowLayoutTests/testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas
-[51/57] Testing PhotoSelectTests.WindowLayoutTests/testMinimumSizesNeverForceWindowOutsideSmallDisplay
-[52/57] Testing PhotoSelectTests.WindowLayoutTests/testMovedOrDisconnectedDisplayFrameFitsNewScreen
-[53/57] Testing PhotoSelectTests.WindowLayoutTests/testPhotoGridGetsMostWidthAndPreviewHasBoundedSize
-[54/57] Testing PhotoSelectTests.WindowLayoutTests/testUserSidebarWidthCanGrowAndSurvivesResize
-[55/57] Testing PhotoSelectTests.WindowLayoutTests/testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt
-[56/57] Testing PhotoSelectTests.FolderTreeTests/testHiddenRefreshPreservesExpandedPathAndSelectedFolder
-[57/57] Testing PhotoSelectTests.FolderTreeTests/testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter
-Test Suite 'Selected tests' started at 2026-11-11 14:13:58.484.
-Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-11 14:13:58.489.
-Test Suite 'BrowserUITests' started at 2026-11-11 14:13:58.489.
-Test Case '-[PhotoSelectTests.BrowserUITests testSoftRomanticPaletteRendersInDarkAndLightAppearances]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:291: error: -[PhotoSelectTests.BrowserUITests testSoftRomanticPaletteRendersInDarkAndLightAppearances] : XCTAssertEqualWithAccuracy failed: ("0.16707533597946167") is not equal to ("0.12549019607843137") +/- ("0.04")
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:292: error: -[PhotoSelectTests.BrowserUITests testSoftRomanticPaletteRendersInDarkAndLightAppearances] : XCTAssertEqualWithAccuracy failed: ("0.18367838859558105") is not equal to ("0.13725490196078433") +/- ("0.04")
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:293: error: -[PhotoSelectTests.BrowserUITests testSoftRomanticPaletteRendersInDarkAndLightAppearances] : XCTAssertEqualWithAccuracy failed: ("0.21298730373382568") is not equal to ("0.1607843137254902") +/- ("0.04")
-Test Case '-[PhotoSelectTests.BrowserUITests testSoftRomanticPaletteRendersInDarkAndLightAppearances]' failed (3.572 seconds).
-Test Suite 'BrowserUITests' failed at 2026-11-11 14:14:02.061.
-	 Executed 1 test, with 3 failures (0 unexpected) in 3.572 (3.573) seconds
-Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-11 14:14:02.062.
-	 Executed 1 test, with 3 failures (0 unexpected) in 3.572 (3.573) seconds
-Test Suite 'Selected tests' failed at 2026-11-11 14:14:02.062.
-	 Executed 1 test, with 3 failures (0 unexpected) in 3.572 (3.578) seconds
-
-Test Suite 'Selected tests' started at 2026-11-11 14:14:02.938.
-Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-11 14:14:02.942.
-Test Suite 'FolderTreeTests' started at 2026-11-11 14:14:02.942.
+Build complete! (70.85s)
+[1/59] Testing PhotoSelectTests.BrowserUITests/testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized
+[2/59] Testing PhotoSelectTests.BrowserUITests/testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch
+[3/59] Testing PhotoSelectTests.BrowserUITests/testBrowserStartsWithTreeGridAndPreviewColumns
+[4/59] Testing PhotoSelectTests.BrowserUITests/testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns
+[5/59] Testing PhotoSelectTests.BrowserUITests/testPresentingVisibleViewerKeepsManualWindowSize
+[6/59] Testing PhotoSelectTests.BrowserUITests/testNativeMenuCommandsNavigateAndTagCurrentPhoto
+[7/59] Testing PhotoSelectTests.BrowserUITests/testInitialBrowserFrameFitsActualAvailableScreen
+[8/59] Testing PhotoSelectTests.BrowserUITests/testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded
+[9/59] Testing PhotoSelectTests.BrowserUITests/testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList
+[10/59] Testing PhotoSelectTests.BrowserUITests/testStandardMenusDisablePhotoActionsUntilFolderHasPhotos
+[11/59] Testing PhotoSelectTests.BrowserUITests/testSelectingThumbnailChangesRightPreview
+[12/59] Testing PhotoSelectTests.BrowserUITests/testSoftRomanticPaletteRendersInDarkAndLightAppearances
+[13/59] Testing PhotoSelectTests.BrowserUITests/testPreviewFilenameIsBelowImage
+[14/59] Testing PhotoSelectTests.BrowserUITests/testTagBadgeReturnsAfterClosingAndRecreatingBrowser
+[15/59] Testing PhotoSelectTests.BrowserUITests/testViewerStartsAsMaximizedWindowInsideVisibleScreen
+[16/59] Testing PhotoSelectTests.BrowserUITests/testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge
+[17/59] Testing PhotoSelectTests.BrowserUITests/testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll
+[18/59] Testing PhotoSelectTests.BrowserUITests/testViewerDoubleClickReturnsToSamePhotoAndFolder
+[19/59] Testing PhotoSelectTests.FolderTreeTests/testDeniedFolderCanBeExpandedAgainAfterAccessChanges
+[20/59] Testing PhotoSelectTests.FolderTreeTests/testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter
+[21/59] Testing PhotoSelectTests.FolderTreeTests/testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter
+[22/59] Testing PhotoSelectTests.FolderTreeTests/testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache
+[23/59] Testing PhotoSelectTests.FolderTreeTests/testSelectingCachedFolderRevealsCollapsedAncestors
+[24/59] Testing PhotoSelectTests.PhotoActionsTests/testCorruptTagMetadataIsPreserved
+[25/59] Testing PhotoSelectTests.PhotoActionsTests/testDeletingAnotherPhotoPreservesSelectionAndIndependentPair
+[26/59] Testing PhotoSelectTests.PhotoActionsTests/testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor
+[27/59] Testing PhotoSelectTests.PhotoActionsTests/testImmediateFinishPersistsTagsAndUntaggingAcrossSessions
+[28/59] Testing PhotoSelectTests.PhotoActionsTests/testNativeMacOSTrashReturnsRecoverableFixture
+[29/59] Testing PhotoSelectTests.PhotoActionsTests/testRapidTagTogglesSerializeAndEndUntagged
+[30/59] Testing PhotoSelectTests.PhotoActionsTests/testTagSurvivesReloadAndDoesNotChangeRawOrJpeg
+[31/59] Testing PhotoSelectTests.PhotoActionsTests/testTagWriteFailureIsReported
+[32/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting
+[33/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashFailureKeepsSourceAndHasNoDeleteFallback
+[34/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashMovesOnlyRequestedFileAndKeepsPair
+[35/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashReceiptCapturesDestinationAndExternalSpaceGuidance
+[36/59] Testing PhotoSelectTests.PhotoSelectTests/testCorruptImageReturnsFailure
+[37/59] Testing PhotoSelectTests.PhotoSelectTests/testExtensionsAndRawJpegPair
+[38/59] Testing PhotoSelectTests.PhotoSelectTests/testFolderEnumerationIsNonRecursiveAndKeepsPairs
+[39/59] Testing PhotoSelectTests.PhotoSelectTests/testRetinaOneSourcePixelPerPhysicalPixel
+[40/59] Testing PhotoSelectTests.PhotoSelectTests/testZoomEdgesNeverRevealEmptySpaceForLargeImage
+[41/59] Testing PhotoSelectTests.ViewerInteractionTests/testDeactivationCancelsPendingZoom
+[42/59] Testing PhotoSelectTests.ViewerInteractionTests/testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat
+[43/59] Testing PhotoSelectTests.ViewerInteractionTests/testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer
+[44/59] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeCancelsPendingZoomBeforeClosing
+[45/59] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeStillResetsZoomAndCloses
+[46/59] Testing PhotoSelectTests.ViewerInteractionTests/testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements
+[47/59] Testing PhotoSelectTests.ViewerInteractionTests/testPressAndReleaseStillSwitchBetweenZoomAndFit
+[48/59] Testing PhotoSelectTests.ViewerInteractionTests/testQuickDoubleClickClosesWithoutEverStartingZoom
+[49/59] Testing PhotoSelectTests.ViewerInteractionTests/testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit
+[50/59] Testing PhotoSelectTests.ViewerInteractionTests/testShortClickReleaseDoesNotCauseDelayedZoom
+[51/59] Testing PhotoSelectTests.WindowLayoutTests/testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas
+[52/59] Testing PhotoSelectTests.WindowLayoutTests/testMinimumSizesNeverForceWindowOutsideSmallDisplay
+[53/59] Testing PhotoSelectTests.WindowLayoutTests/testMovedOrDisconnectedDisplayFrameFitsNewScreen
+[54/59] Testing PhotoSelectTests.WindowLayoutTests/testPhotoGridGetsMostWidthAndPreviewHasBoundedSize
+[55/59] Testing PhotoSelectTests.WindowLayoutTests/testUserSidebarWidthCanGrowAndSurvivesResize
+[56/59] Testing PhotoSelectTests.WindowLayoutTests/testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt
+[57/59] Testing PhotoSelectTests.FolderTreeTests/testDesktopShortcutUsesSystemDesktopLocation
+[58/59] Testing PhotoSelectTests.FolderTreeTests/testHiddenRefreshPreservesExpandedPathAndSelectedFolder
+[59/59] Testing PhotoSelectTests.FolderTreeTests/testGeneralEntriesStaySeparateFromPhotoDecodeList
+Test Suite 'Selected tests' started at 2026-11-11 14:19:59.060.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-11 14:19:59.063.
+Test Suite 'FolderTreeTests' started at 2026-11-11 14:19:59.064.
 Test Case '-[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder]' started.
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FolderTreeTests.swift:14: error: -[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder] : Asynchronous wait failed: Exceeded timeout of 6 seconds, with unfulfilled expectations: "expanded selection restored with hidden file".
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FolderTreeTests.swift:188: error: -[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder] : XCTAssertEqual failed: ("Optional(file:///private/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/91C3C7BC-8517-4B4B-B89D-5B05181F247A/Nested/)") is not equal to ("Optional(file:///var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/91C3C7BC-8517-4B4B-B89D-5B05181F247A/Nested/)") - selectedRow=1; 0:91C3C7BC-8517-4B4B-B89D-5B05181F247A children=1 expanded=true requested=true loading=false; 1:Nested children=2 expanded=true requested=true loading=false; 2:.hidden.txt children=nil expanded=false requested=false loading=false; 3:visible.jpg children=nil expanded=false requested=false loading=false
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FolderTreeTests.swift:14: error: -[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder] : Asynchronous wait failed: Exceeded timeout of 6 seconds, with unfulfilled expectations: "hidden file removed without losing location".
-Test Case '-[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder]' failed (12.929 seconds).
-Test Suite 'FolderTreeTests' failed at 2026-11-11 14:14:15.873.
-	 Executed 1 test, with 2 failures (0 unexpected) in 12.929 (12.931) seconds
-Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-11 14:14:15.873.
-	 Executed 1 test, with 2 failures (0 unexpected) in 12.929 (12.932) seconds
-Test Suite 'Selected tests' failed at 2026-11-11 14:14:15.874.
-	 Executed 1 test, with 2 failures (0 unexpected) in 12.929 (12.936) seconds
-
-Test Suite 'Selected tests' started at 2026-11-11 14:14:03.447.
-Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-11 14:14:03.451.
-Test Suite 'FolderTreeTests' started at 2026-11-11 14:14:03.451.
-Test Case '-[PhotoSelectTests.FolderTreeTests testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FolderTreeTests.swift:14: error: -[PhotoSelectTests.FolderTreeTests testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter] : Asynchronous wait failed: Exceeded timeout of 6 seconds, with unfulfilled expectations: "1500 photos and general files enumerated".
-Test Case '-[PhotoSelectTests.FolderTreeTests testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter]' failed (12.722 seconds).
-Test Suite 'FolderTreeTests' failed at 2026-11-11 14:14:16.174.
-	 Executed 1 test, with 1 failure (0 unexpected) in 12.722 (12.723) seconds
-Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-11 14:14:16.174.
-	 Executed 1 test, with 1 failure (0 unexpected) in 12.722 (12.723) seconds
-Test Suite 'Selected tests' failed at 2026-11-11 14:14:16.174.
-	 Executed 1 test, with 1 failure (0 unexpected) in 12.722 (12.728) seconds
+Test Case '-[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder]' failed (12.932 seconds).
+Test Suite 'FolderTreeTests' failed at 2026-11-11 14:20:11.996.
+	 Executed 1 test, with 3 failures (0 unexpected) in 12.932 (12.932) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-11 14:20:11.996.
+	 Executed 1 test, with 3 failures (0 unexpected) in 12.932 (12.933) seconds
+Test Suite 'Selected tests' failed at 2026-11-11 14:20:11.996.
+	 Executed 1 test, with 3 failures (0 unexpected) in 12.932 (12.936) seconds
 
 ◇ Test run started.
 ↳ Testing Library Version: 124.4
