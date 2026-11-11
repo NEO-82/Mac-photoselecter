@@ -21,6 +21,14 @@
 
 ## Mac에서 필수 확인
 
+0.4.0은 2026-11-11 [macOS 빌드 실행 #21](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43038529075)에서
+소스 `90ca5a72e1e3b70f37150105d7df0145aeb52bb0`의 XCTest **61개**, arm64 Release 빌드, 앱 서명 및 DMG 검증이 통과했습니다.
+Intel macOS/Xcode 16.4에서 실행했으며 실제 Apple Silicon에서 테스트한 결과가 아닙니다.
+실제 네이티브 펼침 버튼, 숨김 옵션/경로 복원/갱신 중 새 선택, 1,500개 사진 확장자 파일 열거,
+뷰어 입력·오류·복귀 시 객체/스크롤 보존, 분할선 폭 유지, 다크/라이트 캡처,
+실제 macOS 휴지통 이동과 반환 위치의 테스트 파일 복원을 검증했습니다.
+실제 다운로드 HTTP 200, 3,487,169바이트와 SHA-256 일치 확인. [전체 결과/미검증 항목](soft-romantic-pro.md).
+
 0.3.0은 2026-11-11 [macOS 빌드 실행 #17](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43031581112)에서
 소스 `28f5ac39ab5e3311fcdc729c4907957511cf3ecd`의 XCTest **44개**, arm64 Release 빌드 및 DMG 검증이 통과했습니다.
 Intel macOS, Xcode 16.4에서 XCTest를 실행하고 arm64 전용 앱을 별도 빌드했습니다. 이는 Apple Silicon에서 실행한 테스트가 아닙니다.
@@ -76,7 +84,7 @@ DMG 무결성/앱 서명/다운로드 체크섬도 확인했습니다. Dock/Find
 
 `bash scripts/validate-macos.sh` 실행 후 아래 항목을 확인합니다. 기본 기준은 M1 Pro, macOS 버전·Xcode 버전·화면 배율을 함께 기록합니다.
 
-- [ ] Xcode 앱 빌드 성공 및 `swift test` 44개 실행/통과 (0개 실행은 성공 아님)
+- [ ] Xcode 앱 빌드 성공 및 `swift test` 61개 실행/통과 (0개 실행은 성공 아님)
 - [ ] macOS 상단 파일·보기·사진·윈도우 메뉴와 폴더 열기/사진 이동/태그 동작, 사진이 없을 때 비활성 상태
 - [ ] 태그 지정 직후 정상 종료·Mac 재부팅·같은 폴더 재선택 후 복원, 태그 해제 상태도 동일하게 유지
 - [ ] 폴더 트리에 초점이 있을 때 Delete/태그 메뉴 단축키가 선택 사진을 변경하지 않음

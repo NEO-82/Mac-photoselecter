@@ -2,7 +2,7 @@
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[0.3.0 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.3.0-arm64.dmg)
+[0.4.0 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.4.0-arm64.dmg)
 
 DMG를 열고 **정광이의 MAC 포토셀렉터.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 앱을 종료한 뒤 새 버전으로 교체하세요. 예전 `PhotoSelect.app`이 남아 있다면 이전 앱만 휴지통으로 옮기세요.
@@ -13,11 +13,11 @@ Developer ID 서명/Apple 공증이 없는 개인 테스트용입니다. macOS�
 화면 최상단 macOS 메뉴 막대에 **파일·보기·사진·윈도우** 메뉴를 제공합니다. 창 안의 작은 도구바 아래에 세 영역이 나란히 배치됩니다.
 파일 메뉴의 폴더 열기는 `⌘O`, 새로고침은 `⌘R`, 상위 폴더는 `⌘↑`, 선택 사진 크게 보기는 보기 메뉴 또는 Return입니다.
 
-- **왼쪽:** 홈·데스크탑·이 Mac·저장장치 파일 트리. 폴더와 일반 파일을 시스템 아이콘으로 표시하며, 폴더를 선택하면 해당 폴더의 사진을 비동기로 읽습니다. 일반 파일은 이미지로 디코딩하지 않습니다.
+- **왼쪽:** 홈·데스크탑·이 Mac·저장장치 파일 트리. 폴더와 일반 파일을 시스템 아이콘으로 표시하며, 폴더를 선택하면 해당 폴더의 사진을 비동기로 읽습니다. 일반 파일은 이미지로 디코딩하지 않습니다. 화살표는 펼치기·접기, 이름은 폴더 선택이며, 분할선을 드래그한 폭과 펼친 경로를 유지합니다.
 - **가운데:** 현재 폴더의 지원 사진 전체를 썸네일로 표시합니다. 파일명은 아래에 두 줄까지, 전체 이름은 툴팁으로 확인합니다.
 - **오른쪽:** 선택한 사진의 미리보기와 아래쪽 파일명. 기본 폭은 창의 약 22%(최대 320pt)이며 원본 사진 크기와 관계없이 맞춰 표시합니다.
 - **더블클릭:** Dock과 메뉴 막대를 제외한 사용 가능 영역 전체를 채우는 일반 창으로 사진을 엽니다. 크기 조절이 가능하며 별도 전체 화면 Space를 만들지 않습니다.
-- **←/→:** 이전/다음 사진. 왼쪽 마우스를 누른 동안 물리 픽셀 1:1 확대, 드래그로 부분 확인, 놓으면 맞춤 보기. 누른 채 사진을 넘겨도 확대를 유지합니다.
+- **←/→:** 이전/다음 사진. 왼쪽 마우스를 길게 누르면 물리 픽셀 1:1 확대, 드래그로 부분 확인, 놓으면 맞춤 보기. 정지한 누름은 시스템 더블클릭 판별 시간 후 확대하며 드래그는 즉시 확대합니다. 빠른 더블클릭은 먼저 확대되지 않고 목록으로 복귀합니다. 누른 채 사진을 넘겨도 확대를 유지합니다.
 - **Delete / fn+Delete:** 현재 한 장을 macOS 휴지통으로 이동하고 다음 사진을 표시합니다. 마지막 사진이면 이전 사진, 한 장도 없으면 목록으로 돌아갑니다.
 - **`\`:** 태그 켜기/끄기. 한글 키보드의 같은 위치 `₩` 키도 지원합니다. 썸네일·미리보기·큰 사진 창 오른쪽 위에 빨간 네모를 표시합니다.
 - **Esc / 큰 사진 창 더블클릭:** 현재 사진과 폴더 선택을 유지하며 목록으로 돌아갑니다. 첫 누름 확대·드래그·놓기와 그리드 더블클릭은 유지합니다.
@@ -39,7 +39,7 @@ macOS 13+, Xcode 15+가 필요합니다. 외부 패키지, 서버, API 키는 �
 2. `bash scripts/validate-macos.sh`로 앱 빌드와 Swift Package XCTest 실행.
 3. `설치파일-만들기.command`를 더블클릭하거나 `bash scripts/package-macos.sh`로 테스트·Release 빌드·DMG 검증 실행.
 
-기본 결과물은 `dist/PhotoSelect-0.3.0-1-arm64/PhotoSelect-0.3.0-1-arm64.dmg`와 `SHA256SUMS`입니다.
+기본 결과물은 `dist/PhotoSelect-0.4.0-1-arm64/PhotoSelect-0.4.0-1-arm64.dmg`와 `SHA256SUMS`입니다.
 다시 만들 때는 `PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh`처럼 빌드 번호를 늘리세요.
 Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배포용 앱과 아이콘은 Xcode 프로젝트로 만듭니다.
 각 작업은 격리된 체크아웃을 사용하므로 별도 worktree는 필요하지 않습니다.
@@ -65,4 +65,4 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 [Retina·RAW·캐시 설계](docs/architecture.md)를 참고하세요. 모든 Sony ARW 변형을 지원한다고 주장하지 않습니다.
 실제 ARW 호환성, M1 Pro의 1,500장 성능, 실제 입력 장치·외장 드라이브 분리와 휴지통 복구는 실기기 확인이 필요합니다.
 
-0.3.0은 [macOS 빌드 #17](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43031581112)에서 XCTest 44개, arm64 Release 빌드, 앱 서명 및 DMG 검증을 통과했습니다. 실제 다운로드 HTTP 200과 SHA-256 일치도 확인했습니다. 테스트는 Intel macOS/Xcode 16.4에서 실행했으며 실제 Apple Silicon 실행·ARW 호환성·외장 저장장치 검증은 별도입니다. [이번 개선 및 검증 상세](docs/improvements-validation.md)를 참고하세요.
+0.4.0은 [macOS 빌드 #21](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43038529075)에서 XCTest **61개**, arm64 Release 앱 빌드, 앱 서명 및 DMG 검증을 통과했습니다. 실제 다운로드 HTTP 200과 SHA-256 일치도 확인했습니다. 테스트는 Intel macOS/Xcode 16.4에서 실행했으며 실제 M1 Pro 실행·Sony ARW 호환성·대량 사진 성능·외장 저장장치 검증은 별도입니다. [화면 캡처·변경 파일·검증 결과·실기기 절차](docs/soft-romantic-pro.md)를 참고하세요.
