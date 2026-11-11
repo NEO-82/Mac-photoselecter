@@ -2,7 +2,7 @@
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[0.4.0 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.4.0-arm64.dmg)
+[0.4.1 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.4.1-arm64.dmg)
 
 DMG를 열고 **정광이의 MAC 포토셀렉터.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 앱을 종료한 뒤 새 버전으로 교체하세요. 예전 `PhotoSelect.app`이 남아 있다면 이전 앱만 휴지통으로 옮기세요.
@@ -39,7 +39,7 @@ macOS 13+, Xcode 15+가 필요합니다. 외부 패키지, 서버, API 키는 �
 2. `bash scripts/validate-macos.sh`로 앱 빌드와 Swift Package XCTest 실행.
 3. `설치파일-만들기.command`를 더블클릭하거나 `bash scripts/package-macos.sh`로 테스트·Release 빌드·DMG 검증 실행.
 
-기본 결과물은 `dist/PhotoSelect-0.4.0-1-arm64/PhotoSelect-0.4.0-1-arm64.dmg`와 `SHA256SUMS`입니다.
+기본 결과물은 `dist/PhotoSelect-0.4.1-1-arm64/PhotoSelect-0.4.1-1-arm64.dmg`와 `SHA256SUMS`입니다.
 다시 만들 때는 `PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh`처럼 빌드 번호를 늘리세요.
 Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배포용 앱과 아이콘은 Xcode 프로젝트로 만듭니다.
 각 작업은 격리된 체크아웃을 사용하므로 별도 worktree는 필요하지 않습니다.
@@ -66,3 +66,5 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 실제 ARW 호환성, M1 Pro의 1,500장 성능, 실제 입력 장치·외장 드라이브 분리와 휴지통 복구는 실기기 확인이 필요합니다.
 
 0.4.0은 [macOS 빌드 #21](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43038529075)에서 XCTest **61개**, arm64 Release 앱 빌드, 앱 서명 및 DMG 검증을 통과했습니다. 실제 다운로드 HTTP 200과 SHA-256 일치도 확인했습니다. 테스트는 Intel macOS/Xcode 16.4에서 실행했으며 실제 M1 Pro 실행·Sony ARW 호환성·대량 사진 성능·외장 저장장치 검증은 별도입니다. [화면 캡처·변경 파일·검증 결과·실기기 절차](docs/soft-romantic-pro.md)를 참고하세요.
+
+0.4.1은 About 크레딧을 `Made with Seoa ♡`와 11pt 로즈 색상으로 변경했습니다. [실제 소스 위치·About UI 캡처·62개 테스트 결과](docs/about-seoa.md)를 확인하세요.
