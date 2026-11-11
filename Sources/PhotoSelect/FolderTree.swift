@@ -235,6 +235,12 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
                 }
                 // A collapsed ancestor or refreshed tree may no longer contain this row.
                 guard self.view.row(forItem: node) >= 0 else { return }
+                // Reloading the selected nested row can clear native selection
+                // even after its parent restored it during an earlier callback.
+                if self.selectionToRestore == nil,
+                   let selected = self.view.item(atRow: self.view.selectedRow) as? FolderNode {
+                    self.selectionToRestore = selected.url
+                }
                 self.suppressSelection = true
                 self.view.reloadItem(node, reloadChildren: true)
                 if node.error == nil && node.expanded { self.view.expandItem(node) }

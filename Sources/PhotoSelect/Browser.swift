@@ -151,6 +151,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var imageGeneration = UUID()
     private var viewer: ViewerController?
     private var displayed: DecodedImage?
+    private var previewError: String?
     private var zoom = false
     private var fullRequested = false
     private var fullError: String?
@@ -432,7 +433,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private func loadFolder(_ url: URL, lease: FolderLease) {
         generation = UUID(); let token = generation
         imageGeneration = UUID(); list.replace(with: []); pipeline.clear(); thumbnails.clear()
-        viewer?.close(); displayed = nil; preview.clear()
+        viewer?.close(); displayed = nil; previewError = nil; preview.clear()
         self.lease = lease; currentFolder = url; actionMessage = nil
         updateBadges()
         up.isEnabled = url != lease.url
@@ -515,17 +516,18 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 self.window?.makeKeyAndOrderFront(nil); self.window?.makeFirstResponder(self.grid)
             }
         }
+        viewer?.window?.title = (list.photos.indices.contains(index) ? list.photos[index].url.lastPathComponent + " — " : "") + AppBranding.displayName
         viewer?.present(on: window?.screen)
         if list.selectedIndex == index {
             viewer?.canvas.decoded = displayed
-            if displayed == nil { viewer?.hud.stringValue = (list.selectedPhoto?.url.lastPathComponent ?? "") + " — 읽는 중…" }
+            if displayed == nil { viewer?.hud.stringValue = previewError.map { $0 + " — ←/→ 계속 탐색 · Esc 복귀" } ?? ((list.selectedPhoto?.url.lastPathComponent ?? "") + " — 읽는 중…") }
             updateHUD(); updateBadges()
         } else { showPhoto(index) }
     }
     private func showPhoto(_ index: Int) {
         guard let lease, list.select(index), let photo = list.selectedPhoto else { return }
         pipeline.cancelAll(); imageGeneration = UUID(); let token = imageGeneration
-        displayed = nil; fullRequested = false; fullError = nil; actionMessage = nil
+        displayed = nil; previewError = nil; fullRequested = false; fullError = nil; actionMessage = nil
         viewer?.canvas.decoded = nil; preview.select(photo)
         viewer?.window?.title = photo.url.lastPathComponent + " — " + AppBranding.displayName
         viewer?.hud.stringValue = photo.url.lastPathComponent + " — 읽는 중…"
@@ -545,6 +547,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                     self.pipeline.load(self.list.photos[neighbor], lease: lease, quality: .preview, prefetch: true) { _, _ in }
                 }
             case .failure(let error):
+                self.previewError = error.localizedDescription
                 self.preview.detail.stringValue = error.localizedDescription
                 self.viewer?.hud.stringValue = error.localizedDescription + " — ←/→ 계속 탐색 · Esc 복귀"
             }

@@ -1,4 +1,5 @@
 import AppKit
+import ImageIO
 import XCTest
 @testable import PhotoSelect
 
@@ -241,6 +242,7 @@ final class BrowserUITests: XCTestCase {
             browser.openSelectedPhoto()
             let viewerWindow = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
             let canvas = try XCTUnwrap(viewerWindow.contentView as? PhotoCanvas)
+            XCTAssertEqual(viewerWindow.title, "031.jpg — " + AppBranding.displayName)
             let decoded = try XCTUnwrap(canvas.decoded) // Reopening a decoded selection must be synchronous.
             if pass == 0 { originalViewerImage = decoded.image }
             else { XCTAssertTrue(decoded.image === originalViewerImage) }
@@ -255,6 +257,82 @@ final class BrowserUITests: XCTestCase {
             XCTAssertEqual(scroll.contentView.bounds.origin, originalOrigin)
             XCTAssertEqual(grid.selectionIndexPaths, [selected])
         }
+    }
+
+    @MainActor
+    func testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns() throws {
+        _ = NSApplication.shared
+        let root = try folder(), broken = root.appendingPathComponent("broken.jpg")
+        try Data("invalid JPEG fixture".utf8).write(to: broken)
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("metadata/tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("broken photo reports completed preview failure") {
+            preview.filename.stringValue == "broken.jpg" && !preview.detail.stringValue.isEmpty && preview.detail.stringValue != "불러오는 중…"
+        }
+        let originalFailure = preview.detail.stringValue
+        XCTAssertNil(preview.imageView.image)
+        // Replacing the fixture on disk would succeed if opening the viewer
+        // unnecessarily restarted decoding. Keep the existing failure until refresh.
+        try jpegData().write(to: broken)
+        browser.openSelectedPhoto()
+        let viewerWindow = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        defer { viewerWindow.close() }
+        let canvas = try XCTUnwrap(viewerWindow.contentView as? PhotoCanvas)
+        let hud = try XCTUnwrap(canvas.subviews.compactMap { $0 as? NSTextField }.first)
+        XCTAssertEqual(viewerWindow.title, "broken.jpg — " + AppBranding.displayName)
+        XCTAssertTrue(hud.stringValue.contains(originalFailure))
+        XCTAssertFalse(hud.stringValue.contains("읽는 중"))
+        let settled = expectation(description: "failed viewer does not restart decoding")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { settled.fulfill() }
+        wait(for: [settled], timeout: 2)
+        XCTAssertNil(canvas.decoded)
+        XCTAssertEqual(preview.detail.stringValue, originalFailure)
+        let escape = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
+            modifierFlags: [], timestamp: 0, windowNumber: viewerWindow.windowNumber,
+            context: nil, characters: "\u{1B}", charactersIgnoringModifiers: "\u{1B}", isARepeat: false, keyCode: 53))
+        canvas.keyDown(with: escape)
+        XCTAssertFalse(viewerWindow.isVisible)
+        XCTAssertEqual(grid.selectionIndexPaths, [IndexPath(item: 0, section: 0)])
+        XCTAssertTrue(browser.window?.firstResponder === grid)
+    }
+
+    @MainActor
+    func testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch() throws {
+        _ = NSApplication.shared
+        let root = try folder(), data = jpegData()
+        for name in ["1.jpg", "2.jpg"] { try data.write(to: root.appendingPathComponent(name)) }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("metadata/tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let window = try XCTUnwrap(browser.window), content = try XCTUnwrap(window.contentView)
+        window.setContentSize(NSSize(width: 1200, height: 650))
+        content.layoutSubtreeIfNeeded()
+        let views = descendants(content)
+        let split = try XCTUnwrap(views.compactMap { $0 as? NSSplitView }.first)
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("first photo before divider adjustment") { preview.imageView.image != nil }
+        // setPosition does not model user tracking's delegate callback itself.
+        // Exercise that callback, its constraints, then AppKit's divider movement.
+        let requested: CGFloat = 320
+        let accepted = browser.splitView(split, constrainSplitPosition: requested, ofSubviewAt: 0)
+        split.setPosition(accepted, ofDividerAt: 0)
+        content.layoutSubtreeIfNeeded()
+        XCTAssertEqual(split.arrangedSubviews[0].frame.width, requested, accuracy: 2)
+        window.setContentSize(NSSize(width: 1000, height: 650))
+        content.layoutSubtreeIfNeeded()
+        XCTAssertEqual(split.arrangedSubviews[0].frame.width, requested, accuracy: 2)
+        let second = IndexPath(item: 1, section: 0)
+        grid.selectionIndexPaths = [second]
+        browser.collectionView(grid, didSelectItemsAt: [second])
+        waitUntil("second photo after divider adjustment") { preview.filename.stringValue == "2.jpg" && preview.imageView.image != nil }
+        content.layoutSubtreeIfNeeded()
+        XCTAssertEqual(split.arrangedSubviews[0].frame.width, requested, accuracy: 2)
+        XCTAssertGreaterThanOrEqual(split.arrangedSubviews[1].frame.width, 300)
     }
 
     @MainActor
@@ -287,15 +365,30 @@ final class BrowserUITests: XCTestCase {
             appearance.performAsCurrentDrawingAppearance { content.cacheDisplay(in: content.bounds, to: bitmap) }
             // The centered one-pixel outer margin contains the actual root
             // surface fill and avoids text, icons, photos and selection color.
-            let pixel = try XCTUnwrap(bitmap.colorAt(x: bitmap.pixelsWide / 2, y: 1)?.usingColorSpace(.sRGB))
-            XCTAssertEqual(pixel.redComponent, CGFloat(expected[0]), accuracy: 0.04)
-            XCTAssertEqual(pixel.greenComponent, CGFloat(expected[1]), accuracy: 0.04)
-            XCTAssertEqual(pixel.blueComponent, CGFloat(expected[2]), accuracy: 0.04)
+            // Read back the same ICC-tagged PNG that is saved as UI evidence.
+            let png = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+            let source = try XCTUnwrap(CGImageSourceCreateWithData(png as CFData, nil))
+            let captured = try XCTUnwrap(CGImageSourceCreateImageAtIndex(source, 0, nil))
+            let pixel = try XCTUnwrap(captured.cropping(to: CGRect(x: CGFloat(bitmap.pixelsWide / 2), y: 1, width: 1, height: 1)))
+            // colorAt can return device/calibrated NSColor components even when
+            // the capture carries a display ICC profile. Convert that profile
+            // through CoreGraphics into an explicit sRGB RGBA buffer instead.
+            var rgba = [UInt8](repeating: 0, count: 4)
+            try rgba.withUnsafeMutableBytes { buffer in
+                let context = try XCTUnwrap(CGContext(data: buffer.baseAddress, width: 1, height: 1,
+                    bitsPerComponent: 8, bytesPerRow: 4,
+                    space: try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB)),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+                context.draw(pixel, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+            }
+            XCTAssertEqual(CGFloat(rgba[0]) / 255, CGFloat(expected[0]), accuracy: 0.04)
+            XCTAssertEqual(CGFloat(rgba[1]) / 255, CGFloat(expected[1]), accuracy: 0.04)
+            XCTAssertEqual(CGFloat(rgba[2]) / 255, CGFloat(expected[2]), accuracy: 0.04)
             XCTAssertTrue(preview.imageView.image === originalPreview)
             if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
                 let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent(filename)
                 try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
-                try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: output)
+                try png.write(to: output)
             }
         }
     }

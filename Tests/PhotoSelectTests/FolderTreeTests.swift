@@ -13,6 +13,25 @@ final class FolderTreeTests: XCTestCase {
         }
         poll(); wait(for: [done], timeout: 6)
     }
+    @MainActor
+    private func mount(_ tree: FolderTree) -> NSWindow {
+        let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 320, height: 300))
+        scroll.hasVerticalScroller = true
+        tree.view.frame = scroll.contentView.bounds
+        scroll.documentView = tree.view
+        let window = NSWindow(contentRect: scroll.frame, styleMask: [.titled], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false; window.contentView = scroll
+        window.orderFront(nil); window.contentView?.layoutSubtreeIfNeeded(); window.displayIfNeeded()
+        return window
+    }
+    @MainActor
+    private func state(_ tree: FolderTree) -> String {
+        let rows = (0..<tree.view.numberOfRows).compactMap { row -> String? in
+            guard let node = tree.view.item(atRow: row) as? FolderNode else { return nil }
+            return "\(row):\(node.title) children=\(node.children?.count.description ?? "nil") expanded=\(tree.view.isItemExpanded(node)) requested=\(node.expanded) loading=\(node.loading)"
+        }.joined(separator: "; ")
+        return "selectedRow=\(tree.view.selectedRow); \(rows)"
+    }
     private func folder() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
@@ -153,6 +172,7 @@ final class FolderTreeTests: XCTestCase {
         try Data().write(to: nested.appendingPathComponent(".hidden.txt"))
         let parent = FolderNode(url: root, lease: FolderLease(root))
         let tree = FolderTree(roots: [parent])
+        let window = mount(tree); defer { window.close() }
         tree.select(root)
         waitUntil("initial child directory") { parent.children?.count == 1 }
         tree.select(nested, lease: parent.lease)
@@ -164,7 +184,9 @@ final class FolderTreeTests: XCTestCase {
             guard let selected = tree.view.item(atRow: tree.view.selectedRow) as? FolderNode else { return false }
             return selected.url == nested && selected.children?.count == 2 && tree.view.isItemExpanded(selected)
         }
-        XCTAssertTrue(tree.view.isItemExpanded(parent))
+        XCTAssertTrue(tree.view.isItemExpanded(parent), state(tree))
+        XCTAssertEqual((tree.view.item(atRow: tree.view.selectedRow) as? FolderNode)?.url, nested, state(tree))
+        XCTAssertEqual((tree.view.item(atRow: tree.view.selectedRow) as? FolderNode)?.children?.count, 2, state(tree))
         XCTAssertEqual(selections, 0)
         tree.showHidden = false
         waitUntil("hidden file removed without losing location") {
@@ -189,9 +211,13 @@ final class FolderTreeTests: XCTestCase {
             reads += 1
             return try FolderReader.entries(url, directories: true, allFiles: true)
         })
+        let window = mount(tree); defer { window.close() }
         XCTAssertEqual(reads, 0)
         tree.select(root)
-        waitUntil("1500 photos and general files enumerated") { node.children?.count == 1504 && !node.loading }
+        withExtendedLifetime(tree) {
+            waitUntil("1500 photos and general files enumerated") { node.children?.count == 1504 && !node.loading }
+        }
+        XCTAssertEqual(node.children?.count, 1504, "reads=\(reads) error=\(node.error ?? "nil") loading=\(node.loading)")
         XCTAssertEqual(reads, 1)
         XCTAssertEqual(try FolderReader.entries(root, directories: false).count, 1500)
         XCTAssertTrue(node.children?.allSatisfy { !$0.isDirectory } == true)
