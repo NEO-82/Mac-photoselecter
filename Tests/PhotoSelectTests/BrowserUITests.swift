@@ -31,6 +31,75 @@ final class BrowserUITests: XCTestCase {
         return NSBitmapImageRep(cgImage: context.makeImage()!).representation(using: .jpeg, properties: [:])!
     }
     @MainActor
+    func testAboutMenuShowsSeoaCreditsInRoseOnNativePanel() throws {
+        let app = NSApplication.shared
+        let originalDelegate = app.delegate
+        let originalAppearance = app.appearance
+        let delegate = AppDelegate()
+        app.delegate = delegate
+        app.appearance = NSAppearance(named: .darkAqua)
+        defer { app.delegate = originalDelegate; app.appearance = originalAppearance }
+        let root = try folder()
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: nil)
+        defer { app.delegate = originalDelegate; browser.close() }
+        let menu = AppMenus.make(for: browser)
+        let applicationMenu = try XCTUnwrap(menu.item(withTitle: AppBranding.displayName)?.submenu)
+        let about = try XCTUnwrap(applicationMenu.item(withTitle: AppBranding.displayName + " 정보"))
+        XCTAssertTrue(app.sendAction(try XCTUnwrap(about.action), to: about.target, from: about))
+        let phrase = "Made with Seoa ♡"
+        // Inspect the actual text storage that AppKit put in the displayed panel,
+        // rather than reusing the source attributed-string construction.
+        func credits(in window: NSWindow) -> (view: NSView, text: NSAttributedString, range: NSRange)? {
+            guard window.isVisible, let content = window.contentView else { return nil }
+            for view in descendants(content) where !view.isHiddenOrHasHiddenAncestor {
+                let text: NSAttributedString
+                if let storage = (view as? NSTextView)?.textStorage { text = NSAttributedString(attributedString: storage) }
+                else if let field = view as? NSTextField { text = field.attributedStringValue }
+                else { continue }
+                let range = (text.string as NSString).range(of: phrase)
+                if range.location != NSNotFound { return (view, text, range) }
+            }
+            return nil
+        }
+        waitUntil("native About panel displays updated credits") {
+            app.windows.contains { credits(in: $0) != nil }
+        }
+        let panel = try XCTUnwrap(app.windows.first { credits(in: $0) != nil },
+            "Visible windows: " + app.windows.filter(\.isVisible).map(\.title).joined(separator: ", "))
+        defer { app.delegate = originalDelegate; panel.close() }
+        panel.appearance = NSAppearance(named: .darkAqua)
+        let credit = try XCTUnwrap(credits(in: panel))
+        XCTAssertFalse(credit.text.string.contains("Made with love ♡"))
+        XCTAssertGreaterThan(credit.view.visibleRect.height, 0)
+        let font = try XCTUnwrap(credit.text.attribute(.font, at: credit.range.location, effectiveRange: nil) as? NSFont)
+        XCTAssertEqual(font.pointSize, 11, accuracy: 0.1)
+        let color = try XCTUnwrap(credit.text.attribute(.foregroundColor, at: credit.range.location, effectiveRange: nil) as? NSColor)
+        for name in [NSAppearance.Name.darkAqua, .aqua] {
+            let appearance = try XCTUnwrap(NSAppearance(named: name))
+            var actual: NSColor?, expected: NSColor?
+            appearance.performAsCurrentDrawingAppearance {
+                actual = color.usingColorSpace(.sRGB)
+                expected = ProTheme.accent.usingColorSpace(.sRGB)
+            }
+            let actualColor = try XCTUnwrap(actual), expectedColor = try XCTUnwrap(expected)
+            XCTAssertEqual(actualColor.redComponent, expectedColor.redComponent, accuracy: 0.01)
+            XCTAssertEqual(actualColor.greenComponent, expectedColor.greenComponent, accuracy: 0.01)
+            XCTAssertEqual(actualColor.blueComponent, expectedColor.blueComponent, accuracy: 0.01)
+            XCTAssertEqual(actualColor.alphaComponent, expectedColor.alphaComponent, accuracy: 0.01)
+        }
+        if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+            let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("about-panel.png")
+            let content = try XCTUnwrap(panel.contentView)
+            content.layoutSubtreeIfNeeded(); panel.displayIfNeeded()
+            let bitmap = try XCTUnwrap(content.bitmapImageRepForCachingDisplay(in: content.bounds))
+            panel.effectiveAppearance.performAsCurrentDrawingAppearance { content.cacheDisplay(in: content.bounds, to: bitmap) }
+            try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: output)
+        }
+        withExtendedLifetime(delegate) {}
+    }
+
+    @MainActor
     func testBrowserStartsWithTreeGridAndPreviewColumns() throws {
         _ = NSApplication.shared
         let root = try folder()

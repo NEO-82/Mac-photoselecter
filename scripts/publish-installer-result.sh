@@ -18,6 +18,9 @@ for theme in dark light; do
         cp ".build/browser-$theme.png" "downloads/browser-$theme.png"
     fi
 done
+if [[ -f .build/about-panel.png ]]; then
+    cp .build/about-panel.png downloads/about-panel.png
+fi
 artifact="PhotoSelect-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
 filename="PhotoSelect-${PHOTOSELECT_VERSION}-arm64.dmg"
 if [[ "$PACKAGE_OUTCOME" == success ]]; then

@@ -89,8 +89,8 @@ enum AppMenus {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func showAbout(_ sender: Any?) {
-        let credits = NSAttributedString(string: "Made with love ♡", attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
-        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+        let credits = NSAttributedString(string: "Made with Seoa ♡", attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: ProTheme.accent])
+        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: AppBranding.displayName, .credits: credits])
     }
     private var browser: BrowserController?
     private var terminationPending = false
