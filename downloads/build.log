@@ -17,10 +17,10 @@ Building for debugging...
 [14/19] Write Objects.LinkFileList
 [15/19] Linking PhotoSelect
 [16/19] Applying PhotoSelect
-[18/23] Emitting module PhotoSelectTests
-[19/23] Compiling PhotoSelectTests BrowserUITests.swift
-[20/23] Compiling PhotoSelectTests FolderTreeTests.swift
-[21/23] Compiling PhotoSelectTests PhotoActionsTests.swift
+[18/23] Compiling PhotoSelectTests BrowserUITests.swift
+[19/23] Compiling PhotoSelectTests FolderTreeTests.swift
+[20/23] Compiling PhotoSelectTests PhotoActionsTests.swift
+[21/23] Emitting module PhotoSelectTests
 [22/26] Compiling PhotoSelectTests PhotoSelectTests.swift
 [23/26] Compiling PhotoSelectTests ViewerInteractionTests.swift
 [24/26] Compiling PhotoSelectTests WindowLayoutTests.swift
@@ -28,82 +28,363 @@ Building for debugging...
 [26/28] Compiling PhotoSelectPackageTests runner.swift
 [26/28] Write Objects.LinkFileList
 [27/28] Linking PhotoSelectPackageTests
-Build complete! (70.85s)
-[1/59] Testing PhotoSelectTests.BrowserUITests/testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized
-[2/59] Testing PhotoSelectTests.BrowserUITests/testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch
+Build complete! (82.15s)
+[1/59] Testing PhotoSelectTests.BrowserUITests/testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns
+[2/59] Testing PhotoSelectTests.BrowserUITests/testInitialBrowserFrameFitsActualAvailableScreen
 [3/59] Testing PhotoSelectTests.BrowserUITests/testBrowserStartsWithTreeGridAndPreviewColumns
-[4/59] Testing PhotoSelectTests.BrowserUITests/testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns
-[5/59] Testing PhotoSelectTests.BrowserUITests/testPresentingVisibleViewerKeepsManualWindowSize
-[6/59] Testing PhotoSelectTests.BrowserUITests/testNativeMenuCommandsNavigateAndTagCurrentPhoto
-[7/59] Testing PhotoSelectTests.BrowserUITests/testInitialBrowserFrameFitsActualAvailableScreen
-[8/59] Testing PhotoSelectTests.BrowserUITests/testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded
-[9/59] Testing PhotoSelectTests.BrowserUITests/testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList
-[10/59] Testing PhotoSelectTests.BrowserUITests/testStandardMenusDisablePhotoActionsUntilFolderHasPhotos
+[4/59] Testing PhotoSelectTests.BrowserUITests/testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch
+[5/59] Testing PhotoSelectTests.BrowserUITests/testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized
+[6/59] Testing PhotoSelectTests.BrowserUITests/testPreviewFilenameIsBelowImage
+[7/59] Testing PhotoSelectTests.BrowserUITests/testPresentingVisibleViewerKeepsManualWindowSize
+[8/59] Testing PhotoSelectTests.BrowserUITests/testNativeMenuCommandsNavigateAndTagCurrentPhoto
+[9/59] Testing PhotoSelectTests.BrowserUITests/testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded
+[10/59] Testing PhotoSelectTests.BrowserUITests/testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList
 [11/59] Testing PhotoSelectTests.BrowserUITests/testSelectingThumbnailChangesRightPreview
-[12/59] Testing PhotoSelectTests.BrowserUITests/testSoftRomanticPaletteRendersInDarkAndLightAppearances
-[13/59] Testing PhotoSelectTests.BrowserUITests/testPreviewFilenameIsBelowImage
+[12/59] Testing PhotoSelectTests.BrowserUITests/testStandardMenusDisablePhotoActionsUntilFolderHasPhotos
+[13/59] Testing PhotoSelectTests.BrowserUITests/testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge
 [14/59] Testing PhotoSelectTests.BrowserUITests/testTagBadgeReturnsAfterClosingAndRecreatingBrowser
-[15/59] Testing PhotoSelectTests.BrowserUITests/testViewerStartsAsMaximizedWindowInsideVisibleScreen
-[16/59] Testing PhotoSelectTests.BrowserUITests/testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge
-[17/59] Testing PhotoSelectTests.BrowserUITests/testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll
-[18/59] Testing PhotoSelectTests.BrowserUITests/testViewerDoubleClickReturnsToSamePhotoAndFolder
+[15/59] Testing PhotoSelectTests.BrowserUITests/testViewerDoubleClickReturnsToSamePhotoAndFolder
+[16/59] Testing PhotoSelectTests.BrowserUITests/testViewerStartsAsMaximizedWindowInsideVisibleScreen
+[17/59] Testing PhotoSelectTests.BrowserUITests/testSoftRomanticPaletteRendersInDarkAndLightAppearances
+[18/59] Testing PhotoSelectTests.FolderTreeTests/testDesktopShortcutUsesSystemDesktopLocation
 [19/59] Testing PhotoSelectTests.FolderTreeTests/testDeniedFolderCanBeExpandedAgainAfterAccessChanges
-[20/59] Testing PhotoSelectTests.FolderTreeTests/testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter
+[20/59] Testing PhotoSelectTests.FolderTreeTests/testGeneralEntriesStaySeparateFromPhotoDecodeList
 [21/59] Testing PhotoSelectTests.FolderTreeTests/testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter
-[22/59] Testing PhotoSelectTests.FolderTreeTests/testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache
+[22/59] Testing PhotoSelectTests.FolderTreeTests/testHiddenRefreshPreservesExpandedPathAndSelectedFolder
 [23/59] Testing PhotoSelectTests.FolderTreeTests/testSelectingCachedFolderRevealsCollapsedAncestors
-[24/59] Testing PhotoSelectTests.PhotoActionsTests/testCorruptTagMetadataIsPreserved
-[25/59] Testing PhotoSelectTests.PhotoActionsTests/testDeletingAnotherPhotoPreservesSelectionAndIndependentPair
-[26/59] Testing PhotoSelectTests.PhotoActionsTests/testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor
-[27/59] Testing PhotoSelectTests.PhotoActionsTests/testImmediateFinishPersistsTagsAndUntaggingAcrossSessions
-[28/59] Testing PhotoSelectTests.PhotoActionsTests/testNativeMacOSTrashReturnsRecoverableFixture
+[24/59] Testing PhotoSelectTests.FolderTreeTests/testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache
+[25/59] Testing PhotoSelectTests.PhotoActionsTests/testCorruptTagMetadataIsPreserved
+[26/59] Testing PhotoSelectTests.PhotoActionsTests/testDeletingAnotherPhotoPreservesSelectionAndIndependentPair
+[27/59] Testing PhotoSelectTests.PhotoActionsTests/testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor
+[28/59] Testing PhotoSelectTests.PhotoActionsTests/testImmediateFinishPersistsTagsAndUntaggingAcrossSessions
 [29/59] Testing PhotoSelectTests.PhotoActionsTests/testRapidTagTogglesSerializeAndEndUntagged
-[30/59] Testing PhotoSelectTests.PhotoActionsTests/testTagSurvivesReloadAndDoesNotChangeRawOrJpeg
-[31/59] Testing PhotoSelectTests.PhotoActionsTests/testTagWriteFailureIsReported
-[32/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting
-[33/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashFailureKeepsSourceAndHasNoDeleteFallback
-[34/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashMovesOnlyRequestedFileAndKeepsPair
-[35/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashReceiptCapturesDestinationAndExternalSpaceGuidance
-[36/59] Testing PhotoSelectTests.PhotoSelectTests/testCorruptImageReturnsFailure
-[37/59] Testing PhotoSelectTests.PhotoSelectTests/testExtensionsAndRawJpegPair
-[38/59] Testing PhotoSelectTests.PhotoSelectTests/testFolderEnumerationIsNonRecursiveAndKeepsPairs
-[39/59] Testing PhotoSelectTests.PhotoSelectTests/testRetinaOneSourcePixelPerPhysicalPixel
-[40/59] Testing PhotoSelectTests.PhotoSelectTests/testZoomEdgesNeverRevealEmptySpaceForLargeImage
-[41/59] Testing PhotoSelectTests.ViewerInteractionTests/testDeactivationCancelsPendingZoom
-[42/59] Testing PhotoSelectTests.ViewerInteractionTests/testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat
+[30/59] Testing PhotoSelectTests.PhotoActionsTests/testNativeMacOSTrashReturnsRecoverableFixture
+[31/59] Testing PhotoSelectTests.BrowserUITests/testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll
+[32/59] Testing PhotoSelectTests.PhotoActionsTests/testTagWriteFailureIsReported
+[33/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting
+[34/59] Testing PhotoSelectTests.PhotoActionsTests/testTagSurvivesReloadAndDoesNotChangeRawOrJpeg
+[35/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashFailureKeepsSourceAndHasNoDeleteFallback
+[36/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashMovesOnlyRequestedFileAndKeepsPair
+[37/59] Testing PhotoSelectTests.PhotoActionsTests/testTrashReceiptCapturesDestinationAndExternalSpaceGuidance
+[38/59] Testing PhotoSelectTests.PhotoSelectTests/testExtensionsAndRawJpegPair
+[39/59] Testing PhotoSelectTests.PhotoSelectTests/testCorruptImageReturnsFailure
+[40/59] Testing PhotoSelectTests.PhotoSelectTests/testFolderEnumerationIsNonRecursiveAndKeepsPairs
+[41/59] Testing PhotoSelectTests.PhotoSelectTests/testRetinaOneSourcePixelPerPhysicalPixel
+[42/59] Testing PhotoSelectTests.PhotoSelectTests/testZoomEdgesNeverRevealEmptySpaceForLargeImage
 [43/59] Testing PhotoSelectTests.ViewerInteractionTests/testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer
-[44/59] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeCancelsPendingZoomBeforeClosing
-[45/59] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeStillResetsZoomAndCloses
-[46/59] Testing PhotoSelectTests.ViewerInteractionTests/testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements
-[47/59] Testing PhotoSelectTests.ViewerInteractionTests/testPressAndReleaseStillSwitchBetweenZoomAndFit
-[48/59] Testing PhotoSelectTests.ViewerInteractionTests/testQuickDoubleClickClosesWithoutEverStartingZoom
-[49/59] Testing PhotoSelectTests.ViewerInteractionTests/testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit
-[50/59] Testing PhotoSelectTests.ViewerInteractionTests/testShortClickReleaseDoesNotCauseDelayedZoom
-[51/59] Testing PhotoSelectTests.WindowLayoutTests/testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas
-[52/59] Testing PhotoSelectTests.WindowLayoutTests/testMinimumSizesNeverForceWindowOutsideSmallDisplay
-[53/59] Testing PhotoSelectTests.WindowLayoutTests/testMovedOrDisconnectedDisplayFrameFitsNewScreen
-[54/59] Testing PhotoSelectTests.WindowLayoutTests/testPhotoGridGetsMostWidthAndPreviewHasBoundedSize
-[55/59] Testing PhotoSelectTests.WindowLayoutTests/testUserSidebarWidthCanGrowAndSurvivesResize
-[56/59] Testing PhotoSelectTests.WindowLayoutTests/testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt
-[57/59] Testing PhotoSelectTests.FolderTreeTests/testDesktopShortcutUsesSystemDesktopLocation
-[58/59] Testing PhotoSelectTests.FolderTreeTests/testHiddenRefreshPreservesExpandedPathAndSelectedFolder
-[59/59] Testing PhotoSelectTests.FolderTreeTests/testGeneralEntriesStaySeparateFromPhotoDecodeList
-Test Suite 'Selected tests' started at 2026-11-11 14:19:59.060.
-Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-11 14:19:59.063.
-Test Suite 'FolderTreeTests' started at 2026-11-11 14:19:59.064.
-Test Case '-[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FolderTreeTests.swift:14: error: -[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder] : Asynchronous wait failed: Exceeded timeout of 6 seconds, with unfulfilled expectations: "expanded selection restored with hidden file".
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FolderTreeTests.swift:188: error: -[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder] : XCTAssertEqual failed: ("Optional(file:///private/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/91C3C7BC-8517-4B4B-B89D-5B05181F247A/Nested/)") is not equal to ("Optional(file:///var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/91C3C7BC-8517-4B4B-B89D-5B05181F247A/Nested/)") - selectedRow=1; 0:91C3C7BC-8517-4B4B-B89D-5B05181F247A children=1 expanded=true requested=true loading=false; 1:Nested children=2 expanded=true requested=true loading=false; 2:.hidden.txt children=nil expanded=false requested=false loading=false; 3:visible.jpg children=nil expanded=false requested=false loading=false
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FolderTreeTests.swift:14: error: -[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder] : Asynchronous wait failed: Exceeded timeout of 6 seconds, with unfulfilled expectations: "hidden file removed without losing location".
-Test Case '-[PhotoSelectTests.FolderTreeTests testHiddenRefreshPreservesExpandedPathAndSelectedFolder]' failed (12.932 seconds).
-Test Suite 'FolderTreeTests' failed at 2026-11-11 14:20:11.996.
-	 Executed 1 test, with 3 failures (0 unexpected) in 12.932 (12.932) seconds
-Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-11 14:20:11.996.
-	 Executed 1 test, with 3 failures (0 unexpected) in 12.932 (12.933) seconds
-Test Suite 'Selected tests' failed at 2026-11-11 14:20:11.996.
-	 Executed 1 test, with 3 failures (0 unexpected) in 12.932 (12.936) seconds
-
+[44/59] Testing PhotoSelectTests.FolderTreeTests/testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter
+[45/59] Testing PhotoSelectTests.ViewerInteractionTests/testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat
+[46/59] Testing PhotoSelectTests.ViewerInteractionTests/testDeactivationCancelsPendingZoom
+[47/59] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeCancelsPendingZoomBeforeClosing
+[48/59] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeStillResetsZoomAndCloses
+[49/59] Testing PhotoSelectTests.ViewerInteractionTests/testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements
+[50/59] Testing PhotoSelectTests.ViewerInteractionTests/testPressAndReleaseStillSwitchBetweenZoomAndFit
+[51/59] Testing PhotoSelectTests.ViewerInteractionTests/testQuickDoubleClickClosesWithoutEverStartingZoom
+[52/59] Testing PhotoSelectTests.WindowLayoutTests/testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas
+[53/59] Testing PhotoSelectTests.WindowLayoutTests/testMinimumSizesNeverForceWindowOutsideSmallDisplay
+[54/59] Testing PhotoSelectTests.WindowLayoutTests/testMovedOrDisconnectedDisplayFrameFitsNewScreen
+[55/59] Testing PhotoSelectTests.WindowLayoutTests/testPhotoGridGetsMostWidthAndPreviewHasBoundedSize
+[56/59] Testing PhotoSelectTests.WindowLayoutTests/testUserSidebarWidthCanGrowAndSurvivesResize
+[57/59] Testing PhotoSelectTests.ViewerInteractionTests/testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit
+[58/59] Testing PhotoSelectTests.WindowLayoutTests/testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt
+[59/59] Testing PhotoSelectTests.ViewerInteractionTests/testShortClickReleaseDoesNotCauseDelayedZoom
 ◇ Test run started.
 ↳ Testing Library Version: 124.4
 ↳ Target Platform: x86_64-apple-macos14.0
 ✔ Test run with 0 tests passed after 0.001 seconds.
+2/5 Apple Silicon Release 앱 빌드
+Command line invocation:
+    /Applications/Xcode_16.4.app/Contents/Developer/usr/bin/xcodebuild -project PhotoSelect.xcodeproj -scheme PhotoSelect -configuration Release -destination generic/platform=macOS -derivedDataPath /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO MARKETING_VERSION=0.4.0 CURRENT_PROJECT_VERSION=20 build
+
+Build settings from command line:
+    ARCHS = arm64
+    CODE_SIGNING_ALLOWED = NO
+    CURRENT_PROJECT_VERSION = 20
+    MARKETING_VERSION = 0.4.0
+    ONLY_ACTIVE_ARCH = NO
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'PhotoSelect' in project 'PhotoSelect' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 59a298490cea05edae04d0889347bd40
+Build description path: /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/XCBuildData/59a298490cea05edae04d0889347bd40.xcbuilddata
+CreateBuildDirectory /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter/PhotoSelect.xcodeproj
+    builtin-create-build-directory /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products
+
+CreateBuildDirectory /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter/PhotoSelect.xcodeproj
+    builtin-create-build-directory /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex
+
+ClangStatCache /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/SDKStatCaches.noindex/macosx15.5-24F74-a403186ba963133a54a0e0cacd566b0b.sdkstatcache
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter/PhotoSelect.xcodeproj
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -o /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/SDKStatCaches.noindex/macosx15.5-24F74-a403186ba963133a54a0e0cacd566b0b.sdkstatcache
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect-7c4218464027a64e6efb1eb5d462cece-VFS/all-product-headers.yaml
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter/PhotoSelect.xcodeproj
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect-7c4218464027a64e6efb1eb5d462cece-VFS/all-product-headers.yaml
+
+CreateBuildDirectory /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Release
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter/PhotoSelect.xcodeproj
+    builtin-create-build-directory /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Release
+
+CreateBuildDirectory /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter/PhotoSelect.xcodeproj
+    builtin-create-build-directory /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터.DependencyStaticMetadataFileList (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터.hmap (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터.hmap
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터.DependencyMetadataFileList (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-project-headers.hmap (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-project-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-own-target-headers.hmap (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-generated-files.hmap (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-generated-files.hmap
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-all-target-headers.hmap (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-all-non-framework-target-headers.hmap (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Script-00000000000000000000000E.sh (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Script-00000000000000000000000E.sh
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.SwiftFileList (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.SwiftFileList
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.SwiftConstValuesFileList (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.LinkFileList (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.LinkFileList
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect_const_extract_protocols.json (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-OutputFileMap.json (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    write-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-OutputFileMap.json
+
+MkDir /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/Resources (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    /bin/mkdir -p /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/Resources
+
+MkDir /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/MacOS (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    /bin/mkdir -p /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/MacOS
+
+MkDir /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    /bin/mkdir -p /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents
+
+MkDir /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    /bin/mkdir -p /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app
+
+ProcessInfoPlistFile /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/Info.plist /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Resources/Info.plist (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-infoPlistUtility /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Resources/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/PkgInfo -expandbuildsettings -platform macosx -o /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/Info.plist
+
+SwiftDriver PhotoSelect normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-SwiftDriver -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PhotoSelect -O -enforce-exclusivity\=checked @/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -target arm64-apple-macos13.0 -g -module-cache-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release -F /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release -c -j4 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/SDKStatCaches.noindex/macosx15.5-24F74-a403186ba963133a54a0e0cacd566b0b.sdkstatcache -output-file-map /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-generated-files.hmap -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-own-target-headers.hmap -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-project-headers.hmap -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/include -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-Swift.h -working-directory /Users/runner/work/Mac-photoselecter/Mac-photoselecter -experimental-emit-module-separately -disable-cmo
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ PhotoSelect (in target 'PhotoSelect' from project 'PhotoSelect')
+
+EmitSwiftModule normal arm64 (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    
+
+SwiftCompile normal arm64 Compiling\ App.swift,\ Browser.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/App.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+SwiftCompile normal arm64 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/App.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    
+
+SwiftCompile normal arm64 Compiling\ ImagePipeline.swift,\ PhotoModel.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/ImagePipeline.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/PhotoModel.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+
+SwiftCompile normal arm64 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/ImagePipeline.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/PhotoModel.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    
+
+SwiftCompile normal arm64 Compiling\ Viewer.swift,\ PhotoActions.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Viewer.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/PhotoActions.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+
+SwiftCompile normal arm64 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Viewer.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    
+
+SwiftCompile normal arm64 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/PhotoActions.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    
+
+SwiftCompile normal arm64 Compiling\ FolderTree.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/FolderTree.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+
+SwiftCompile normal arm64 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/FolderTree.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for PhotoSelect (in target 'PhotoSelect' from project 'PhotoSelect')
+
+SwiftDriver\ Compilation\ Requirements PhotoSelect normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PhotoSelect -O -enforce-exclusivity\=checked @/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -target arm64-apple-macos13.0 -g -module-cache-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release -F /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release -c -j4 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/SDKStatCaches.noindex/macosx15.5-24F74-a403186ba963133a54a0e0cacd566b0b.sdkstatcache -output-file-map /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-generated-files.hmap -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-own-target-headers.hmap -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-project-headers.hmap -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/include -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-Swift.h -working-directory /Users/runner/work/Mac-photoselecter/Mac-photoselecter -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling ImagePipeline.swift, PhotoModel.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+
+SwiftMergeGeneratedHeaders /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources/PhotoSelect-Swift.h /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-Swift.h (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-swiftHeaderTool -arch arm64 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-Swift.h -o /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources/PhotoSelect-Swift.h
+
+Copy /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/PhotoSelect.swiftmodule/arm64-apple-macos.swiftmodule /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftmodule (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftmodule /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/PhotoSelect.swiftmodule/arm64-apple-macos.swiftmodule
+
+Copy /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/PhotoSelect.swiftmodule/arm64-apple-macos.swiftdoc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftdoc (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftdoc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/PhotoSelect.swiftmodule/arm64-apple-macos.swiftdoc
+
+Copy /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/PhotoSelect.swiftmodule/arm64-apple-macos.abi.json /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.abi.json (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.abi.json /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/PhotoSelect.swiftmodule/arm64-apple-macos.abi.json
+
+Copy /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/PhotoSelect.swiftmodule/Project/arm64-apple-macos.swiftsourceinfo /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftsourceinfo (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks -rename /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftsourceinfo /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/PhotoSelect.swiftmodule/Project/arm64-apple-macos.swiftsourceinfo
+
+SwiftDriverJobDiscovery normal arm64 Compiling Viewer.swift, PhotoActions.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+
+SwiftDriverJobDiscovery normal arm64 Compiling FolderTree.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+
+SwiftDriverJobDiscovery normal arm64 Compiling App.swift, Browser.swift (in target 'PhotoSelect' from project 'PhotoSelect')
+
+SwiftDriver\ Compilation PhotoSelect normal arm64 com.apple.xcode.tools.swift.compiler (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-Swift-Compilation -- /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name PhotoSelect -O -enforce-exclusivity\=checked @/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.SwiftFileList -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -target arm64-apple-macos13.0 -g -module-cache-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release -F /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release -c -j4 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/SDKStatCaches.noindex/macosx15.5-24F74-a403186ba963133a54a0e0cacd566b0b.sdkstatcache -output-file-map /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect_const_extract_protocols.json -Xcc -iquote -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-generated-files.hmap -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-own-target-headers.hmap -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-all-target-headers.hmap -Xcc -iquote -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터-project-headers.hmap -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/include -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/DerivedSources -emit-objc-header -emit-objc-header-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect-Swift.h -working-directory /Users/runner/work/Mac-photoselecter/Mac-photoselecter -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/MacOS/PhotoSelect normal (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-macos13.0 -isysroot /Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -Os -L/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Release -L/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release -F/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/EagerLinkingTBDs/Release -F/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release -filelist /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.LinkFileList -Xlinker -object_path_lto -Xlinker /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터_lto.o -Xlinker -dependency_info -Xlinker /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/PhotoSelect.swiftmodule -o /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/MacOS/PhotoSelect
+
+PhaseScriptExecution Build\ App\ Icon /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Script-00000000000000000000000E.sh (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    /bin/sh -c /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Script-00000000000000000000000E.sh
+App icon: 정광이 골든리트리버 (16–1024 pixels)
+
+CopySwiftLibs /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-swiftStdLibTool --copy --verbose --scan-executable /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/MacOS/PhotoSelect --scan-folder /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/Frameworks --scan-folder /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/PlugIns --scan-folder /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/Library/SystemExtensions --scan-folder /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/Extensions --platform macosx --toolchain /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+Ignoring --strip-bitcode because --sign was not passed
+
+ExtractAppIntentsMetadata (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name PhotoSelect --sdk-root /Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk --xcode-version 16F6 --platform-family macOS --deployment-target 13.0 --bundle-identifier dev.photoselect.app --output /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/Resources --target-triple arm64-apple-macos13.0 --binary-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app/Contents/MacOS/PhotoSelect --dependency-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터_dependency_info.dat --stringsdata-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.SwiftFileList --metadata-file-list /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터.DependencyMetadataFileList --static-metadata-file-list /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/정광이의\ MAC\ 포토셀렉터.DependencyStaticMetadataFileList --swift-const-vals-list /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Intermediates.noindex/PhotoSelect.build/Release/PhotoSelect.build/Objects-normal/arm64/정광이의\ MAC\ 포토셀렉터.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2026-11-11 14:24:45.347 appintentsmetadataprocessor[4558:17654] Starting appintentsmetadataprocessor export
+2026-11-11 14:24:45.354 appintentsmetadataprocessor[4558:17654] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+RegisterExecutionPolicyException /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-RegisterExecutionPolicyException /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app
+
+Validate /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    builtin-validationUtility /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app -no-validate-extension -infoplist-subpath Contents/Info.plist
+
+Touch /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    /usr/bin/touch -c /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app
+
+RegisterWithLaunchServices /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app (in target 'PhotoSelect' from project 'PhotoSelect')
+    cd /Users/runner/work/Mac-photoselecter/Mac-photoselecter
+    /System/Library/Frameworks/CoreServices.framework/Versions/Current/Frameworks/LaunchServices.framework/Versions/Current/Support/lsregister -f -R -trusted /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/DerivedData/Build/Products/Release/정광이의\ MAC\ 포토셀렉터.app
+
+note: Disabling previews because SWIFT_VERSION is set and SWIFT_OPTIMIZATION_LEVEL=-O, expected -Onone (in target 'PhotoSelect' from project 'PhotoSelect')
+** BUILD SUCCEEDED **
+
+앱 이름 및 골든리트리버 아이콘 확인: 정광이의 MAC 포토셀렉터
+3/5 로컬 테스트용 앱 서명 및 검증
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/image/정광이의 MAC 포토셀렉터.app: replacing existing signature
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/image/정광이의 MAC 포토셀렉터.app: valid on disk
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/image/정광이의 MAC 포토셀렉터.app: satisfies its Designated Requirement
+4/5 DMG 생성 및 내부 앱 검증
+created: /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/artifacts/PhotoSelect-0.4.0-20-arm64.dmg
+Checksumming Protective Master Boot Record (MBR : 0)…
+Protective Master Boot Record (MBR :: verified   CRC32 $CA3785BC
+Checksumming GPT Header (Primary GPT Header : 1)…
+ GPT Header (Primary GPT Header : 1): verified   CRC32 $D53D17B2
+Checksumming GPT Partition Data (Primary GPT Table : 2)…
+GPT Partition Data (Primary GPT Tabl: verified   CRC32 $E9ABCAD5
+Checksumming  (Apple_Free : 3)…
+                    (Apple_Free : 3): verified   CRC32 $00000000
+Checksumming disk image (Apple_HFS : 4)…
+          disk image (Apple_HFS : 4): verified   CRC32 $A81E3590
+Checksumming  (Apple_Free : 5)…
+                    (Apple_Free : 5): verified   CRC32 $00000000
+Checksumming GPT Partition Data (Backup GPT Table : 6)…
+GPT Partition Data (Backup GPT Table: verified   CRC32 $E9ABCAD5
+Checksumming GPT Header (Backup GPT Header : 7)…
+  GPT Header (Backup GPT Header : 7): verified   CRC32 $B4ED1C05
+verified   CRC32 $8B0B3388
+hdiutil: verify: checksum of "/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/artifacts/PhotoSelect-0.4.0-20-arm64.dmg" is VALID
+expected   CRC32 $8B0B3388
+/dev/disk32         	GUID_partition_scheme          	
+/dev/disk32s1       	Apple_HFS                      	/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/mount
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/mount/정광이의 MAC 포토셀렉터.app: valid on disk
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/package.mrXNIseE/mount/정광이의 MAC 포토셀렉터.app: satisfies its Designated Requirement
+"disk32" ejected.
+5/5 체크섬 생성 및 결과 저장
+PhotoSelect-0.4.0-20-arm64.dmg: OK
+완료: /Users/runner/work/Mac-photoselecter/Mac-photoselecter/dist/PhotoSelect-0.4.0-20-arm64/PhotoSelect-0.4.0-20-arm64.dmg
+설치 이미지를 열고 정광이의 MAC 포토셀렉터.app을 Applications로 끌어 넣으세요.
+이 결과물은 Developer ID 서명 및 Apple 공증이 없는 개인 테스트용입니다.
