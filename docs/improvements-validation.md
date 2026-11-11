@@ -36,3 +36,7 @@
 ## 클라우드 시작 지침
 
 기존 `/workspace/Mac-photoselecter` 체크아웃을 사용한다. 각 작업은 격리되어 있으므로 명시적 요청 없이 worktree를 만들지 않는다. 외부 패키지/서버/API 키는 필요 없다. Linux에서는 위 패키징 테스트만 실행할 수 있다. macOS에서는 위 검증 스크립트와 `swift run PhotoSelect` 또는 Xcode의 PhotoSelect 스킴을 사용한다. 환경 설정 도구가 draft 확인/저장 오류를 반환하여 재사용 start_skill 저장은 확인되지 않았다. 게시도 수행하지 않았다.
+
+## 0.3.0 macOS 설치 파일 생성 요청
+
+소스 `617eb5b2cf0ddd37f157e9059b359f156eb3c53f`를 전달용 브랜치에 업로드해 [macOS 빌드 #16](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43028430041)을 등록했다. 이 실행은 성공 시 기존 워크플로가 `downloads/PhotoSelect-0.3.0-arm64.dmg`, 체크섬과 빌드 결과를 자동 업로드한다. 2026-11-11 확인 시 실행기 대기 중으로 테스트/빌드 단계는 시작되지 않았고 새 DMG 생성은 미확인이다. 후속 작업에서는 이 실행의 결과와 `downloads/build-status.json`의 source_commit을 확인하고, 실패 시 해당 로그를 분석한 뒤 수정/재빌드한다. 성공 시 실제 다운로드 SHA-256을 검증한 후 README의 최신 다운로드 링크와 검증 기록을 갱신한다. 기존 0.2.4 파일을 이번 변경분의 결과로 취급하지 않는다.
