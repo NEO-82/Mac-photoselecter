@@ -323,6 +323,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         columns.layoutSubtreeIfNeeded()
     }
     func windowDidResize(_ notification: Notification) {
+        // The theme frame owns the content layout guide. Lay it out first so
+        // the panes use the new content size, including when growing a window.
+        window?.contentView?.superview?.layoutSubtreeIfNeeded()
         window?.contentView?.layoutSubtreeIfNeeded()
         arrangeColumns()
     }
