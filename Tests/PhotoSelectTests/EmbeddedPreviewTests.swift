@@ -4,11 +4,11 @@ import XCTest
 final class EmbeddedPreviewTests: XCTestCase {
     // These are marker-structure fixtures, not camera RAW sensor data or JPEG
     // codec tests. Pipeline tests separately decode actual JPEG bytes via ImageIO.
-    private func jpeg(width: Int, height: Int, progressive: Bool = false) -> Data {
+    private func jpeg(width: Int, height: Int, progressive: Bool = false, precision: UInt8 = 8, frameMarker: UInt8? = nil) -> Data {
         func word(_ value: Int) -> [UInt8] { [UInt8(value >> 8), UInt8(value & 255)] }
         var bytes: [UInt8] = [0xFF, 0xD8, 0xFF, 0xE2, 0, 18]
         bytes += Array("ICC_PROFILE\0".utf8) + [1, 1, 0x10, 0x20]
-        bytes += [0xFF, progressive ? 0xC2 : 0xC0, 0, 17, 8] + word(height) + word(width)
+        bytes += [0xFF, frameMarker ?? (progressive ? 0xC2 : 0xC0), 0, 17, precision] + word(height) + word(width)
         bytes += [3, 1, 0x11, 0, 2, 0x11, 0, 3, 0x11, 0]
         let scan: [UInt8] = [0xFF, 0xDA, 0, 12, 3, 1, 0, 2, 0, 3, 0, 0, 63, 0]
         bytes += scan + [0x11, 0xFF, 0, 0xD8, 0x22, 0xFF, 0xD0, 0x33]
@@ -133,4 +133,44 @@ final class EmbeddedPreviewTests: XCTestCase {
         tiff.put32(0xFFFFFFF0, at: 4)
         XCTAssertThrowsError(try extract(tiff.data))
     }
+
+    func testCFASensorStripIsNotScannedOrSelectedOverCameraPreview() throws {
+        var tiff = TIFF()
+        let preview = jpeg(width: 1616, height: 1080)
+        // A plausible 8-bit JPEG marker stream inside a RAW strip still must
+        // not be searched as a camera preview just because its area is larger.
+        let sensorPattern = jpeg(width: 7008, height: 4672)
+        let previewOffset = tiff.append(preview), sensorOffset = tiff.append(sensorPattern)
+        tiff.ifd(8, [(0x201, 4, 1, previewOffset), (0x202, 4, 1, preview.count), (0x14A, 4, 1, 256)])
+        tiff.ifd(256, [(0x103, 3, 1, 7), (0x106, 3, 1, 32803), (0x102, 3, 1, 14),
+                       (0x115, 3, 1, 1), (0x111, 4, 1, sensorOffset), (0x117, 4, 1, sensorPattern.count)])
+        XCTAssertEqual(try extract(tiff.data).data, preview)
+        // Even the unknown-layout recovery scan must exclude this known RAW
+        // strip when no adequate camera preview exists.
+        let tiny = jpeg(width: 160, height: 120)
+        XCTAssertEqual(tiny.count, preview.count)
+        tiff.data.replaceSubrange(previewOffset..<(previewOffset + preview.count), with: tiny)
+        tiff.ifd(8, [(0x14A, 4, 1, 256)])
+        XCTAssertThrowsError(try extract(tiff.data))
+    }
+
+    func testEightBitYCbCrJPEGStripRemainsAProcessedPreview() throws {
+        var tiff = TIFF()
+        let preview = jpeg(width: 7008, height: 4672), offset = tiff.append(preview)
+        tiff.ifd(8, [(0x103, 3, 1, 7), (0x106, 3, 1, 6), (0x102, 3, 1, 8),
+                     (0x115, 3, 1, 3), (0x111, 4, 1, offset), (0x117, 4, 1, preview.count)])
+        XCTAssertEqual(try extract(tiff.data).data, preview)
+    }
+
+    func testLosslessBayerAndNonEightBitFramesCannotBecomePreview() throws {
+        for (precision, marker) in [(UInt8(14), UInt8(0xC3)), (8, 0xC3), (14, 0xC0)] {
+            var tiff = TIFF()
+            let rawFrame = jpeg(width: 6000, height: 4000, precision: precision, frameMarker: marker)
+            let offset = tiff.append(rawFrame)
+            tiff.ifd(8, [(0x201, 4, 1, offset), (0x202, 4, 1, rawFrame.count)])
+            _ = tiff.append(jpeg(width: 160, height: 120))
+            XCTAssertThrowsError(try extract(tiff.data))
+        }
+    }
+
 }

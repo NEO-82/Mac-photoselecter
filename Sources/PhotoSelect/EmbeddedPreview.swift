@@ -70,6 +70,7 @@ enum EmbeddedPreview {
         let littleEndian: Bool
         var remainingWork: Int
         var ranges: Set<Range<Int>> = []
+        var sensorRanges: Set<Range<Int>> = []
         var inspectedStarts: [Int: Int] = [:]
         var candidates: [Candidate] = []
         var orientation: UInt32 = 1
@@ -168,9 +169,23 @@ enum EmbeddedPreview {
                 if let value = scalar(0xA001) { exifColorSpace = value }
                 if let entry = entries[0x1], let value = ascii(entry), ["R03", "R98"].contains(value) { interoperabilityIndex = value }
                 addRange(offset: scalar(0x201), length: scalar(0x202))
-                // Some TIFF containers store the JPEG as a compressed strip.
-                if [6, 7].contains(scalar(0x103) ?? 0), let offsets = entries[0x111], let lengths = entries[0x117] {
-                    for (offset, length) in zip(values(offsets), values(lengths)) { addRange(offset: offset, length: length) }
+                // Sony also labels lossless 14-bit Bayer sensor strips as
+                // compression=7 (JPEG). They are not processed camera previews:
+                // scanning them wastes tens of MiB and can mistake RAW tiles for
+                // photographs. Only 8-bit RGB/YCbCr JPEG strips are candidates.
+                if let offsets = entries[0x111], let lengths = entries[0x117] {
+                    let bits = entries[0x102].map { values($0) } ?? []
+                    let photometric = scalar(0x106) ?? 0
+                    let processedJPEG = [6, 7].contains(scalar(0x103) ?? 0) &&
+                        [2, 6].contains(photometric) && scalar(0x115) == 3 &&
+                        !bits.isEmpty && bits.allSatisfy { $0 == 8 }
+                    let sensorData = [32803, 34892].contains(photometric) || bits.contains { $0 > 8 }
+                    for (offset, length) in zip(values(offsets), values(lengths)) {
+                        if processedJPEG { addRange(offset: offset, length: length) }
+                        else if sensorData, length > 0, contains(offset, length) {
+                            sensorRanges.insert(offset..<(offset + length))
+                        }
+                    }
                 }
                 if let preview = entries[0x2001], let range = payload(preview) { ranges.insert(range) }
                 for tag in [0x14A, 0x8769, 0xA005] {
@@ -199,7 +214,12 @@ enum EmbeddedPreview {
             if !candidates.contains(where: { max($0.width, $0.height) >= EmbeddedPreview.minimumLongEdge }) {
                 // Recovery for unrecognised Sony metadata layouts. The same
                 // byte/marker budget also covers corrupt overlapping candidates.
-                try scan(8..<bytes.count)
+                var start = 8
+                for range in sensorRanges.sorted(by: { $0.lowerBound < $1.lowerBound }) {
+                    if range.lowerBound > start { try scan(start..<range.lowerBound) }
+                    start = max(start, range.upperBound)
+                }
+                if start < bytes.count { try scan(start..<bytes.count) }
             }
             guard let best = candidates.filter({ max($0.width, $0.height) >= EmbeddedPreview.minimumLongEdge })
                 .max(by: { $0.area == $1.area ? $0.range.count < $1.range.count : $0.area < $1.area }) else {
@@ -279,7 +299,8 @@ enum EmbeddedPreview {
                 guard length >= 2, length <= limit - position else { return nil }
                 let isFrame = (0xC0...0xCF).contains(marker) && ![0xC4, 0xC8, 0xCC].contains(marker)
                 if isFrame {
-                    guard length >= 8 else { return nil }
+                    guard [0xC0, 0xC1, 0xC2].contains(marker), length >= 8,
+                          bytes[position + 2] == 8 else { return nil }
                     let components = Int(bytes[position + 7])
                     guard (1...4).contains(components), length >= 8 + components * 3 else { return nil }
                     let h = big16(position + 3), w = big16(position + 5)

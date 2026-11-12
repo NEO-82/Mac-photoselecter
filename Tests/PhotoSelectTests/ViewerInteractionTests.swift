@@ -27,8 +27,18 @@ final class ViewerInteractionTests: XCTestCase {
 
     @MainActor
     private func holdUntilZoomStarts(_ canvas: PhotoCanvas) {
+        let started = expectation(description: "held press activates zoom")
+        let previous = canvas.zoomChanged
+        var observed = false
+        canvas.zoomChanged = { active in
+            previous?(active)
+            if active && !observed { observed = true; started.fulfill() }
+        }
+        defer { canvas.zoomChanged = previous }
         canvas.mouseDown(with: mouse(.leftMouseDown))
-        waitPastClickInterval()
+        // Wait for the actual state transition, not a competing elapsed-time
+        // callback that may run before Timer delivery on a busy CI host.
+        wait(for: [started], timeout: NSEvent.doubleClickInterval + 5)
     }
 
     @MainActor
