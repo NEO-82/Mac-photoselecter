@@ -2,7 +2,7 @@
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[0.5.0 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.5.0-arm64.dmg)
+[0.5.1 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.5.1-arm64.dmg)
 
 DMG를 열고 **정광이의 MAC 포토셀렉터.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 앱을 종료한 뒤 새 버전으로 교체하세요. 예전 `PhotoSelect.app`이 남아 있다면 이전 앱만 휴지통으로 옮기세요.
@@ -39,12 +39,12 @@ macOS 13+, Xcode 15+가 필요합니다. 외부 패키지, 서버, API 키는 �
 2. `bash scripts/validate-macos.sh`로 앱 빌드와 Swift Package XCTest 실행.
 3. `설치파일-만들기.command`를 더블클릭하거나 `bash scripts/package-macos.sh`로 테스트·Release 빌드·DMG 검증 실행.
 
-기본 결과물은 `dist/PhotoSelect-0.5.0-1-arm64/PhotoSelect-0.5.0-1-arm64.dmg`와 `SHA256SUMS`입니다.
+기본 결과물은 `dist/PhotoSelect-0.5.1-1-arm64/PhotoSelect-0.5.1-1-arm64.dmg`와 `SHA256SUMS`입니다.
 다시 만들 때는 `PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh`처럼 빌드 번호를 늘리세요.
 Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배포용 앱과 아이콘은 Xcode 프로젝트로 만듭니다.
 각 작업은 격리된 체크아웃을 사용하므로 별도 worktree는 필요하지 않습니다.
 
-아이콘은 제공된 ‘정광이’ 골든리트리버 그림이며, `Resources/AppIcon.png`에서 16–1024픽셀 ICNS를 생성합니다.
+아이콘은 사용자가 제공한 공식 1024×1024 사진 이미지이며, `Resources/AppIcon.png`에서 기존 스크립트로 16–1024픽셀 ICNS를 생성합니다. [원본 일치·번들/Finder 검증 기록](docs/official-app-icon.md).
 앱은 로컬 개발용으로 샌드박스를 활성화하지 않았으며 Developer ID 서명·공증은 아직 구성하지 않았습니다.
 [패키징 안내](docs/packaging.md)와 [빌드·테스트 기록](docs/validation.md)을 참고하세요.
 
@@ -71,3 +71,5 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 0.4.1은 About 크레딧을 `Made with Seoa ♡`와 11pt 로즈 색상으로 변경했습니다. [실제 소스 위치·About UI 캡처·62개 테스트 결과](docs/about-seoa.md)를 확인하세요.
 
 0.5.0은 ARW 표시 중 작은 JPEG가 RAW 현상 결과로 바뀌는 경로를 제거했습니다. 처음부터 최대 내장 JPEG를 표시하고 썸네일/큰 보기/확대의 색 처리를 통일합니다. [macOS 빌드 #26](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43144031701)에서 회귀 **85개**와 최적화 실제 ARW 검사 **3개**가 통과했습니다. 내장 JPEG가 센서보다 작으면 센서 기준100%로 확대하지 않고 제한을 표시합니다. [원인·실제 Sony 검증·속도 측정](docs/stable-preview.md).
+
+0.5.1은 공식 앱 아이콘을 교체한 버전입니다. 뷰어/UI 소스와 기존 아이콘 생성 스크립트·Xcode 빌드 단계는 유지했습니다. [macOS 빌드 #27](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43147070222)에서 회귀85개·Release 검사3개와 ICNS10종/원본 일치 검증이 통과했습니다.

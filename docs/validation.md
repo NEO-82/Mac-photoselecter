@@ -21,6 +21,12 @@
 
 ## Mac에서 필수 확인
 
+0.5.1은 [macOS 빌드 #27](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43147070222)에서 소스 `0c9505dc85750b9c23700600c5fde915bc7677f0`의
+기존 회귀85개·Release 검사3개·arm64 앱/DMG 검증을 통과했습니다. 뷰어/UI 소스·테스트·기존 아이콘 생성 스크립트는 변경하지 않았습니다.
+공식 PNG 원본과 ICNS1024px 픽셀 일치,10개 해상도, CFBundleIconFile과 Finder 자원 해석을 검증했습니다.
+Intel CI의 Finder에는 arm64 실행 제한 배지가 겹치므로 실제 M1 Dock 실화면은 미검증입니다. [아이콘 확인 기록](official-app-icon.md).
+실제 다운로드 HTTP200, 3,745,663바이트 및 SHA-256 일치.
+
 0.5.0은 [macOS 빌드 #26](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43144031701)에서 소스 `a1758b2146594396c26d266d1e443957176c7cc0`의
 회귀 XCTest **85개**와 Release 실제 ARW 검사 **3개**가 통과했습니다. 실제 파일은 고정된 SHA-256으로 확인했으며 생략 없이 실행했습니다.
 Intel macOS/Xcode 16.4에서 테스트하고 Apple Silicon arm64 앱을 별도 빌드했습니다.
