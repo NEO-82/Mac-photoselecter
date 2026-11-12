@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.4.1'
+        default: '0.5.0'
         type: string
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.4.1' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.5.0' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
   PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
@@ -30,10 +30,14 @@ jobs:
     # package-macos.sh still builds and verifies an arm64-only application.
     runs-on: macos-15-intel
     timeout-minutes: 30
+    env:
+      PHOTOSELECT_ARW_SAMPLE_DIRECTORY: ${{ runner.temp }}/photoselect-raw-samples
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch checksum-pinned Sony ARW regression samples
+        run: bash scripts/fetch-raw-test-samples.sh
       - name: Test, build arm64 app and verify DMG
         id: package
         run: |
@@ -52,6 +56,7 @@ jobs:
             .build/browser-dark.png
             .build/browser-light.png
             .build/about-panel.png
+            .build/arw-*.json
           if-no-files-found: error
           retention-days: 14
       - name: Save installer and build evidence on the delivery branch

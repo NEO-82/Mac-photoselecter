@@ -21,6 +21,9 @@ done
 if [[ -f .build/about-panel.png ]]; then
     cp .build/about-panel.png downloads/about-panel.png
 fi
+for evidence in .build/arw-*.json; do
+    if [[ -f "$evidence" ]]; then cp "$evidence" downloads/; fi
+done
 artifact="PhotoSelect-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
 filename="PhotoSelect-${PHOTOSELECT_VERSION}-arm64.dmg"
 if [[ "$PACKAGE_OUTCOME" == success ]]; then

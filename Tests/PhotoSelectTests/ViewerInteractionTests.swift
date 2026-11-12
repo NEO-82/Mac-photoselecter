@@ -133,6 +133,54 @@ final class ViewerInteractionTests: XCTestCase {
     }
 
     @MainActor
+    private func renderedColor(_ canvas: PhotoCanvas, x: Int, y: Int) throws -> NSColor {
+        let bitmap = try XCTUnwrap(NSBitmapImageRep(bitmapDataPlanes: nil,
+            pixelsWide: Int(canvas.bounds.width), pixelsHigh: Int(canvas.bounds.height),
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+        NSGraphicsContext.saveGraphicsState()
+        defer { NSGraphicsContext.restoreGraphicsState() }
+        NSGraphicsContext.current = try XCTUnwrap(NSGraphicsContext(bitmapImageRep: bitmap))
+        canvas.draw(canvas.bounds)
+        return try XCTUnwrap(bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB))
+    }
+
+    @MainActor
+    func testZoomUsesActualDecodedPixelsEvenWhenRawMetadataIsLarger() throws {
+        let bitmap = image(raw: true).image
+        let decoded = DecodedImage(image: bitmap, sourceSize: CGSize(width: 6000, height: 4000),
+                                   fullResolution: false, raw: true)
+        let retina = PhotoCanvas.imageRect(for: decoded, view: CGSize(width: 400, height: 300),
+            cursor: CGPoint(x: 50, y: 50), backingScale: 2, zoomed: true)
+        XCTAssertEqual(retina.size, CGSize(width: 100, height: 50))
+        let canvas = PhotoCanvas(frame: NSRect(x: 0, y: 0, width: 400, height: 300))
+        canvas.decoded = decoded
+        canvas.mouseDown(with: mouse(.leftMouseDown))
+        canvas.mouseDragged(with: mouse(.leftMouseDragged))
+        defer { canvas.resetZoom() }
+        // At native 1:1 this 200px image occupies only the middle 200pt.
+        // Inflating it to the 6000px metadata would incorrectly cover this edge.
+        XCTAssertLessThan(try renderedColor(canvas, x: 20, y: 150).blueComponent, 0.1)
+        XCTAssertGreaterThan(try renderedColor(canvas, x: 200, y: 150).blueComponent, 0.9)
+    }
+
+    @MainActor
+    func testLimitedRawFitDoesNotUpscaleAndJpegFitKeepsExistingBehavior() throws {
+        let raw = image(raw: true, full: false)
+        let view = CGSize(width: 800, height: 600)
+        let rawRect = PhotoCanvas.imageRect(for: raw, view: view, cursor: .zero,
+                                            backingScale: 2, zoomed: false)
+        XCTAssertEqual(rawRect.size, CGSize(width: 100, height: 50))
+        let jpegRect = PhotoCanvas.imageRect(for: image(raw: false), view: view, cursor: .zero,
+                                             backingScale: 2, zoomed: false)
+        XCTAssertEqual(jpegRect.size, CGSize(width: 800, height: 400))
+        let canvas = PhotoCanvas(frame: NSRect(x: 0, y: 0, width: 400, height: 300))
+        canvas.decoded = raw
+        XCTAssertLessThan(try renderedColor(canvas, x: 20, y: 150).blueComponent, 0.1)
+        XCTAssertGreaterThan(try renderedColor(canvas, x: 200, y: 150).blueComponent, 0.9)
+    }
+
+    @MainActor
     func testPressAndReleaseStillSwitchBetweenZoomAndFit() {
         let canvas = makeCanvas()
         canvas.decoded = image(raw: false)

@@ -45,20 +45,27 @@ final class PhotoCanvas: NSView {
         NSColor.black.setFill(); bounds.fill()
         guard let decoded, let context = NSGraphicsContext.current?.cgContext else { return }
         let image = decoded.image
-        // A preview is displayed at the original pixel geometry, but explicitly marked in the HUD.
-        let size = decoded.sourceSize.width > 0 && decoded.sourceSize.height > 0 ? decoded.sourceSize : CGSize(width: image.width, height: image.height)
-        let rect: CGRect
-        if pressed {
-            rect = ZoomGeometry.rect(image: size, view: bounds.size, cursor: cursor,
-                                     backingScale: window?.backingScaleFactor ?? 1)
-        } else {
-            let scale = min(bounds.width / size.width, bounds.height / size.height)
-            rect = CGRect(x: (bounds.width - size.width * scale) / 2,
-                          y: (bounds.height - size.height * scale) / 2,
-                          width: size.width * scale, height: size.height * scale)
-        }
+        let rect = Self.imageRect(for: decoded, view: bounds.size, cursor: cursor,
+                                  backingScale: window?.backingScaleFactor ?? 1, zoomed: pressed)
         context.interpolationQuality = .high
         context.draw(image, in: rect)
+    }
+    // RAW sensor metadata may describe more pixels than its embedded JPEG.
+    // Geometry must use the bitmap actually being drawn, including at 100%.
+    static func imageRect(for decoded: DecodedImage, view: CGSize, cursor: CGPoint,
+                          backingScale: CGFloat, zoomed: Bool) -> CGRect {
+        let size = CGSize(width: decoded.image.width, height: decoded.image.height)
+        let scaleFactor = max(1, backingScale)
+        if zoomed {
+            return ZoomGeometry.rect(image: size, view: view, cursor: cursor, backingScale: scaleFactor)
+        }
+        let fit = min(view.width / size.width, view.height / size.height)
+        // Do not make a limited embedded preview look like a sensor-size image.
+        // Normal JPEG Fit retains its existing behavior.
+        let scale = decoded.raw ? min(fit, 1 / scaleFactor) : fit
+        return CGRect(x: (view.width - size.width * scale) / 2,
+                      y: (view.height - size.height * scale) / 2,
+                      width: size.width * scale, height: size.height * scale)
     }
     override func mouseDown(with event: NSEvent) {
         // A quick double-click must not briefly zoom or request the RAW original.

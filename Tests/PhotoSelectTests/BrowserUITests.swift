@@ -7,14 +7,14 @@ final class BrowserUITests: XCTestCase {
     @MainActor
     private func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap { descendants($0) } }
     @MainActor
-    private func waitUntil(_ description: String, condition: @escaping () -> Bool) {
+    private func waitUntil(_ description: String, timeout: TimeInterval = 5, condition: @escaping () -> Bool) {
         let done = expectation(description: description)
-        let deadline = Date().addingTimeInterval(5)
+        let deadline = Date().addingTimeInterval(timeout)
         func poll() {
             if condition() { done.fulfill() }
             else if Date() < deadline { DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) { poll() } }
         }
-        poll(); wait(for: [done], timeout: 6)
+        poll(); wait(for: [done], timeout: timeout + 1)
     }
     private func folder() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -436,6 +436,109 @@ final class BrowserUITests: XCTestCase {
         content.layoutSubtreeIfNeeded()
         XCTAssertEqual(split.arrangedSubviews[0].frame.width, requested, accuracy: 2)
         XCTAssertGreaterThanOrEqual(split.arrangedSubviews[1].frame.width, 300)
+    }
+
+    @MainActor
+    func testRealA7M4PreviewStaysIdenticalDuringHeldZoomAndCachedNavigation() throws {
+        guard let path = ProcessInfo.processInfo.environment["PHOTOSELECT_ARW_SAMPLE_DIRECTORY"] else {
+            throw XCTSkip("Real Sony ARW fixtures require PHOTOSELECT_ARW_SAMPLE_DIRECTORY.")
+        }
+        _ = NSApplication.shared
+        let sampleDirectory = URL(fileURLWithPath: path, isDirectory: true)
+        let samples = try FileManager.default.contentsOfDirectory(at: sampleDirectory, includingPropertiesForKeys: nil)
+        let source = try XCTUnwrap(samples.first {
+            $0.pathExtension.lowercased() == "arw" && $0.lastPathComponent.lowercased().contains("a7m4")
+        }, "Configured fixture directory must contain the Sony A7M4 ARW.")
+        let root = try folder(), raw = root.appendingPathComponent("1.ARW")
+        do { try FileManager.default.linkItem(at: source, to: raw) }
+        catch { try FileManager.default.copyItem(at: source, to: raw) }
+        try jpegData().write(to: root.appendingPathComponent("2.jpg"))
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("metadata/tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        waitUntil("real A7M4 initial embedded JPEG", timeout: 20) {
+            preview.filename.stringValue == "1.ARW" && preview.imageView.image != nil
+        }
+        XCTAssertEqual(grid.numberOfItems(inSection: 0), 2)
+        browser.openSelectedPhoto()
+        let viewerWindow = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        defer { viewerWindow.close() }
+        let canvas = try XCTUnwrap(viewerWindow.contentView as? PhotoCanvas)
+        let initial = try XCTUnwrap(canvas.decoded)
+        let originalPixels = try XCTUnwrap(initial.image.dataProvider?.data)
+        XCTAssertTrue(initial.raw)
+        XCTAssertEqual(initial.provenance, .embeddedJPEG)
+        XCTAssertTrue(initial.qualityDescription.contains("카메라 내장 JPEG"))
+        XCTAssertEqual(initial.sourceSize, CGSize(width: initial.image.width, height: initial.image.height))
+        let initialColorSpace = try XCTUnwrap(initial.image.colorSpace)
+        let fit = PhotoCanvas.imageRect(for: initial, view: canvas.bounds.size, cursor: .zero,
+            backingScale: viewerWindow.backingScaleFactor, zoomed: false)
+        XCTAssertEqual(fit.width / fit.height, CGFloat(initial.image.width) / CGFloat(initial.image.height), accuracy: 0.000001)
+        func mouse(_ type: NSEvent.EventType) throws -> NSEvent {
+            try XCTUnwrap(NSEvent.mouseEvent(with: type, location: NSPoint(x: 50, y: 50),
+                modifierFlags: [], timestamp: 0, windowNumber: viewerWindow.windowNumber,
+                context: nil, eventNumber: 0, clickCount: 1, pressure: type == .leftMouseUp ? 0 : 1))
+        }
+        func arrow(_ code: UInt16) throws -> NSEvent {
+            let character = code == 123 ? "\u{F702}" : "\u{F703}"
+            return try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
+                modifierFlags: [], timestamp: 0, windowNumber: viewerWindow.windowNumber,
+                context: nil, characters: character, charactersIgnoringModifiers: character,
+                isARepeat: false, keyCode: code))
+        }
+        func assertStableRAW(for duration: TimeInterval, description: String) {
+            let stable = expectation(description: description)
+            let deadline = Date().addingTimeInterval(duration)
+            func sample() {
+                XCTAssertTrue(canvas.decoded?.image === initial.image, "RAW display must never swap sources after presentation.")
+                if Date() >= deadline { stable.fulfill() }
+                else { DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { sample() } }
+            }
+            sample(); wait(for: [stable], timeout: duration + 2)
+        }
+        canvas.mouseDown(with: try mouse(.leftMouseDown))
+        canvas.mouseDragged(with: try mouse(.leftMouseDragged)) // Intentional drag commits held zoom immediately.
+        assertStableRAW(for: 1.2, description: "held RAW zoom has no late decoder/color replacement")
+        let held = try XCTUnwrap(canvas.decoded)
+        XCTAssertEqual(held.sourceSize, initial.sourceSize)
+        XCTAssertTrue(CFEqual(try XCTUnwrap(held.image.dataProvider?.data), originalPixels))
+        XCTAssertTrue(CFEqual(try XCTUnwrap(held.image.colorSpace), initialColorSpace))
+        let zoomed = PhotoCanvas.imageRect(for: held, view: canvas.bounds.size, cursor: CGPoint(x: 50, y: 50),
+            backingScale: viewerWindow.backingScaleFactor, zoomed: true)
+        XCTAssertEqual(zoomed.width * viewerWindow.backingScaleFactor, CGFloat(initial.image.width), accuracy: 0.01)
+        XCTAssertEqual(zoomed.height * viewerWindow.backingScaleFactor, CGFloat(initial.image.height), accuracy: 0.01)
+        canvas.keyDown(with: try arrow(124)) // Continue navigating with the mouse held.
+        waitUntil("JPEG neighbor ready", timeout: 20) { canvas.decoded?.raw == false && preview.filename.stringValue == "2.jpg" }
+        let jpeg = try XCTUnwrap(canvas.decoded)
+        XCTAssertEqual(jpeg.provenance, .jpegOriginal)
+        XCTAssertEqual(jpeg.image.width, 20); XCTAssertEqual(jpeg.image.height, 10)
+        let backStart = ProcessInfo.processInfo.systemUptime
+        canvas.keyDown(with: try arrow(123))
+        let backMilliseconds = (ProcessInfo.processInfo.systemUptime - backStart) * 1000
+        XCTAssertTrue(canvas.decoded?.image === initial.image, "A cached previous RAW must display synchronously without a blank canvas.")
+        XCTAssertEqual(preview.filename.stringValue, "1.ARW")
+        assertStableRAW(for: 1.2, description: "cached RAW remains stable while zoom stays held")
+        XCTAssertTrue(CFEqual(try XCTUnwrap(canvas.decoded?.image.dataProvider?.data), originalPixels))
+        canvas.mouseUp(with: try mouse(.leftMouseUp))
+        XCTAssertTrue(canvas.decoded?.image === initial.image)
+        let forwardStart = ProcessInfo.processInfo.systemUptime
+        canvas.keyDown(with: try arrow(124))
+        let forwardMilliseconds = (ProcessInfo.processInfo.systemUptime - forwardStart) * 1000
+        XCTAssertTrue(canvas.decoded?.image === jpeg.image, "A cached JPEG neighbor must also display synchronously.")
+        print("ARW UI evidence: A7M4 embedded JPEG \(initial.image.width)x\(initial.image.height), cached back \(backMilliseconds) ms, JPEG forward \(forwardMilliseconds) ms")
+        if let screenshotPath = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+            let output = URL(fileURLWithPath: screenshotPath).deletingLastPathComponent().appendingPathComponent("arw-ui-evidence.json")
+            let evidence: [String: Any] = ["camera": "Sony A7M4", "display_source": "embeddedJPEG",
+                "width": initial.image.width, "height": initial.image.height,
+                "held_zoom_source_stable": true, "cached_raw_back_synchronous": true,
+                "cached_jpeg_forward_synchronous": true, "cached_raw_back_ms": backMilliseconds,
+                "cached_jpeg_forward_ms": forwardMilliseconds]
+            try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try JSONSerialization.data(withJSONObject: evidence, options: [.prettyPrinted, .sortedKeys]).write(to: output)
+        }
     }
 
     @MainActor

@@ -108,22 +108,26 @@ final class PreviewPane: ProSurfaceView {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     func clear() {
         imageView.image = nil; filename.stringValue = "선택한 사진 없음"
-        filename.toolTip = nil; detail.stringValue = ""; tagMarker.isHidden = true
+        filename.toolTip = nil; detail.stringValue = ""; detail.toolTip = nil; tagMarker.isHidden = true
     }
     func select(_ photo: Photo) {
         imageView.image = nil; filename.stringValue = photo.url.lastPathComponent
-        filename.toolTip = photo.url.path; detail.stringValue = "불러오는 중…"
+        filename.toolTip = photo.url.path; detail.stringValue = "불러오는 중…"; detail.toolTip = nil
     }
     func display(_ decoded: DecodedImage) {
-        imageView.image = NSImage(cgImage: decoded.image, size: .zero)
+        let scale = window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 1
+        imageView.imageScaling = decoded.raw ? .scaleProportionallyDown : .scaleProportionallyUpOrDown
+        let pointSize = decoded.raw ? NSSize(width: CGFloat(decoded.image.width) / scale, height: CGFloat(decoded.image.height) / scale) : .zero
+        imageView.image = NSImage(cgImage: decoded.image, size: pointSize)
+        detail.toolTip = decoded.qualityDescription
         let size = decoded.sourceSize.width > 0 ? decoded.sourceSize : CGSize(width: decoded.image.width, height: decoded.image.height)
-        detail.stringValue = "\(Int(size.width)) × \(Int(size.height)) · \(decoded.raw ? "ARW" : "JPEG")"
+        detail.stringValue = "\(Int(size.width)) × \(Int(size.height)) · \(decoded.raw ? "ARW 내장 JPEG" : "JPEG")"
     }
 }
 
 final class BrowserController: NSWindowController, NSCollectionViewDataSource, NSCollectionViewDelegate, NSWindowDelegate, NSSplitViewDelegate, NSMenuItemValidation {
     private let pipeline = ImagePipeline()
-    private let thumbnails = ImagePipeline()
+    private let thumbnails = ImagePipeline(cacheLimit: 96 * 1024 * 1024)
     private let tree = FolderTree()
     private let grid = PhotoCollectionView()
     private let preview = PreviewPane()
@@ -152,14 +156,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var viewer: ViewerController?
     private var displayed: DecodedImage?
     private var previewError: String?
-    private var zoom = false
-    private var fullRequested = false
-    private var fullError: String?
     private var actionMessage: String?
     private var isTrashing = false
     private var syncingSelection = false
     private var request: Operation?
-    private var fullRequest: Operation?
     private var volumeObserver: NSObjectProtocol?
     private var screenObserver: NSObjectProtocol?
     private let logger = Logger(subsystem: "dev.photoselect", category: "navigation")
@@ -303,7 +303,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         arrangeColumns()
     }
     func windowDidChangeScreen(_ notification: Notification) { fitToCurrentScreen() }
-    func windowDidChangeBackingProperties(_ notification: Notification) { fitToCurrentScreen() }
+    func windowDidChangeBackingProperties(_ notification: Notification) {
+        fitToCurrentScreen()
+        if let displayed { preview.display(displayed) }
+    }
     private func fitToCurrentScreen() {
         guard let window, let screen = window.screen ?? NSScreen.main else { return }
         window.minSize = WindowLayout.minimumSize(in: screen.visibleFrame, kind: .browser)
@@ -503,17 +506,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 guard let self, let index = self.list.selectedIndex else { return }
                 self.showPhoto(index + step)
             }
-            viewer.canvas.zoomChanged = { [weak self] pressed in
-                guard let self else { return }; self.zoom = pressed
-                if pressed { self.loadFullResolution() }
-                self.updateHUD()
-            }
+            viewer.canvas.zoomChanged = { [weak self] _ in self?.updateHUD() }
             viewer.canvas.trashCurrent = { [weak self] in self?.trashCurrentPhoto() }
             viewer.canvas.toggleTag = { [weak self] in self?.toggleCurrentTag() }
             viewer.didClose = { [weak self] in
                 guard let self else { return }
                 // Keep the decoded image, thumbnail views and scroll position on return.
-                self.viewer = nil; self.zoom = false
+                self.viewer = nil
                 self.window?.makeKeyAndOrderFront(nil); self.window?.makeFirstResponder(self.grid)
             }
         }
@@ -527,51 +526,49 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     private func showPhoto(_ index: Int) {
         guard let lease, list.select(index), let photo = list.selectedPhoto else { return }
-        pipeline.cancelAll(); imageGeneration = UUID(); let token = imageGeneration
-        displayed = nil; previewError = nil; fullRequested = false; fullError = nil; actionMessage = nil
-        viewer?.canvas.decoded = nil; preview.select(photo)
+        // Keep useful neighboring work alive. Only this UI subscriber is canceled.
+        request?.cancel()
+        imageGeneration = UUID(); let token = imageGeneration
+        let neighbors = [index - 1, index + 1].filter { list.photos.indices.contains($0) }.map { list.photos[$0] }
+        pipeline.retain(photos: [photo] + neighbors)
+        previewError = nil; actionMessage = nil
+        preview.filename.stringValue = photo.url.lastPathComponent
+        preview.filename.toolTip = photo.url.path
         viewer?.window?.title = photo.url.lastPathComponent + " — " + AppBranding.displayName
-        viewer?.hud.stringValue = photo.url.lastPathComponent + " — 읽는 중…"
         synchronizeGrid(); updateBadges()
         setStatus("\(currentFolder?.path ?? "") — \(list.photos.count)장 · 1장 선택")
         let start = ProcessInfo.processInfo.systemUptime
-        request = pipeline.load(photo, lease: lease, quality: .preview) { [weak self] result, hit in
-            guard let self, self.imageGeneration == token else { return }
-            let ms = (ProcessInfo.processInfo.systemUptime - start) * 1000
-            self.logger.info("preview cacheHit=\(hit) latencyMs=\(ms)")
-            switch result {
-            case .success(let image):
-                self.displayed = image; self.viewer?.canvas.decoded = image; self.preview.display(image); self.updateHUD()
-                if self.zoom { self.loadFullResolution() }
-                let current = self.list.selectedIndex ?? 0
-                for neighbor in [current - 1, current + 1] where self.list.photos.indices.contains(neighbor) {
-                    self.pipeline.load(self.list.photos[neighbor], lease: lease, quality: .preview, prefetch: true) { _, _ in }
+        if let cached = pipeline.cached(photo, quality: .preview) {
+            displayed = cached; viewer?.canvas.decoded = cached; preview.display(cached); updateHUD()
+            logger.info("preview cacheHit=true latencyMs=\((ProcessInfo.processInfo.systemUptime - start) * 1000)")
+        } else {
+            // A loading state is preferable to enlarging a thumbnail or showing
+            // a different source that would change sharpness/color a moment later.
+            displayed = nil; viewer?.canvas.decoded = nil; preview.select(photo)
+            viewer?.hud.stringValue = photo.url.lastPathComponent + " — 고해상도 프리뷰 읽는 중…"
+            request = pipeline.load(photo, lease: lease, quality: .preview) { [weak self] result, hit in
+                guard let self, self.imageGeneration == token else { return }
+                let ms = (ProcessInfo.processInfo.systemUptime - start) * 1000
+                self.logger.info("preview cacheHit=\(hit) latencyMs=\(ms)")
+                switch result {
+                case .success(let image):
+                    self.displayed = image; self.viewer?.canvas.decoded = image
+                    self.preview.display(image); self.updateHUD()
+                case .failure(let error):
+                    self.previewError = error.localizedDescription
+                    self.preview.detail.stringValue = error.localizedDescription
+                    self.viewer?.hud.stringValue = error.localizedDescription + " — ←/→ 계속 탐색 · Esc 복귀"
                 }
-            case .failure(let error):
-                self.previewError = error.localizedDescription
-                self.preview.detail.stringValue = error.localizedDescription
-                self.viewer?.hud.stringValue = error.localizedDescription + " — ←/→ 계속 탐색 · Esc 복귀"
             }
         }
-    }
-    private func loadFullResolution() {
-        guard let displayed, !displayed.fullResolution, !fullRequested, let lease, let photo = list.selectedPhoto else { return }
-        fullRequested = true; let token = imageGeneration
-        let start = ProcessInfo.processInfo.systemUptime
-        fullRequest = pipeline.load(photo, lease: lease, quality: .full) { [weak self] result, hit in
-            guard let self, self.imageGeneration == token else { return }
-            let ms = (ProcessInfo.processInfo.systemUptime - start) * 1000
-            self.logger.info("full cacheHit=\(hit) latencyMs=\(ms)")
-            switch result {
-            case .success(let image):
-                self.displayed = image; self.viewer?.canvas.decoded = image; self.preview.display(image); self.updateHUD()
-            case .failure(let error): self.fullError = error.localizedDescription; self.updateHUD()
-            }
+        // Start both neighbors now, not only after a slow current decode completes.
+        for neighbor in neighbors {
+            pipeline.load(neighbor, lease: lease, quality: .preview, prefetch: true) { _, _ in }
         }
     }
     private func updateHUD() {
         guard let photo = list.selectedPhoto, let index = list.selectedIndex, let displayed else { return }
-        let quality = fullError ?? (displayed.fullResolution ? "원본 해상도" : "프리뷰 · 확대 정확도 제한")
+        let quality = displayed.qualityDescription
         viewer?.hud.stringValue = "\(index + 1)/\(list.photos.count)  \(photo.url.lastPathComponent)  \(quality)\n←/→ 탐색 · 누르는 동안 100% · \\ 태그 · Delete 휴지통 · Esc/더블클릭 복귀" + (actionMessage.map { "\n" + $0 } ?? "")
     }
     private func updateBadges() {
