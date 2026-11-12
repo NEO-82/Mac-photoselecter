@@ -182,10 +182,18 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         window.setFrame(WindowLayout.initialFrame(in: available, kind: .browser), display: false)
         super.init(window: window)
         let content = ProSurfaceView()
-        // Keep the root flexible when AppKit translates its frame into window
-        // constraints; a fixed root width can prevent growing after a shrink.
-        content.autoresizingMask = [.width, .height]
         content.fillColor = ProTheme.background; window.contentView = content
+        // Pin the root to the window's actual content area. Its frame alone
+        // can remain at the previous size after an Auto Layout window grows.
+        if let guide = window.contentLayoutGuide as? NSLayoutGuide {
+            content.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                content.leadingAnchor.constraint(equalTo: guide.leadingAnchor),
+                content.trailingAnchor.constraint(equalTo: guide.trailingAnchor),
+                content.topAnchor.constraint(equalTo: guide.topAnchor),
+                content.bottomAnchor.constraint(equalTo: guide.bottomAnchor)
+            ])
+        }
         window.backgroundColor = ProTheme.background
         status.translatesAutoresizingMaskIntoConstraints = false; content.addSubview(status)
         let credit = NSTextField(labelWithString: "Made with Seoa ♡")
