@@ -18,123 +18,118 @@ Building for debugging...
 [15/20] Write Objects.LinkFileList
 [16/20] Linking PhotoSelect
 [17/20] Applying PhotoSelect
-[19/25] Emitting module PhotoSelectTests
-[20/25] Compiling PhotoSelectTests BrowserUITests.swift
-[21/25] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
-[22/25] Compiling PhotoSelectTests FolderTreeTests.swift
-[23/25] Compiling PhotoSelectTests ImagePipelineTests.swift
+[19/25] Compiling PhotoSelectTests BrowserUITests.swift
+[20/25] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
+[21/25] Compiling PhotoSelectTests FolderTreeTests.swift
+[22/25] Compiling PhotoSelectTests ImagePipelineTests.swift
+[23/25] Emitting module PhotoSelectTests
 [24/29] Compiling PhotoSelectTests PhotoActionsTests.swift
 [25/29] Compiling PhotoSelectTests PhotoSelectTests.swift
 [26/29] Compiling PhotoSelectTests ViewerInteractionTests.swift
 [27/29] Compiling PhotoSelectTests WindowLayoutTests.swift
-[28/31] Emitting module PhotoSelectPackageTests
-[29/31] Compiling PhotoSelectPackageTests runner.swift
+[28/31] Compiling PhotoSelectPackageTests runner.swift
+[29/31] Emitting module PhotoSelectPackageTests
 [29/31] Write Objects.LinkFileList
 [30/31] Linking PhotoSelectPackageTests
-Build complete! (80.80s)
-[1/86] Testing PhotoSelectTests.BrowserUITests/testDeviceChangeNotificationRetainsErrorWhenReopeningViewer
-[2/86] Testing PhotoSelectTests.BrowserUITests/testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized
+Build complete! (77.54s)
+[1/86] Testing PhotoSelectTests.BrowserUITests/testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized
+[2/86] Testing PhotoSelectTests.BrowserUITests/testAboutMenuShowsSeoaCreditsInRoseOnNativePanel
 [3/86] Testing PhotoSelectTests.BrowserUITests/testBrowserStartsWithTreeGridAndPreviewColumns
-[4/86] Testing PhotoSelectTests.BrowserUITests/testAboutMenuShowsSeoaCreditsInRoseOnNativePanel
-[5/86] Testing PhotoSelectTests.BrowserUITests/testInitialBrowserFrameFitsActualAvailableScreen
-[6/86] Testing PhotoSelectTests.BrowserUITests/testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch
-[7/86] Testing PhotoSelectTests.BrowserUITests/testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded
-[8/86] Testing PhotoSelectTests.BrowserUITests/testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns
+[4/86] Testing PhotoSelectTests.BrowserUITests/testDeviceChangeNotificationRetainsErrorWhenReopeningViewer
+[5/86] Testing PhotoSelectTests.BrowserUITests/testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch
+[6/86] Testing PhotoSelectTests.BrowserUITests/testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns
+[7/86] Testing PhotoSelectTests.BrowserUITests/testInitialBrowserFrameFitsActualAvailableScreen
+[8/86] Testing PhotoSelectTests.BrowserUITests/testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded
 [9/86] Testing PhotoSelectTests.BrowserUITests/testPresentingVisibleViewerKeepsManualWindowSize
 [10/86] Testing PhotoSelectTests.BrowserUITests/testNativeMenuCommandsNavigateAndTagCurrentPhoto
 [11/86] Testing PhotoSelectTests.BrowserUITests/testMixedBrowserFolderNavigationFilePreviewAndCreditLayout
 [12/86] Testing PhotoSelectTests.BrowserUITests/testPreviewFilenameIsBelowImage
 [13/86] Testing PhotoSelectTests.BrowserUITests/testSelectingThumbnailChangesRightPreview
-[14/86] Testing PhotoSelectTests.BrowserUITests/testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList
-[15/86] Testing PhotoSelectTests.BrowserUITests/testSoftRomanticPaletteRendersInDarkAndLightAppearances
-[16/86] Testing PhotoSelectTests.BrowserUITests/testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge
-[17/86] Testing PhotoSelectTests.BrowserUITests/testRealA7M4PreviewStaysIdenticalDuringHeldZoomAndCachedNavigation
-[18/86] Testing PhotoSelectTests.BrowserUITests/testStandardMenusDisablePhotoActionsUntilFolderHasPhotos
-[19/86] Testing PhotoSelectTests.BrowserUITests/testTagBadgeReturnsAfterClosingAndRecreatingBrowser
-[20/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testAdobeRGBHintUsesOuterExifInteropWhenJPEGHasNoExif
-[21/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testCFASensorStripIsNotScannedOrSelectedOverCameraPreview
-[22/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testCyclicIFDAndOversizedOffsetsAreBounded
-[23/86] Testing PhotoSelectTests.BrowserUITests/testViewerStartsAsMaximizedWindowInsideVisibleScreen
-[24/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testEightBitYCbCrJPEGStripRemainsAProcessedPreview
-[25/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testLargestLinkedPreviewWinsOverThumbnailAndPrimaryPreview
-[26/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testLosslessBayerAndNonEightBitFramesCannotBecomePreview
-[27/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testSonyMakerNoteHeaderAnd32BytePreviewPrefix
+[14/86] Testing PhotoSelectTests.BrowserUITests/testSoftRomanticPaletteRendersInDarkAndLightAppearances
+[15/86] Testing PhotoSelectTests.BrowserUITests/testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList
+[16/86] Testing PhotoSelectTests.BrowserUITests/testStandardMenusDisablePhotoActionsUntilFolderHasPhotos
+[17/86] Testing PhotoSelectTests.BrowserUITests/testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge
+[18/86] Testing PhotoSelectTests.BrowserUITests/testTagBadgeReturnsAfterClosingAndRecreatingBrowser
+[19/86] Testing PhotoSelectTests.BrowserUITests/testViewerStartsAsMaximizedWindowInsideVisibleScreen
+[20/86] Testing PhotoSelectTests.BrowserUITests/testViewerDoubleClickReturnsToSamePhotoAndFolder
+[21/86] Testing PhotoSelectTests.BrowserUITests/testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll
+[22/86] Testing PhotoSelectTests.BrowserUITests/testRealA7M4PreviewStaysIdenticalDuringHeldZoomAndCachedNavigation
+[23/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testEightBitYCbCrJPEGStripRemainsAProcessedPreview
+[24/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testAdobeRGBHintUsesOuterExifInteropWhenJPEGHasNoExif
+[25/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testCyclicIFDAndOversizedOffsetsAreBounded
+[26/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testCFASensorStripIsNotScannedOrSelectedOverCameraPreview
+[27/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testLargestLinkedPreviewWinsOverThumbnailAndPrimaryPreview
 [28/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testTinyOnlyOrTruncatedJPEGIsNeverUsedAsLargePreview
-[29/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testUnknownLayoutRecoveryFindsLargestCompleteProgressiveJPEG
-[30/86] Testing PhotoSelectTests.BrowserUITests/testViewerDoubleClickReturnsToSamePhotoAndFolder
-[31/86] Testing PhotoSelectTests.FolderTreeTests/testDesktopShortcutUsesSystemDesktopLocation
+[29/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testLosslessBayerAndNonEightBitFramesCannotBecomePreview
+[30/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testSonyMakerNoteHeaderAnd32BytePreviewPrefix
+[31/86] Testing PhotoSelectTests.EmbeddedPreviewTests/testUnknownLayoutRecoveryFindsLargestCompleteProgressiveJPEG
 [32/86] Testing PhotoSelectTests.FolderTreeTests/testGeneralEntriesStaySeparateFromPhotoDecodeList
-[33/86] Testing PhotoSelectTests.FolderTreeTests/testDeniedFolderCanBeExpandedAgainAfterAccessChanges
-[34/86] Testing PhotoSelectTests.FolderTreeTests/testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter
+[33/86] Testing PhotoSelectTests.FolderTreeTests/testDesktopShortcutUsesSystemDesktopLocation
+[34/86] Testing PhotoSelectTests.FolderTreeTests/testDeniedFolderCanBeExpandedAgainAfterAccessChanges
 [35/86] Testing PhotoSelectTests.FolderTreeTests/testHiddenRefreshPreservesExpandedPathAndSelectedFolder
-[36/86] Testing PhotoSelectTests.BrowserUITests/testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll
-[37/86] Testing PhotoSelectTests.FolderTreeTests/testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache
-[38/86] Testing PhotoSelectTests.FolderTreeTests/testSelectingCachedFolderRevealsCollapsedAncestors
-[39/86] Testing PhotoSelectTests.ImagePipelineTests/testAllEightJPEGOrientationsMatchImageIOReferenceGeometry
-[40/86] Testing PhotoSelectTests.ImagePipelineTests/testARWUsesSameNativeJPEGForDisplayZoomAndThumbnailColor
-[41/86] Testing PhotoSelectTests.ImagePipelineTests/testCancelledQueuedThumbnailDoesNotDecodeBehindVisibleRequests
-[42/86] Testing PhotoSelectTests.FolderTreeTests/testUserSelectionDuringRefreshOverridesPendingRestoration
-[43/86] Testing PhotoSelectTests.ImagePipelineTests/testClearRejectsFinishedOldWorkAndDoesNotRepopulateCache
-[44/86] Testing PhotoSelectTests.ImagePipelineTests/testEmbeddedICCOverridesContradictoryOuterColorHint
-[45/86] Testing PhotoSelectTests.ImagePipelineTests/testJPEGDisplayAndZoomNeverReplaceWithAnotherResolution
-[46/86] Testing PhotoSelectTests.ImagePipelineTests/testPinnedCurrentAndNeighborsUseBoundedLRUWithoutDiscardingSelectedBitmap
-[47/86] Testing PhotoSelectTests.ImagePipelineTests/testOuterAdobeRGBHintIsAppliedBeforeConsistentSRGBConversion
-[48/86] Testing PhotoSelectTests.ImagePipelineTests/testPrefetchForegroundAndFullRequestsCoalesceWithIndependentCancellation
+[36/86] Testing PhotoSelectTests.FolderTreeTests/testSelectingCachedFolderRevealsCollapsedAncestors
+[37/86] Testing PhotoSelectTests.FolderTreeTests/testUserSelectionDuringRefreshOverridesPendingRestoration
+[38/86] Testing PhotoSelectTests.ImagePipelineTests/testAllEightJPEGOrientationsMatchImageIOReferenceGeometry
+[39/86] Testing PhotoSelectTests.FolderTreeTests/testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache
+[40/86] Testing PhotoSelectTests.FolderTreeTests/testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter
+[41/86] Testing PhotoSelectTests.FolderTreeTests/testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter
+[42/86] Testing PhotoSelectTests.ImagePipelineTests/testARWUsesSameNativeJPEGForDisplayZoomAndThumbnailColor
+[43/86] Testing PhotoSelectTests.ImagePipelineTests/testJPEGDisplayAndZoomNeverReplaceWithAnotherResolution
+[44/86] Testing PhotoSelectTests.ImagePipelineTests/testOuterAdobeRGBHintIsAppliedBeforeConsistentSRGBConversion
+[45/86] Testing PhotoSelectTests.ImagePipelineTests/testEmbeddedICCOverridesContradictoryOuterColorHint
+[46/86] Testing PhotoSelectTests.ImagePipelineTests/testClearRejectsFinishedOldWorkAndDoesNotRepopulateCache
+[47/86] Testing PhotoSelectTests.ImagePipelineTests/testCancelledQueuedThumbnailDoesNotDecodeBehindVisibleRequests
+[48/86] Testing PhotoSelectTests.ImagePipelineTests/testPinnedCurrentAndNeighborsUseBoundedLRUWithoutDiscardingSelectedBitmap
 [49/86] Testing PhotoSelectTests.PhotoActionsTests/testCorruptTagMetadataIsPreserved
 [50/86] Testing PhotoSelectTests.PhotoActionsTests/testDeletingAnotherPhotoPreservesSelectionAndIndependentPair
-[51/86] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M3PortraitAdobeRGBPreviewIsStableAndHonest
-[52/86] Testing PhotoSelectTests.PhotoActionsTests/testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor
-[53/86] Testing PhotoSelectTests.PhotoActionsTests/testImmediateFinishPersistsTagsAndUntaggingAcrossSessions
-[54/86] Testing PhotoSelectTests.PhotoActionsTests/testNativeMacOSTrashReturnsRecoverableFixture
-[55/86] Testing PhotoSelectTests.PhotoActionsTests/testRapidTagTogglesSerializeAndEndUntagged
-[56/86] Testing PhotoSelectTests.PhotoActionsTests/testTagSurvivesReloadAndDoesNotChangeRawOrJpeg
-[57/86] Testing PhotoSelectTests.FolderTreeTests/testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter
-[58/86] Testing PhotoSelectTests.PhotoActionsTests/testTagWriteFailureIsReported
-[59/86] Testing PhotoSelectTests.PhotoActionsTests/testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting
-[60/86] Testing PhotoSelectTests.PhotoActionsTests/testTrashMovesOnlyRequestedFileAndKeepsPair
-[61/86] Testing PhotoSelectTests.PhotoActionsTests/testTrashReceiptCapturesDestinationAndExternalSpaceGuidance
-[62/86] Testing PhotoSelectTests.PhotoActionsTests/testTrashFailureKeepsSourceAndHasNoDeleteFallback
-[63/86] Testing PhotoSelectTests.PhotoSelectTests/testExtensionsAndRawJpegPair
-[64/86] Testing PhotoSelectTests.PhotoSelectTests/testCorruptImageReturnsFailure
-[65/86] Testing PhotoSelectTests.PhotoSelectTests/testFolderEnumerationIsNonRecursiveAndKeepsPairs
-[66/86] Testing PhotoSelectTests.PhotoSelectTests/testRetinaOneSourcePixelPerPhysicalPixel
-[67/86] Testing PhotoSelectTests.PhotoSelectTests/testZoomEdgesNeverRevealEmptySpaceForLargeImage
-[68/86] Testing PhotoSelectTests.ViewerInteractionTests/testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer
-[69/86] Testing PhotoSelectTests.ViewerInteractionTests/testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat
-[70/86] Testing PhotoSelectTests.ViewerInteractionTests/testDeactivationCancelsPendingZoom
-[71/86] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M4FullSizeCameraJPEGIsStableAndColorManaged
-[72/86] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeCancelsPendingZoomBeforeClosing
-[73/86] Testing PhotoSelectTests.ViewerInteractionTests/testLimitedRawFitDoesNotUpscaleAndJpegFitKeepsExistingBehavior
-[74/86] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeStillResetsZoomAndCloses
-[75/86] Testing PhotoSelectTests.ViewerInteractionTests/testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements
-[76/86] Testing PhotoSelectTests.ViewerInteractionTests/testPressAndReleaseStillSwitchBetweenZoomAndFit
-[77/86] Testing PhotoSelectTests.ViewerInteractionTests/testQuickDoubleClickClosesWithoutEverStartingZoom
-[78/86] Testing PhotoSelectTests.ViewerInteractionTests/testZoomUsesActualDecodedPixelsEvenWhenRawMetadataIsLarger
-[79/86] Testing PhotoSelectTests.WindowLayoutTests/testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas
-[80/86] Testing PhotoSelectTests.WindowLayoutTests/testMinimumSizesNeverForceWindowOutsideSmallDisplay
-[81/86] Testing PhotoSelectTests.ViewerInteractionTests/testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit
-[82/86] Testing PhotoSelectTests.WindowLayoutTests/testMovedOrDisconnectedDisplayFrameFitsNewScreen
-[83/86] Testing PhotoSelectTests.WindowLayoutTests/testPhotoGridGetsMostWidthAndPreviewHasBoundedSize
-[84/86] Testing PhotoSelectTests.WindowLayoutTests/testUserSidebarWidthCanGrowAndSurvivesResize
-[85/86] Testing PhotoSelectTests.WindowLayoutTests/testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt
-[86/86] Testing PhotoSelectTests.ViewerInteractionTests/testShortClickReleaseDoesNotCauseDelayedZoom
-Test Suite 'Selected tests' started at 2026-11-12 13:26:56.661.
-Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-12 13:26:56.665.
-Test Suite 'BrowserUITests' started at 2026-11-12 13:26:56.665.
+[51/86] Testing PhotoSelectTests.PhotoActionsTests/testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor
+[52/86] Testing PhotoSelectTests.PhotoActionsTests/testImmediateFinishPersistsTagsAndUntaggingAcrossSessions
+[53/86] Testing PhotoSelectTests.PhotoActionsTests/testNativeMacOSTrashReturnsRecoverableFixture
+[54/86] Testing PhotoSelectTests.PhotoActionsTests/testRapidTagTogglesSerializeAndEndUntagged
+[55/86] Testing PhotoSelectTests.PhotoActionsTests/testTagSurvivesReloadAndDoesNotChangeRawOrJpeg
+[56/86] Testing PhotoSelectTests.PhotoActionsTests/testTagWriteFailureIsReported
+[57/86] Testing PhotoSelectTests.PhotoActionsTests/testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting
+[58/86] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M3PortraitAdobeRGBPreviewIsStableAndHonest
+[59/86] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M4FullSizeCameraJPEGIsStableAndColorManaged
+[60/86] Testing PhotoSelectTests.ImagePipelineTests/testPrefetchForegroundAndFullRequestsCoalesceWithIndependentCancellation
+[61/86] Testing PhotoSelectTests.PhotoActionsTests/testTrashFailureKeepsSourceAndHasNoDeleteFallback
+[62/86] Testing PhotoSelectTests.PhotoSelectTests/testCorruptImageReturnsFailure
+[63/86] Testing PhotoSelectTests.PhotoActionsTests/testTrashMovesOnlyRequestedFileAndKeepsPair
+[64/86] Testing PhotoSelectTests.PhotoActionsTests/testTrashReceiptCapturesDestinationAndExternalSpaceGuidance
+[65/86] Testing PhotoSelectTests.PhotoSelectTests/testExtensionsAndRawJpegPair
+[66/86] Testing PhotoSelectTests.PhotoSelectTests/testZoomEdgesNeverRevealEmptySpaceForLargeImage
+[67/86] Testing PhotoSelectTests.PhotoSelectTests/testFolderEnumerationIsNonRecursiveAndKeepsPairs
+[68/86] Testing PhotoSelectTests.PhotoSelectTests/testRetinaOneSourcePixelPerPhysicalPixel
+[69/86] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeCancelsPendingZoomBeforeClosing
+[70/86] Testing PhotoSelectTests.ViewerInteractionTests/testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer
+[71/86] Testing PhotoSelectTests.ViewerInteractionTests/testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat
+[72/86] Testing PhotoSelectTests.ViewerInteractionTests/testDeactivationCancelsPendingZoom
+[73/86] Testing PhotoSelectTests.ViewerInteractionTests/testPressAndReleaseStillSwitchBetweenZoomAndFit
+[74/86] Testing PhotoSelectTests.ViewerInteractionTests/testLimitedRawFitDoesNotUpscaleAndJpegFitKeepsExistingBehavior
+[75/86] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeStillResetsZoomAndCloses
+[76/86] Testing PhotoSelectTests.ViewerInteractionTests/testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements
+[77/86] Testing PhotoSelectTests.ViewerInteractionTests/testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit
+[78/86] Testing PhotoSelectTests.ViewerInteractionTests/testQuickDoubleClickClosesWithoutEverStartingZoom
+[79/86] Testing PhotoSelectTests.ViewerInteractionTests/testShortClickReleaseDoesNotCauseDelayedZoom
+[80/86] Testing PhotoSelectTests.ViewerInteractionTests/testZoomUsesActualDecodedPixelsEvenWhenRawMetadataIsLarger
+[81/86] Testing PhotoSelectTests.WindowLayoutTests/testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas
+[82/86] Testing PhotoSelectTests.WindowLayoutTests/testMinimumSizesNeverForceWindowOutsideSmallDisplay
+[83/86] Testing PhotoSelectTests.WindowLayoutTests/testMovedOrDisconnectedDisplayFrameFitsNewScreen
+[84/86] Testing PhotoSelectTests.WindowLayoutTests/testPhotoGridGetsMostWidthAndPreviewHasBoundedSize
+[85/86] Testing PhotoSelectTests.WindowLayoutTests/testUserSidebarWidthCanGrowAndSurvivesResize
+[86/86] Testing PhotoSelectTests.WindowLayoutTests/testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt
+Test Suite 'Selected tests' started at 2026-11-12 13:33:10.517.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-12 13:33:10.520.
+Test Suite 'BrowserUITests' started at 2026-11-12 13:33:10.520.
 Test Case '-[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:734: error: -[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout] : XCTAssertEqualWithAccuracy failed: ("890.0") is not equal to ("888.0") +/- ("1.0")
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:735: error: -[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout] : XCTAssertLessThanOrEqual failed: ("661.0") is greater than ("658.0")
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:737: error: -[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout] : XCTAssertFalse failed
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:734: error: -[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout] : XCTAssertEqualWithAccuracy failed: ("890.0") is not equal to ("888.0") +/- ("1.0")
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:735: error: -[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout] : XCTAssertLessThanOrEqual failed: ("661.0") is greater than ("658.0")
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:737: error: -[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout] : XCTAssertFalse failed
-Test Case '-[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout]' failed (3.593 seconds).
-Test Suite 'BrowserUITests' failed at 2026-11-12 13:27:00.259.
-	 Executed 1 test, with 6 failures (0 unexpected) in 3.593 (3.594) seconds
-Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-12 13:27:00.259.
-	 Executed 1 test, with 6 failures (0 unexpected) in 3.593 (3.594) seconds
-Test Suite 'Selected tests' failed at 2026-11-12 13:27:00.259.
-	 Executed 1 test, with 6 failures (0 unexpected) in 3.593 (3.598) seconds
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:22: error: -[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout] : Asynchronous wait failed: Exceeded timeout of 6 seconds, with unfulfilled expectations: "window resized to 1200.0".
+Test Case '-[PhotoSelectTests.BrowserUITests testMixedBrowserFolderNavigationFilePreviewAndCreditLayout]' failed (7.983 seconds).
+Test Suite 'BrowserUITests' failed at 2026-11-12 13:33:18.503.
+	 Executed 1 test, with 1 failure (0 unexpected) in 7.983 (7.983) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-12 13:33:18.503.
+	 Executed 1 test, with 1 failure (0 unexpected) in 7.983 (7.983) seconds
+Test Suite 'Selected tests' failed at 2026-11-12 13:33:18.503.
+	 Executed 1 test, with 1 failure (0 unexpected) in 7.983 (7.986) seconds
 
 ◇ Test run started.
 ↳ Testing Library Version: 124.4
