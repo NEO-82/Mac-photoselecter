@@ -726,13 +726,22 @@ final class BrowserUITests: XCTestCase {
         waitUntil("double-click handler entered child folder") { preview.filename.stringValue == "inside.jpg" && preview.imageView.image != nil }
         browser.parentFolder()
         waitUntil("double-click parent navigation") { grid.numberOfItems(inSection: 0) == 5 && preview.filename.stringValue == "photo.jpg" && preview.imageView.image != nil }
+        let photoIndex = try XCTUnwrap(contents.firstIndex { $0.url.lastPathComponent == "photo.jpg" })
         for size in [NSSize(width: 900, height: 560), NSSize(width: 1200, height: 760)] {
-            window.setContentSize(size); content.layoutSubtreeIfNeeded()
-            browser.windowDidResize(Notification(name: NSWindow.didResizeNotification, object: window))
+            window.setContentSize(size)
+            waitUntil("window resized to \(size.width)") { abs(content.bounds.width - size.width) < 1 }
+            content.layoutSubtreeIfNeeded()
+            waitUntil("photo thumbnail visible after resizing") {
+                grid.item(at: IndexPath(item: photoIndex, section: 0))?.imageView?.image != nil
+            }
             XCTAssertEqual(credit.stringValue, "Made with Seoa ♡")
             XCTAssertFalse(credit.isHiddenOrHasHiddenAncestor)
-            XCTAssertEqual(credit.frame.maxX, content.bounds.maxX - 12, accuracy: 1)
-            XCTAssertLessThanOrEqual(status.frame.maxX + 12, credit.frame.minX + 1)
+            // NSTextField frames include a two-point text inset beyond their
+            // Auto Layout alignment rectangles. Compare the anchored rectangles.
+            let creditRect = credit.alignmentRect(forFrame: credit.frame)
+            let statusRect = status.alignmentRect(forFrame: status.frame)
+            XCTAssertEqual(creditRect.maxX, content.bounds.maxX - 12, accuracy: 1)
+            XCTAssertLessThanOrEqual(statusRect.maxX + 12, creditRect.minX + 1)
             XCTAssertGreaterThanOrEqual(credit.frame.minY, content.bounds.minY)
             XCTAssertFalse(credit.hasAmbiguousLayout)
             XCTAssertGreaterThan(credit.visibleRect.height, 0)

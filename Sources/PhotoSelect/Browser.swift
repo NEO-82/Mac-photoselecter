@@ -190,6 +190,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         credit.textColor = ProTheme.accent
         credit.alignment = .right
         credit.setContentCompressionResistancePriority(.required, for: .horizontal)
+        credit.setContentHuggingPriority(.required, for: .horizontal)
         credit.translatesAutoresizingMaskIntoConstraints = false; content.addSubview(credit)
         let open = NSButton(title: "폴더 열기…", target: self, action: #selector(openFolder))
         up.target = self; up.action = #selector(parentFolder); up.isEnabled = false
@@ -259,6 +260,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             status.trailingAnchor.constraint(equalTo: credit.leadingAnchor, constant: -12),
             credit.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -12),
             credit.centerYAnchor.constraint(equalTo: status.centerYAnchor),
+            credit.widthAnchor.constraint(equalToConstant: ceil(credit.intrinsicContentSize.width)),
+            credit.heightAnchor.constraint(equalToConstant: 16),
             status.heightAnchor.constraint(equalToConstant: 22),
             status.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -4)
         ])
@@ -511,7 +514,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         item.textField?.toolTip = photo.url.lastPathComponent; item.view.toolTip = photo.url.lastPathComponent
         item.imageView?.image = nil; item.tagMarker.isHidden = !taggedPaths.contains(TagStore.key(photo.url))
         guard entry.isPhoto else {
-            item.imageView?.image = NSWorkspace.shared.icon(forFile: entry.url.path)
+            item.imageView?.image = entryIcon(entry)
             item.tagMarker.isHidden = true
             return item
         }
@@ -543,12 +546,23 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         selectedURL = entry.url; list.clearSelection()
         preview.clear()
         preview.imageView.imageScaling = .scaleProportionallyDown
-        preview.imageView.image = NSWorkspace.shared.icon(forFile: entry.url.path)
+        preview.imageView.image = entryIcon(entry)
         preview.filename.stringValue = entry.url.lastPathComponent
         preview.filename.toolTip = entry.url.path
         preview.detail.stringValue = entry.isDirectory ? "폴더 · 더블클릭 또는 Return으로 열기" :
             (entry.url.pathExtension.isEmpty ? "파일" : entry.url.pathExtension.uppercased() + " 파일")
         synchronizeGrid(); updateBadges(); setStatus(entry.url.lastPathComponent)
+    }
+    private func entryIcon(_ entry: BrowserEntry) -> NSImage {
+        if !entry.isDirectory, ["txt", "xmp", "json"].contains(entry.url.pathExtension.lowercased()),
+           let document = NSImage(systemSymbolName: "doc.text.fill", accessibilityDescription: "문서") {
+            let style = NSImage.SymbolConfiguration(pointSize: 48, weight: .regular)
+                .applying(NSImage.SymbolConfiguration(paletteColors: [ProTheme.secondary]))
+            return document.withSymbolConfiguration(style) ?? document
+        }
+        let icon = NSWorkspace.shared.icon(forFile: entry.url.path).copy() as! NSImage
+        icon.size = NSSize(width: 64, height: 64)
+        return icon
     }
     private func openViewer(at index: Int) {
         if viewer == nil {
