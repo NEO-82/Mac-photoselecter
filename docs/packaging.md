@@ -6,15 +6,20 @@
 
 ## 현재 상태
 
-0.5.1 빌드 27을 GitHub의 Intel macOS 러너(Xcode 16.4)에서 생성했습니다.
-[빌드 실행 #27](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43147070222)에서 회귀 **85개**, Release 검사 **3개**, arm64 앱 빌드,
-앱 이름/아이콘·ad-hoc 서명·DMG 무결성·읽기 전용 마운트된 앱 검증이 통과했습니다.
-공식 PNG와 ICNS 최대 이미지의 픽셀이 일치하고16–1024픽셀10종을 확인했습니다. [아이콘 검증 및 실행 환경 제한](official-app-icon.md).
+0.5.2 빌드 32를 GitHub의 Intel macOS 러너(Xcode 16.4)에서 생성했습니다.
+[빌드 실행 #32](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43230004616)에서 XCTest **86개**와 Release Sony RAW 검사 **3개**가 실패·건너뜀 없이 통과했습니다.
+arm64 전용 Release 앱 빌드, 앱 이름·공식 아이콘, ad-hoc 서명, DMG 무결성, 읽기 전용 마운트 후 앱 서명 검증도 통과했습니다.
 
-[설치용 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.5.1-arm64.dmg)
+[설치용 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/e08e654d8253176f71d68a2555024a4ac911c60c/downloads/PhotoSelect-0.5.2-arm64.dmg)
 
-실제 다운로드 HTTP200, **3,745,663바이트**, SHA-256 일치를 확인했습니다.
-체크섬은 `downloads/SHA256SUMS`에 저장되어 있습니다.
+실제 다운로드 HTTP **200**, **3,790,026바이트**, SHA-256 일치를 확인했습니다.
+
+```text
+98d00a6be0a4ffd91f477b5a91cb0bb69dc5e30b7e1e20146d43a24859d912b9  PhotoSelect-0.5.2-arm64.dmg
+```
+
+설치 파일과 [SHA256SUMS](https://github.com/NEO-82/Mac-photoselecter/blob/e08e654d8253176f71d68a2555024a4ac911c60c/downloads/SHA256SUMS)는 같은 불변 커밋을 참조합니다.
+[UI 화면·파일별 테스트 결과·클라우드 API 접근 진단](finder-browser.md)과 [다운로드 검증 기록](../downloads/download-verification-0.5.2.json)을 참고하세요.
 
 `PhotoSelect-Mac-BuildKit.zip`이 제공된 경우 소스와 아래 스크립트만 들어 있는 빌드 묶음입니다.
 완성된 `.app` 또는 `.dmg`로 오인하지 마세요.
@@ -25,7 +30,7 @@
 2. 소스 묶음을 압축 해제하고 `설치파일-만들기.command`를 더블클릭합니다.
    터미널에서 실행할 경우 저장소 디렉터리로 이동해 `bash scripts/package-macos.sh`를 실행합니다.
 3. XCTest 및 Release 빌드가 성공하면 `dist` 폴더가 열립니다.
-4. `PhotoSelect-0.5.1-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
+4. `PhotoSelect-0.5.2-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
 5. 디스크 이미지를 추출한 뒤 응용 프로그램 폴더에서 앱을 실행합니다.
 
 완성된 앱의 실행 요건은 M1 이상, macOS 13 이상입니다. 앱 실행에는 Xcode나 Swift 설치가 필요하지 않습니다.
@@ -43,15 +48,15 @@ Locations → Command Line Tools에서 사용할 Xcode를 선택하세요.
 기본 결과물:
 
 ```text
-dist/PhotoSelect-0.5.1-1-arm64/
-  PhotoSelect-0.5.1-1-arm64.dmg
+dist/PhotoSelect-0.5.2-1-arm64/
+  PhotoSelect-0.5.2-1-arm64.dmg
   SHA256SUMS
 ```
 
 같은 버전/빌드 번호의 기존 결과물을 덮어쓰지 않습니다. 새로 빌드할 때 번호를 늘릴 수 있습니다.
 
 ```bash
-PHOTOSELECT_VERSION=0.5.1 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
+PHOTOSELECT_VERSION=0.5.2 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
 ```
 
 DMG가 들어 있는 디렉터리에서 `shasum -a 256 -c SHA256SUMS`로 파일 전송 후 무결성을 확인할 수 있습니다.

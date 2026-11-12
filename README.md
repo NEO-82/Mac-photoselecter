@@ -2,7 +2,7 @@
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[0.5.1 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.5.1-arm64.dmg)
+[0.5.2 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/e08e654d8253176f71d68a2555024a4ac911c60c/downloads/PhotoSelect-0.5.2-arm64.dmg)
 
 DMG를 열고 **정광이의 MAC 포토셀렉터.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 앱을 종료한 뒤 새 버전으로 교체하세요. 예전 `PhotoSelect.app`이 남아 있다면 이전 앱만 휴지통으로 옮기세요.
@@ -39,7 +39,7 @@ macOS 13+, Xcode 15+가 필요합니다. 외부 패키지, 서버, API 키는 �
 2. `bash scripts/validate-macos.sh`로 앱 빌드와 Swift Package XCTest 실행.
 3. `설치파일-만들기.command`를 더블클릭하거나 `bash scripts/package-macos.sh`로 테스트·Release 빌드·DMG 검증 실행.
 
-기본 결과물은 `dist/PhotoSelect-0.5.1-1-arm64/PhotoSelect-0.5.1-1-arm64.dmg`와 `SHA256SUMS`입니다.
+기본 결과물은 `dist/PhotoSelect-0.5.2-1-arm64/PhotoSelect-0.5.2-1-arm64.dmg`와 `SHA256SUMS`입니다.
 다시 만들 때는 `PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh`처럼 빌드 번호를 늘리세요.
 Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배포용 앱과 아이콘은 Xcode 프로젝트로 만듭니다.
 각 작업은 격리된 체크아웃을 사용하므로 별도 worktree는 필요하지 않습니다.
@@ -73,3 +73,5 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 0.5.0은 ARW 표시 중 작은 JPEG가 RAW 현상 결과로 바뀌는 경로를 제거했습니다. 처음부터 최대 내장 JPEG를 표시하고 썸네일/큰 보기/확대의 색 처리를 통일합니다. [macOS 빌드 #26](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43144031701)에서 회귀 **85개**와 최적화 실제 ARW 검사 **3개**가 통과했습니다. 내장 JPEG가 센서보다 작으면 센서 기준100%로 확대하지 않고 제한을 표시합니다. [원인·실제 Sony 검증·속도 측정](docs/stable-preview.md).
 
 0.5.1은 공식 앱 아이콘을 교체한 버전입니다. 뷰어/UI 소스와 기존 아이콘 생성 스크립트·Xcode 빌드 단계는 유지했습니다. [macOS 빌드 #27](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43147070222)에서 회귀85개·Release 검사3개와 ICNS10종/원본 일치 검증이 통과했습니다.
+
+0.5.2는 메인 창 하단 크레딧과 폴더·사진·일반 파일을 함께 보여 주는 브라우저를 제공합니다. [macOS 빌드 #32](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43230004616)에서 XCTest **86개**, Release Sony RAW 검사 **3개**, arm64 빌드·ad-hoc 서명·DMG 검증을 통과했습니다. 실제 다운로드 HTTP 200과 SHA-256 일치도 확인했습니다. [UI 화면과 검증 기록](docs/finder-browser.md).
