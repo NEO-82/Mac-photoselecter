@@ -729,6 +729,7 @@ final class BrowserUITests: XCTestCase {
         let photoIndex = try XCTUnwrap(contents.firstIndex { $0.url.lastPathComponent == "photo.jpg" })
         for size in [NSSize(width: 900, height: 560), NSSize(width: 1200, height: 760)] {
             window.setContentSize(size)
+            print("Browser resize request=\(size) frame=\(window.frame) content=\(content.bounds) min=\(window.minSize) max=\(window.maxSize) contentMax=\(window.contentMaxSize)")
             waitUntil("window resized to \(size.width)") { abs(content.bounds.width - size.width) < 1 }
             content.layoutSubtreeIfNeeded()
             waitUntil("photo thumbnail visible after resizing") {

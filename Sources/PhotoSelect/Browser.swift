@@ -181,7 +181,11 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         window.maxSize = available.size
         window.setFrame(WindowLayout.initialFrame(in: available, kind: .browser), display: false)
         super.init(window: window)
-        let content = ProSurfaceView(); content.fillColor = ProTheme.background; window.contentView = content
+        let content = ProSurfaceView()
+        // Keep the root flexible when AppKit translates its frame into window
+        // constraints; a fixed root width can prevent growing after a shrink.
+        content.autoresizingMask = [.width, .height]
+        content.fillColor = ProTheme.background; window.contentView = content
         window.backgroundColor = ProTheme.background
         status.translatesAutoresizingMaskIntoConstraints = false; content.addSubview(status)
         let credit = NSTextField(labelWithString: "Made with Seoa ♡")
