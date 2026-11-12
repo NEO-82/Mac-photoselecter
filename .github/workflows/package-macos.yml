@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.5.0'
+        default: '0.5.1'
         type: string
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.5.0' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.5.1' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
   PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
@@ -58,6 +58,14 @@ jobs:
           assert not any(case.find(tag) is not None for case in cases for tag in ('failure', 'error', 'skipped'))
           print('Verified 3 Release RAW preview checks executed without failures or skips')
           PYTEST
+          icon_mount="$RUNNER_TEMP/photoselect-icon-mount"
+          mkdir -p "$icon_mount"
+          trap 'hdiutil detach "$icon_mount"' EXIT
+          icon_artifact="PhotoSelect-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
+          hdiutil attach -readonly -nobrowse -mountpoint "$icon_mount" "dist/$icon_artifact/$icon_artifact.dmg"
+          xcrun swift scripts/verify-app-icon.swift Resources/AppIcon.png "$icon_mount/정광이의 MAC 포토셀렉터.app" .build
+          hdiutil detach "$icon_mount"
+          trap - EXIT
       - name: Upload personal-test installer
         if: always()
         uses: actions/upload-artifact@v4
@@ -72,6 +80,8 @@ jobs:
             .build/browser-light.png
             .build/about-panel.png
             .build/arw-*.json
+            .build/icon-validation.json
+            .build/finder-icon.png
           if-no-files-found: error
           retention-days: 14
       - name: Save installer and build evidence on the delivery branch

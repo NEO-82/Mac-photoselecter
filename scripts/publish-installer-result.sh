@@ -24,6 +24,9 @@ fi
 for evidence in .build/arw-*.json; do
     if [[ -f "$evidence" ]]; then cp "$evidence" downloads/; fi
 done
+for evidence in .build/icon-validation.json .build/finder-icon.png; do
+    if [[ -f "$evidence" ]]; then cp "$evidence" downloads/; fi
+done
 artifact="PhotoSelect-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
 filename="PhotoSelect-${PHOTOSELECT_VERSION}-arm64.dmg"
 if [[ "$PACKAGE_OUTCOME" == success ]]; then
