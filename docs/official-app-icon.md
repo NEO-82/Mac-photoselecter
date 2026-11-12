@@ -22,7 +22,7 @@ Xcode 프로젝트는 출시 버전 메타데이터만0.5.1로 갱신했으며, 
 [macOS 빌드 #27](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43147070222), 소스 `0c9505dc85750b9c23700600c5fde915bc7677f0`에서 다음을 확인했다.
 
 - 회귀 XCTest85개, 최적화 실제 ARW 검사3개 통과. 기존 `Sources/`와 `Tests/` 파일의 수정은 없다.
-- arm64 Release 앱 빌드, 앱/DMG 서명과 무결성 검증 통과.
+- arm64 Release 앱 빌드, 앱 ad-hoc 서명과 DMG 무결성 검증 통과.
 - 패키징된 앱의 `CFBundleIconFile=AppIcon.icns`와10개 기본/Retina 이미지 크기 확인.
 - ICNS에서 추출한1024px 이미지와 원본을 같은 sRGB 비트맵으로 비교한 평균RGB 차이는0으로 픽셀 일치.
 - CI에서 읽은 원본 PNG의 SHA-256이 ZIP에서 꺼낸 파일과 동일함을 확인.
