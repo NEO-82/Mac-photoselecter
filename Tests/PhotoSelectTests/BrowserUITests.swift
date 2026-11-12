@@ -531,7 +531,12 @@ final class BrowserUITests: XCTestCase {
         print("ARW UI evidence: A7M4 embedded JPEG \(initial.image.width)x\(initial.image.height), cached back \(backMilliseconds) ms, JPEG forward \(forwardMilliseconds) ms")
         if let screenshotPath = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
             let output = URL(fileURLWithPath: screenshotPath).deletingLastPathComponent().appendingPathComponent("arw-ui-evidence.json")
-            let evidence: [String: Any] = ["camera": "Sony A7M4", "display_source": "embeddedJPEG",
+            #if DEBUG
+            let configuration = "Debug"
+            #else
+            let configuration = "Release"
+            #endif
+            let evidence: [String: Any] = ["configuration": configuration, "camera": "Sony A7M4", "display_source": "embeddedJPEG",
                 "width": initial.image.width, "height": initial.image.height,
                 "held_zoom_source_stable": true, "cached_raw_back_synchronous": true,
                 "cached_jpeg_forward_synchronous": true, "cached_raw_back_ms": backMilliseconds,

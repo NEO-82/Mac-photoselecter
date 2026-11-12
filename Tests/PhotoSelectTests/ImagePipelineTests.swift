@@ -271,13 +271,22 @@ final class ImagePipelineTests: XCTestCase {
         let a = try mean(display.image), b = try mean(thumbnail.image)
         for channel in 0..<3 { XCTAssertEqual(a[channel], b[channel], accuracy: 0.04) }
         let delta = zip(a, b).map { abs($0.0 - $0.1) }.max() ?? 0
+        let extractionStart = ProcessInfo.processInfo.systemUptime
+        _ = try EmbeddedPreview.extract(from: url)
+        let extractionWarmFileMs = (ProcessInfo.processInfo.systemUptime - extractionStart) * 1000
         print("REAL_ARW \(name) native=\(width)x\(height) coldMs=\(cold) warmLookupMs=\(warm) displayZoomSameObject=true colors=\(color)")
         if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
             let camera = name.contains("A7M3") ? "A7M3" : "A7M4"
             let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("arw-pipeline-" + camera + ".json")
-            let evidence: [String: Any] = ["file": name, "nativeWidth": width, "nativeHeight": height,
+            #if DEBUG
+            let configuration = "Debug"
+            #else
+            let configuration = "Release"
+            #endif
+            let evidence: [String: Any] = ["configuration": configuration, "file": name, "nativeWidth": width, "nativeHeight": height,
                 "sensorWidth": sensor.width, "sensorHeight": sensor.height, "sensorParity": display.fullResolution,
                 "colorManagement": color, "coldDecodeMs": cold, "warmSynchronousLookupMs": warm,
+                "extractionWarmFileMs": extractionWarmFileMs,
                 "displayAndZoomSameCGImage": true, "displayMeanSRGB": a, "thumbnailMeanSRGB": b,
                 "maxMeanSRGBDifference": delta]
             try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
