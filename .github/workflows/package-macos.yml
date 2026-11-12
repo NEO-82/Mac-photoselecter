@@ -30,14 +30,15 @@ jobs:
     # package-macos.sh still builds and verifies an arm64-only application.
     runs-on: macos-15-intel
     timeout-minutes: 30
-    env:
-      PHOTOSELECT_ARW_SAMPLE_DIRECTORY: ${{ runner.temp }}/photoselect-raw-samples
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Fetch checksum-pinned Sony ARW regression samples
-        run: bash scripts/fetch-raw-test-samples.sh
+        run: |
+          export PHOTOSELECT_ARW_SAMPLE_DIRECTORY="$RUNNER_TEMP/photoselect-raw-samples"
+          printf 'PHOTOSELECT_ARW_SAMPLE_DIRECTORY=%s\n' "$PHOTOSELECT_ARW_SAMPLE_DIRECTORY" >> "$GITHUB_ENV"
+          bash scripts/fetch-raw-test-samples.sh
       - name: Test, build arm64 app and verify DMG
         id: package
         run: |

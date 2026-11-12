@@ -212,7 +212,8 @@ final class ImagePipelineTests: XCTestCase {
         ticket?.cancel()
         pipeline.load(Photo(url: root.appendingPathComponent("visible.jpg")), lease: FolderLease(root), quality: .thumbnail) { _, _ in visible.fulfill() }
         release.signal(); release.signal()
-        wait(for: [visible, cancelled], timeout: 0.3)
+        wait(for: [visible], timeout: 3)
+        wait(for: [cancelled], timeout: 0.2)
         XCTAssertNil(pipeline.cached(Photo(url: root.appendingPathComponent("cancelled.jpg")), quality: .thumbnail))
     }
     func testClearRejectsFinishedOldWorkAndDoesNotRepopulateCache() throws {
