@@ -11,7 +11,7 @@ if [[ "$(uname -s)" != Darwin ]]; then
     exit 2
 fi
 
-version="${PHOTOSELECT_VERSION:-0.5.1}"
+version="${PHOTOSELECT_VERSION:-0.5.2}"
 build_number="${PHOTOSELECT_BUILD_NUMBER:-1}"
 if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || [[ ! "$build_number" =~ ^[1-9][0-9]*$ ]]; then
     echo '버전은 0.1.0 형태, 빌드 번호는 양의 정수를 사용하세요.' >&2
@@ -71,7 +71,7 @@ work_dir="$(mktemp -d "$repo_dir/.build/package.XXXXXXXX")"
 mkdir -p "$work_dir/image" "$work_dir/artifacts" "$work_dir/mount"
 
 echo '1/5 XCTest 실행'
-xcrun swift test --parallel --jobs 2
+xcrun swift test --parallel --jobs 2 --xunit-output .build/xctest-results.xml
 
 echo '2/5 Apple Silicon Release 앱 빌드'
 xcodebuild -project PhotoSelect.xcodeproj -scheme PhotoSelect -configuration Release \

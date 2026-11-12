@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.5.1'
+        default: '0.5.2'
         type: string
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.5.1' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.5.2' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
   PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
@@ -44,6 +44,20 @@ jobs:
         run: |
           set -o pipefail
           bash scripts/package-macos.sh 2>&1 | tee "$RUNNER_TEMP/PhotoSelect-build.log"
+          python3 - <<'PYTEST'
+          import xml.etree.ElementTree as ET
+          root = ET.parse('.build/xctest-results.xml').getroot()
+          cases = list(root.iter('testcase'))
+          assert cases, 'No macOS XCTest cases executed'
+          assert not any(case.find(tag) is not None for case in cases for tag in ('failure', 'error', 'skipped'))
+          required = {
+              'testMixedBrowserFolderNavigationFilePreviewAndCreditLayout',
+              'testSelectingThumbnailChangesRightPreview',
+          }
+          names = {case.get('name', '').removesuffix('()') for case in cases}
+          assert required <= names, f'Missing UI checks: {required - names}'
+          print(f'Verified {len(cases)} macOS XCTest cases, including mixed browser UI, without failures or skips')
+          PYTEST
           for evidence in .build/arw-*.json; do
             if [[ -f "$evidence" ]]; then cp "$evidence" "${evidence%.json}-debug.json"; fi
           done
@@ -78,6 +92,9 @@ jobs:
             .build/browser-layout.png
             .build/browser-dark.png
             .build/browser-light.png
+            .build/browser-mixed*.png
+            .build/browser-document.png
+            .build/*results.xml
             .build/about-panel.png
             .build/arw-*.json
             .build/icon-validation.json

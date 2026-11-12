@@ -18,6 +18,9 @@ for theme in dark light; do
         cp ".build/browser-$theme.png" "downloads/browser-$theme.png"
     fi
 done
+for evidence in .build/browser-mixed*.png .build/browser-document.png .build/*results.xml; do
+    if [[ -f "$evidence" ]]; then cp "$evidence" downloads/; fi
+done
 if [[ -f .build/about-panel.png ]]; then
     cp .build/about-panel.png downloads/about-panel.png
 fi

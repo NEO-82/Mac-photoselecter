@@ -3,6 +3,11 @@ import ImageIO
 import XCTest
 @testable import PhotoSelect
 
+private final class BrowserDoubleClick: NSClickGestureRecognizer {
+    var itemPoint = NSPoint.zero
+    override func location(in view: NSView?) -> NSPoint { itemPoint }
+}
+
 final class BrowserUITests: XCTestCase {
     @MainActor
     private func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap { descendants($0) } }
@@ -29,6 +34,21 @@ final class BrowserUITests: XCTestCase {
         context.setFillColor(CGColor(red: 1, green: 0, blue: 0, alpha: 1))
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
         return NSBitmapImageRep(cgImage: context.makeImage()!).representation(using: .jpeg, properties: [:])!
+    }
+    @MainActor
+    private func saveBrowserSnapshot(_ window: NSWindow, name: String) throws {
+        guard let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] else { return }
+        let content = try XCTUnwrap(window.contentView)
+        content.layoutSubtreeIfNeeded()
+        for view in descendants(content) { view.needsDisplay = true }
+        window.displayIfNeeded()
+        let bitmap = try XCTUnwrap(content.bitmapImageRepForCachingDisplay(in: content.bounds))
+        window.effectiveAppearance.performAsCurrentDrawingAppearance {
+            content.cacheDisplay(in: content.bounds, to: bitmap)
+        }
+        let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent(name)
+        try FileManager.default.createDirectory(at: output.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: output)
     }
     @MainActor
     func testAboutMenuShowsSeoaCreditsInRoseOnNativePanel() throws {
@@ -128,6 +148,7 @@ final class BrowserUITests: XCTestCase {
         browser.showWindow(nil)
         let window = try XCTUnwrap(browser.window)
         let content = try XCTUnwrap(window.contentView)
+        window.appearance = NSAppearance(named: .darkAqua)
         let views = descendants(content)
         let toolbar = try XCTUnwrap(views.first { $0.identifier?.rawValue == "PhotoBrowserToolbar" } as? NSStackView)
         let split = try XCTUnwrap(views.compactMap { $0 as? NSSplitView }.first)
@@ -639,8 +660,83 @@ final class BrowserUITests: XCTestCase {
             XCTAssertEqual(preview.filename.stringValue, "photo.jpg")
             XCTAssertTrue(preview.imageView.image === originalImage)
             XCTAssertEqual(preview.detail.stringValue, originalDetail)
-            XCTAssertEqual(grid.numberOfItems(inSection: 0), 1)
-            XCTAssertEqual(grid.selectionIndexPaths, [IndexPath(item: 0, section: 0)])
+            XCTAssertEqual(grid.numberOfItems(inSection: 0), 4)
+            XCTAssertEqual(grid.selectionIndexPaths, [IndexPath(item: 3, section: 0)])
+        }
+    }
+
+    @MainActor
+    func testMixedBrowserFolderNavigationFilePreviewAndCreditLayout() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        let child = root.appendingPathComponent("Folder", isDirectory: true)
+        try FileManager.default.createDirectory(at: child, withIntermediateDirectories: true)
+        try jpegData().write(to: root.appendingPathComponent("photo.jpg"))
+        try jpegData().write(to: child.appendingPathComponent("inside.jpg"))
+        for name in ["notes.txt", "metadata.xmp", "settings.json"] {
+            try Data("fixture".utf8).write(to: root.appendingPathComponent(name))
+        }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let window = try XCTUnwrap(browser.window)
+        window.appearance = NSAppearance(named: .darkAqua)
+        let content = try XCTUnwrap(window.contentView)
+        let views = descendants(content)
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        let credit = try XCTUnwrap(views.compactMap { $0 as? NSTextField }.first { $0.identifier?.rawValue == "PhotoBrowserCredit" })
+        let status = try XCTUnwrap(views.first { $0.identifier?.rawValue == "PhotoBrowserStatus" })
+        waitUntil("mixed contents and image preview") { grid.numberOfItems(inSection: 0) == 5 && preview.imageView.image != nil }
+        let contents = try BrowserEntry.read(root, showHidden: false)
+        XCTAssertEqual(contents.first?.url.lastPathComponent, "Folder")
+        for name in ["notes.txt", "metadata.xmp", "settings.json"] {
+            let index = try XCTUnwrap(contents.firstIndex { $0.url.lastPathComponent == name })
+            browser.collectionView(grid, didSelectItemsAt: [IndexPath(item: index, section: 0)])
+            XCTAssertEqual(preview.filename.stringValue, name)
+            XCTAssertNotNil(preview.imageView.image)
+            XCTAssertTrue(preview.detail.stringValue.contains(URL(fileURLWithPath: name).pathExtension.uppercased()))
+            XCTAssertTrue(preview.tagMarker.isHidden)
+            let item = browser.collectionView(grid, itemForRepresentedObjectAt: IndexPath(item: index, section: 0)) as! ThumbnailItem
+            XCTAssertNotNil(item.imageView?.image)
+            XCTAssertNil(item.request)
+        }
+        try saveBrowserSnapshot(window, name: "browser-document.png")
+        browser.collectionView(grid, didSelectItemsAt: [IndexPath(item: 0, section: 0)])
+        XCTAssertTrue(preview.detail.stringValue.contains("폴더"))
+        let enter = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [],
+            timestamp: 0, windowNumber: window.windowNumber, context: nil,
+            characters: "\r", charactersIgnoringModifiers: "\r", isARepeat: false, keyCode: 36))
+        grid.keyDown(with: enter)
+        waitUntil("Return entered child folder") { preview.filename.stringValue == "inside.jpg" && preview.imageView.image != nil }
+        browser.parentFolder()
+        waitUntil("returned to parent") { grid.numberOfItems(inSection: 0) == 5 && preview.filename.stringValue == "photo.jpg" && preview.imageView.image != nil }
+        content.layoutSubtreeIfNeeded()
+        let folderPath = IndexPath(item: 0, section: 0)
+        grid.scrollToItems(at: [folderPath], scrollPosition: .top)
+        grid.layoutSubtreeIfNeeded()
+        let folderItem = try XCTUnwrap(grid.item(at: folderPath))
+        XCTAssertEqual(folderItem.textField?.stringValue, "Folder")
+        XCTAssertNotNil(folderItem.imageView?.image)
+        let recognizer = try XCTUnwrap(grid.gestureRecognizers.compactMap { $0 as? NSClickGestureRecognizer }.first { $0.numberOfClicksRequired == 2 })
+        let doubleClick = BrowserDoubleClick()
+        let rect = folderItem.view.convert(folderItem.view.bounds, to: grid)
+        doubleClick.itemPoint = NSPoint(x: rect.midX, y: rect.midY)
+        XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(recognizer.action), to: recognizer.target, from: doubleClick))
+        waitUntil("double-click handler entered child folder") { preview.filename.stringValue == "inside.jpg" && preview.imageView.image != nil }
+        browser.parentFolder()
+        waitUntil("double-click parent navigation") { grid.numberOfItems(inSection: 0) == 5 && preview.filename.stringValue == "photo.jpg" && preview.imageView.image != nil }
+        for size in [NSSize(width: 900, height: 560), NSSize(width: 1200, height: 760)] {
+            window.setContentSize(size); content.layoutSubtreeIfNeeded()
+            browser.windowDidResize(Notification(name: NSWindow.didResizeNotification, object: window))
+            XCTAssertEqual(credit.stringValue, "Made with Seoa ♡")
+            XCTAssertFalse(credit.isHiddenOrHasHiddenAncestor)
+            XCTAssertEqual(credit.frame.maxX, content.bounds.maxX - 12, accuracy: 1)
+            XCTAssertLessThanOrEqual(status.frame.maxX + 12, credit.frame.minX + 1)
+            XCTAssertGreaterThanOrEqual(credit.frame.minY, content.bounds.minY)
+            XCTAssertFalse(credit.hasAmbiguousLayout)
+            XCTAssertGreaterThan(credit.visibleRect.height, 0)
+            try saveBrowserSnapshot(window, name: size.width == 900 ? "browser-mixed-compact.png" : "browser-mixed.png")
         }
     }
 

@@ -8,6 +8,21 @@ struct Photo: Hashable {
     }
 }
 
+// Browser contents are separate from the photo-only viewer sequence.
+struct BrowserEntry {
+    let url: URL
+    let isDirectory: Bool
+    var isPhoto: Bool { !isDirectory && (Photo.accepts(url) || ["png", "heic", "heif", "tif", "tiff", "gif", "bmp"].contains(url.pathExtension.lowercased())) }
+    static func read(_ folder: URL, showHidden: Bool) throws -> [BrowserEntry] {
+        try FolderReader.entries(folder, directories: false, allFiles: true, showHidden: showHidden)
+            .map { BrowserEntry(url: $0, isDirectory: (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true) }
+            .sorted {
+                if $0.isDirectory != $1.isDirectory { return $0.isDirectory }
+                return $0.url.lastPathComponent.localizedStandardCompare($1.url.lastPathComponent) == .orderedAscending
+            }
+    }
+}
+
 struct PhotoList {
     private(set) var photos: [Photo] = []
     private(set) var selectedIndex: Int?
@@ -17,6 +32,7 @@ struct PhotoList {
         self.photos = photos
         selectedIndex = photos.isEmpty ? nil : 0
     }
+    mutating func clearSelection() { selectedIndex = nil }
     @discardableResult
     mutating func select(_ index: Int) -> Bool {
         guard photos.indices.contains(index) else { return false }
