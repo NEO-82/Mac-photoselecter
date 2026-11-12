@@ -5,3 +5,5 @@
 - `docs/packaging.md`와 기존 `.github/workflows/package-macos.yml`을 따른다. macOS XCTest, arm64 Release 빌드, 앱 서명 및 DMG 검증을 통과한 결과만 전달하고 실제 다운로드 SHA-256도 확인한다. 이전 버전 DMG를 새 수정본으로 안내하지 않는다.
 - Linux 검사는 macOS 실행 검증을 대신하지 않는다. 실제 RAW, 물리 입력, SD/외장 저장장치 등 미검증 항목을 명시한다.
 - 각 클라우드 작업은 격리된 기존 체크아웃을 사용한다. 명시적 요청 없이 별도 worktree를 만들지 않는다.
+
+- ARW 탐색·확대는 같은 최대 내장 카메라 JPEG를 사용하고 RAW 자동 현상/저해상도 뒤늦은 교체를 재도입하지 않는다. ICC/바깥 Exif 색 공간과 실제 JPEG 픽셀1:1을 유지하며, 관련 변경은 실제 Sony 샘플 회귀 및 Release 측정으로 확인한다.

@@ -2,7 +2,7 @@
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[0.4.1 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.4.1-arm64.dmg)
+[0.5.0 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.5.0-arm64.dmg)
 
 DMG를 열고 **정광이의 MAC 포토셀렉터.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 앱을 종료한 뒤 새 버전으로 교체하세요. 예전 `PhotoSelect.app`이 남아 있다면 이전 앱만 휴지통으로 옮기세요.
@@ -17,7 +17,7 @@ Developer ID 서명/Apple 공증이 없는 개인 테스트용입니다. macOS�
 - **가운데:** 현재 폴더의 지원 사진 전체를 썸네일로 표시합니다. 파일명은 아래에 두 줄까지, 전체 이름은 툴팁으로 확인합니다.
 - **오른쪽:** 선택한 사진의 미리보기와 아래쪽 파일명. 기본 폭은 창의 약 22%(최대 320pt)이며 원본 사진 크기와 관계없이 맞춰 표시합니다.
 - **더블클릭:** Dock과 메뉴 막대를 제외한 사용 가능 영역 전체를 채우는 일반 창으로 사진을 엽니다. 크기 조절이 가능하며 별도 전체 화면 Space를 만들지 않습니다.
-- **←/→:** 이전/다음 사진. 왼쪽 마우스를 길게 누르면 물리 픽셀 1:1 확대, 드래그로 부분 확인, 놓으면 맞춤 보기. 정지한 누름은 시스템 더블클릭 판별 시간 후 확대하며 드래그는 즉시 확대합니다. 빠른 더블클릭은 먼저 확대되지 않고 목록으로 복귀합니다. 누른 채 사진을 넘겨도 확대를 유지합니다.
+- **←/→:** 이전/다음 사진. 왼쪽 마우스를 길게 누르면 실제 표시 JPEG의 물리 픽셀 1:1 확대, 드래그로 부분 확인, 놓으면 맞춤 보기. 정지한 누름은 시스템 더블클릭 판별 시간 후 확대하며 드래그는 즉시 확대합니다. 빠른 더블클릭은 먼저 확대되지 않고 목록으로 복귀합니다. 누른 채 사진을 넘겨도 확대를 유지합니다.
 - **Delete / fn+Delete:** 현재 한 장을 macOS 휴지통으로 이동하고 다음 사진을 표시합니다. 마지막 사진이면 이전 사진, 한 장도 없으면 목록으로 돌아갑니다.
 - **`\`:** 태그 켜기/끄기. 한글 키보드의 같은 위치 `₩` 키도 지원합니다. 썸네일·미리보기·큰 사진 창 오른쪽 위에 빨간 네모를 표시합니다.
 - **Esc / 큰 사진 창 더블클릭:** 현재 사진과 폴더 선택을 유지하며 목록으로 돌아갑니다. 첫 누름 확대·드래그·놓기와 그리드 더블클릭은 유지합니다.
@@ -39,7 +39,7 @@ macOS 13+, Xcode 15+가 필요합니다. 외부 패키지, 서버, API 키는 �
 2. `bash scripts/validate-macos.sh`로 앱 빌드와 Swift Package XCTest 실행.
 3. `설치파일-만들기.command`를 더블클릭하거나 `bash scripts/package-macos.sh`로 테스트·Release 빌드·DMG 검증 실행.
 
-기본 결과물은 `dist/PhotoSelect-0.4.1-1-arm64/PhotoSelect-0.4.1-1-arm64.dmg`와 `SHA256SUMS`입니다.
+기본 결과물은 `dist/PhotoSelect-0.5.0-1-arm64/PhotoSelect-0.5.0-1-arm64.dmg`와 `SHA256SUMS`입니다.
 다시 만들 때는 `PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh`처럼 빌드 번호를 늘리세요.
 Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배포용 앱과 아이콘은 Xcode 프로젝트로 만듭니다.
 각 작업은 격리된 체크아웃을 사용하므로 별도 worktree는 필요하지 않습니다.
@@ -55,7 +55,8 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 - `FolderTree.swift`: 지연 로딩 폴더 트리와 접근 수명
 - `PhotoModel.swift`: 지원 파일, 삭제 후 선택 상태, 화면별 창/분할 크기, Retina 확대 좌표
 - `PhotoActions.swift`: 별도 태그 JSON, 비동기 macOS 휴지통 이동
-- `ImagePipeline.swift`: ImageIO/RAW 렌더링, 비동기 프리페치, 예산 제한 캐시
+- `EmbeddedPreview.swift`: ARW에서 최대 내장 카메라 JPEG/방향/색 공간을 안전하게 추출
+- `ImagePipeline.swift`: 같은 JPEG의 sRGB 변환, 현재/앞뒤 비동기 준비, 공유 작업과 예산 제한 캐시
 - `Viewer.swift`: 일반 창 뷰어, 누름 확대, 키보드 동작과 태그 표시
 
 숨김 파일은 탐색기에서 기본 숨김이며 보기 메뉴로 표시할 수 있습니다. 숨김 사진/심볼릭 링크와 하위 폴더의 사진은 그리드 목록에 포함하지 않습니다. 새로고침으로 변경 내용을 반영합니다.
@@ -68,3 +69,5 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 0.4.0은 [macOS 빌드 #21](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43038529075)에서 XCTest **61개**, arm64 Release 앱 빌드, 앱 서명 및 DMG 검증을 통과했습니다. 실제 다운로드 HTTP 200과 SHA-256 일치도 확인했습니다. 테스트는 Intel macOS/Xcode 16.4에서 실행했으며 실제 M1 Pro 실행·Sony ARW 호환성·대량 사진 성능·외장 저장장치 검증은 별도입니다. [화면 캡처·변경 파일·검증 결과·실기기 절차](docs/soft-romantic-pro.md)를 참고하세요.
 
 0.4.1은 About 크레딧을 `Made with Seoa ♡`와 11pt 로즈 색상으로 변경했습니다. [실제 소스 위치·About UI 캡처·62개 테스트 결과](docs/about-seoa.md)를 확인하세요.
+
+0.5.0은 ARW 표시 중 작은 JPEG가 RAW 현상 결과로 바뀌는 경로를 제거했습니다. 처음부터 최대 내장 JPEG를 표시하고 썸네일/큰 보기/확대의 색 처리를 통일합니다. [macOS 빌드 #26](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43144031701)에서 회귀 **85개**와 최적화 실제 ARW 검사 **3개**가 통과했습니다. 내장 JPEG가 센서보다 작으면 센서 기준100%로 확대하지 않고 제한을 표시합니다. [원인·실제 Sony 검증·속도 측정](docs/stable-preview.md).

@@ -21,6 +21,13 @@
 
 ## Mac에서 필수 확인
 
+0.5.0은 [macOS 빌드 #26](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43144031701)에서 소스 `a1758b2146594396c26d266d1e443957176c7cc0`의
+회귀 XCTest **85개**와 Release 실제 ARW 검사 **3개**가 통과했습니다. 실제 파일은 고정된 SHA-256으로 확인했으며 생략 없이 실행했습니다.
+Intel macOS/Xcode 16.4에서 테스트하고 Apple Silicon arm64 앱을 별도 빌드했습니다.
+A7M4 7008×4672 최대 JPEG와 A7M3 Adobe RGB/방향8/제한 프리뷰,8방향 변환, 공통 sRGB·캐시·취소·확대 후 픽셀 보존을 확인했습니다.
+Release 측정: A7M4 처음 앱 캐시 없는 디코딩481.87ms, 준비된 RAW 선택18.93ms. OS파일캐시/실제모니터표시시간을 통제한 M1 Pro 결과가 아닙니다.
+앱 서명·DMG 검증·실제 다운로드 HTTP200/SHA-256 일치. [전체 측정과 제한](stable-preview.md).
+
 0.4.1은 [macOS 빌드 #22](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43090606679)에서
 소스 `7ae0613d2318b882ca55065c43f2bdd6b84a82c3`의 XCTest **62개**, arm64 빌드·앱 서명·DMG 검증을 통과했습니다.
 실제 About 메뉴 action으로 열린 창의 `Made with Seoa ♡`, 11pt, 다크/라이트 로즈 색상과 가시 영역을 검사하고 네이티브 캡처를 저장했습니다.
@@ -89,7 +96,7 @@ DMG 무결성/앱 서명/다운로드 체크섬도 확인했습니다. Dock/Find
 
 `bash scripts/validate-macos.sh` 실행 후 아래 항목을 확인합니다. 기본 기준은 M1 Pro, macOS 버전·Xcode 버전·화면 배율을 함께 기록합니다.
 
-- [ ] Xcode 앱 빌드 성공 및 `swift test` 62개 실행/통과 (0개 실행은 성공 아님)
+- [ ] Xcode 앱 빌드 성공 및 `swift test` 85개 실행/통과 (0개 실행은 성공 아님)
 - [ ] macOS 상단 파일·보기·사진·윈도우 메뉴와 폴더 열기/사진 이동/태그 동작, 사진이 없을 때 비활성 상태
 - [ ] 태그 지정 직후 정상 종료·Mac 재부팅·같은 폴더 재선택 후 복원, 태그 해제 상태도 동일하게 유지
 - [ ] 폴더 트리에 초점이 있을 때 Delete/태그 메뉴 단축키가 선택 사진을 변경하지 않음

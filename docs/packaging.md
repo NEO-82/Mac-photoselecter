@@ -6,14 +6,14 @@
 
 ## 현재 상태
 
-0.4.1 빌드 22를 GitHub의 Intel macOS 러너(Xcode 16.4)에서 생성했습니다.
-[빌드 실행 #22](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43090606679)에서 XCTest **62개**, Apple Silicon 전용 arm64 Release 빌드,
-앱 이름/아이콘 검증, ad-hoc 서명, DMG 무결성과 읽기 전용 마운트 후 앱 서명 검증이 통과했습니다.
-실제 About 메뉴로 창을 열어 Seoa 크레딧·11pt 글꼴·로즈 색상을 검증하고 캡처했습니다. [확인 기록](about-seoa.md).
+0.5.0 빌드 26을 GitHub의 Intel macOS 러너(Xcode 16.4)에서 생성했습니다.
+[빌드 실행 #26](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43144031701)에서 회귀 **85개**, 최적화 빌드 실제 ARW 검사 **3개**, arm64 Release 앱 빌드,
+앱 이름/아이콘·ad-hoc 서명·DMG 무결성·읽기 전용 마운트된 앱 서명 검증이 통과했습니다.
+Sony A7M3/A7M4의 최대 내장 JPEG, 색 공간, 픽셀 보존과 캐시 전환을 검증했습니다. [측정 범위와 제한](stable-preview.md).
 
-[설치용 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.4.1-arm64.dmg)
+[설치용 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/refs/heads/codex/macos-installer-download/downloads/PhotoSelect-0.5.0-arm64.dmg)
 
-실제 다운로드 HTTP 200, **3,487,281바이트**, SHA-256 일치를 확인했습니다.
+실제 다운로드 HTTP 200, **2,627,987바이트**, SHA-256 일치를 확인했습니다.
 체크섬은 `downloads/SHA256SUMS`에 저장되어 있습니다.
 
 `PhotoSelect-Mac-BuildKit.zip`이 제공된 경우 소스와 아래 스크립트만 들어 있는 빌드 묶음입니다.
@@ -25,7 +25,7 @@
 2. 소스 묶음을 압축 해제하고 `설치파일-만들기.command`를 더블클릭합니다.
    터미널에서 실행할 경우 저장소 디렉터리로 이동해 `bash scripts/package-macos.sh`를 실행합니다.
 3. XCTest 및 Release 빌드가 성공하면 `dist` 폴더가 열립니다.
-4. `PhotoSelect-0.4.1-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
+4. `PhotoSelect-0.5.0-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
 5. 디스크 이미지를 추출한 뒤 응용 프로그램 폴더에서 앱을 실행합니다.
 
 완성된 앱의 실행 요건은 M1 이상, macOS 13 이상입니다. 앱 실행에는 Xcode나 Swift 설치가 필요하지 않습니다.
@@ -43,15 +43,15 @@ Locations → Command Line Tools에서 사용할 Xcode를 선택하세요.
 기본 결과물:
 
 ```text
-dist/PhotoSelect-0.4.1-1-arm64/
-  PhotoSelect-0.4.1-1-arm64.dmg
+dist/PhotoSelect-0.5.0-1-arm64/
+  PhotoSelect-0.5.0-1-arm64.dmg
   SHA256SUMS
 ```
 
 같은 버전/빌드 번호의 기존 결과물을 덮어쓰지 않습니다. 새로 빌드할 때 번호를 늘릴 수 있습니다.
 
 ```bash
-PHOTOSELECT_VERSION=0.4.1 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
+PHOTOSELECT_VERSION=0.5.0 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
 ```
 
 DMG가 들어 있는 디렉터리에서 `shasum -a 256 -c SHA256SUMS`로 파일 전송 후 무결성을 확인할 수 있습니다.
