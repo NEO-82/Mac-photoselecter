@@ -503,7 +503,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         tree.select(currentFolder.deletingLastPathComponent(), lease: lease)
     }
     @objc func openSelectedPhoto() {
-        guard let entry = entries.first(where: { $0.url == selectedURL }) else { return }
+        guard !fileManagementActive, let entry = entries.first(where: { $0.url == selectedURL }) else { return }
         if entry.isDirectory, let lease { tree.select(entry.url, lease: lease) }
         else if let index = list.selectedIndex { openViewer(at: index) }
     }
@@ -529,7 +529,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         return responder === grid || (viewer.map { responder === $0.canvas } ?? false)
     }
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
-        guard !finishingTagWrites, NSApp.modalWindow == nil else { return false }
+        guard !finishingTagWrites, !fileManagementActive, NSApp.modalWindow == nil else { return false }
         switch menuItem.action {
         case #selector(changeAppearance(_:)):
             let saved = UserDefaults.standard.object(forKey: "appearancePreference") as? Int ?? 2
@@ -701,7 +701,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         previousPhotoIndex = list.selectedIndex
         synchronizeGrid(reload: true)
         if let index = list.selectedIndex {
-            if previousURL != selectedURL { showPhoto(index) }
+            if previousURL != selectedURL || (displayed == nil && !loading && previewError == nil) { showPhoto(index) }
             else { updateHUD(); updateBadges() }
         } else if let index = entries.firstIndex(where: { $0.url == selectedURL }) {
             selectEntry(at: index)
