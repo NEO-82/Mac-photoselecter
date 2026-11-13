@@ -145,6 +145,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let showButton = NSButton(title: "크게 보기", target: nil, action: nil)
     private let tagButton = NSButton(title: "태그", target: nil, action: nil)
     private let trashButton = NSButton(title: "휴지통", target: nil, action: nil)
+    private let taggedOnlyButton = NSButton(checkboxWithTitle: "태그된 사진만 보기", target: nil, action: nil)
+    private var allEntries: [BrowserEntry] = []
     private let status = NSTextField(labelWithString: "폴더를 선택하세요")
     private let up = NSButton(title: "상위 폴더", target: nil, action: nil)
     private let tagStore: TagStore
@@ -249,7 +251,11 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         let photoScroll = NSScrollView(); photoScroll.hasVerticalScroller = true; photoScroll.documentView = grid
         photoScroll.backgroundColor = ProTheme.canvas
         let folderPane = pane(title: "파일 탐색기", content: folderScroll)
-        let photoPane = pane(title: "현재 폴더 · 모든 항목", content: photoScroll)
+        taggedOnlyButton.target = self; taggedOnlyButton.action = #selector(changeTagFilter)
+        taggedOnlyButton.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserTagFilter")
+        taggedOnlyButton.font = .systemFont(ofSize: 11, weight: .medium)
+        taggedOnlyButton.contentTintColor = ProTheme.accent
+        let photoPane = pane(title: "현재 폴더 · 모든 항목", content: photoScroll, filter: taggedOnlyButton)
         split.addArrangedSubview(folderPane); split.addArrangedSubview(photoPane); split.addArrangedSubview(preview)
         // setPosition alone is only an initial frame hint. Auto Layout can discard
         // it on the first image/label update, so keep explicit preferred widths.
@@ -294,7 +300,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         tagStore.load { [weak self] result in
             guard let self else { return }
             switch result {
-            case .success(let paths): self.taggedPaths = paths; self.updateBadges()
+            case .success(let paths):
+                self.taggedPaths = paths
+                if self.taggedOnlyButton.state == .on { self.applyTagFilter() }
+                else { self.updateBadges() }
             case .failure(let error):
                 self.tagStorageError = error.localizedDescription
                 self.setStatus("태그 읽기 실패: \(error.localizedDescription)", error: true)
@@ -376,14 +385,22 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         return proposedPosition
     }
 
-    private func pane(title: String, content: NSView) -> NSView {
+    private func pane(title: String, content: NSView, filter: NSButton? = nil) -> NSView {
         let box = ProSurfaceView(); box.fillColor = ProTheme.panel; let label = NSTextField(labelWithString: title)
         label.font = .systemFont(ofSize: 11, weight: .semibold); label.textColor = ProTheme.secondary
         for view in [label, content] { view.translatesAutoresizingMaskIntoConstraints = false; box.addSubview(view) }
+        if let filter {
+            filter.translatesAutoresizingMaskIntoConstraints = false; box.addSubview(filter)
+            NSLayoutConstraint.activate([
+                filter.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 6),
+                filter.leadingAnchor.constraint(equalTo: box.leadingAnchor, constant: 10),
+                filter.trailingAnchor.constraint(lessThanOrEqualTo: box.trailingAnchor, constant: -10)
+            ])
+        }
         NSLayoutConstraint.activate([
             label.topAnchor.constraint(equalTo: box.topAnchor, constant: 8),
             label.leadingAnchor.constraint(equalTo: box.leadingAnchor, constant: 10),
-            content.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 8),
+            content.topAnchor.constraint(equalTo: filter?.bottomAnchor ?? label.bottomAnchor, constant: 8),
             content.leadingAnchor.constraint(equalTo: box.leadingAnchor),
             content.trailingAnchor.constraint(equalTo: box.trailingAnchor),
             content.bottomAnchor.constraint(equalTo: box.bottomAnchor)
@@ -475,7 +492,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     private func loadFolder(_ url: URL, lease: FolderLease) {
         generation = UUID(); let token = generation
-        imageGeneration = UUID(); entries = []; selectedURL = nil; list.replace(with: []); pipeline.clear(); thumbnails.clear()
+        imageGeneration = UUID(); allEntries = []; entries = []; selectedURL = nil; list.replace(with: []); pipeline.clear(); thumbnails.clear()
         viewer?.close(); displayed = nil; previewError = nil; preview.clear()
         self.lease = lease; currentFolder = url; actionMessage = nil
         updateBadges()
@@ -489,12 +506,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 guard let self, self.generation == token else { return }
                 switch result {
                 case .success(let urls):
-                    self.entries = urls
-                    self.list.replace(with: urls.filter(\.isPhoto).map { Photo(url: $0.url) })
-                    self.setStatus("\(url.path) — \(self.entries.count)개 항목 · \(self.list.photos.count)장 사진")
-                    self.synchronizeGrid(reload: true)
-                    if let index = self.list.selectedIndex { self.showPhoto(index) }
-                    else if !self.entries.isEmpty { self.selectEntry(at: 0) }
+                    self.allEntries = urls
+                    self.applyTagFilter()
                 case .failure(let error):
                     let message = FolderReader.errorMessage(for: error)
                     self.setStatus("폴더 읽기 실패: \(message)", error: true)
@@ -502,6 +515,40 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 }
             }
         }
+    }
+    @objc private func changeTagFilter() {
+        applyTagFilter()
+        window?.makeFirstResponder(grid)
+    }
+    // Project only the already loaded folder. Never reload files or clear image caches.
+    private func applyTagFilter() {
+        let previousURL = selectedURL
+        let previousIndex = list.selectedIndex ?? 0
+        entries = taggedOnlyButton.state == .on
+            ? allEntries.filter { $0.isPhoto && taggedPaths.contains(TagStore.key($0.url)) }
+            : allEntries
+        list.replace(with: entries.filter(\.isPhoto).map { Photo(url: $0.url) })
+        if let index = list.photos.firstIndex(where: { $0.url == previousURL }) {
+            list.select(index)
+        } else if let previousURL, entries.contains(where: { $0.url == previousURL && !$0.isPhoto }) {
+            list.clearSelection()
+        } else if !list.photos.isEmpty {
+            list.select(min(previousIndex, list.photos.count - 1))
+        }
+        selectedURL = list.selectedPhoto?.url ?? entries.first(where: { $0.url == previousURL })?.url
+        synchronizeGrid(reload: true)
+        if let index = list.selectedIndex {
+            if previousURL != selectedURL { showPhoto(index) }
+            else { updateHUD(); updateBadges() }
+        } else if let index = entries.firstIndex(where: { $0.url == selectedURL }) {
+            selectEntry(at: index)
+        } else if !entries.isEmpty {
+            selectEntry(at: 0)
+        } else {
+            request?.cancel(); imageGeneration = UUID(); displayed = nil; previewError = nil
+            viewer?.close(); preview.clear(); updateBadges()
+        }
+        setStatus(taggedOnlyButton.state == .on ? "태그된 사진만 보기" : "모든 항목")
     }
     private func synchronizeGrid(reload: Bool = false) {
         syncingSelection = true
@@ -672,7 +719,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             case .success(let tagged):
                 if tagged { self.taggedPaths.insert(TagStore.key(photo.url)) }
                 else { self.taggedPaths.remove(TagStore.key(photo.url)) }
-                self.updateBadges()
+                if self.taggedOnlyButton.state == .on { self.applyTagFilter() }
+                else { self.updateBadges() }
                 self.setStatus("\(photo.url.lastPathComponent) · \(tagged ? "태그 지정됨" : "태그 해제됨")")
             case .failure(let error): self.reportActionError("태그 저장 실패: \(error.localizedDescription)", target: photo.url)
             }
@@ -689,25 +737,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             case .failure(let error): self.reportActionError(PhotoTrash.errorMessage(for: error), target: photo.url)
             case .success(let receipt):
                 guard self.generation == token else { return }
-                let selectedURL = self.selectedURL
-                guard self.list.remove(photo.url) else { return }
-                self.entries.removeAll { $0.url == photo.url }
-                if self.selectedURL == photo.url { self.selectedURL = self.list.selectedPhoto?.url }
-                if let selectedURL, self.entries.contains(where: { $0.url == selectedURL && !$0.isPhoto }) {
-                    self.list.clearSelection()
-                }
+                self.allEntries.removeAll { $0.url == photo.url }
                 self.actionMessage = nil
                 if let folder = self.currentFolder { self.tree.refresh(url: folder) }
-                self.synchronizeGrid(reload: true)
-                if let index = self.list.selectedIndex {
-                    if selectedURL == photo.url { self.showPhoto(index) }
-                    else { self.updateHUD(); self.updateBadges() }
-                } else {
-                    self.imageGeneration = UUID(); self.pipeline.cancelAll(); self.displayed = nil
-                    self.viewer?.close()
-                    if let index = self.entries.firstIndex(where: { $0.url == self.selectedURL }) { self.selectEntry(at: index) }
-                    else { self.preview.clear(); self.updateBadges() }
-                }
+                self.applyTagFilter()
                 let completion = "\(photo.url.lastPathComponent) 휴지통 이동 완료" + (receipt.storageNotice.map { " · " + $0 } ?? "")
                 self.actionMessage = receipt.storageNotice; self.updateHUD()
                 self.setStatus(completion)

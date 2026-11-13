@@ -120,6 +120,99 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    func testTaggedFilterViewerNavigationUntagTrashAndPersistence() throws {
+        _ = NSApplication.shared
+        let root = try folder(), metadata = try folder(), trash = try folder()
+        let file = metadata.appendingPathComponent("tags.json")
+        let data = jpegData()
+        for name in ["1.jpg", "2.jpg", "3.jpg", "4.jpg"] {
+            try data.write(to: root.appendingPathComponent(name))
+        }
+        let store = TagStore(fileURL: file)
+        for name in ["1.jpg", "3.jpg", "4.jpg"] {
+            let done = expectation(description: "seed tag")
+            store.toggle(root.appendingPathComponent(name)) { result in
+                XCTAssertNoThrow(try result.get()); done.fulfill()
+            }
+            wait(for: [done], timeout: 5)
+        }
+        let originalTags = try Data(contentsOf: file)
+        let service = PhotoTrash { url in
+            try FileManager.default.moveItem(at: url, to: trash.appendingPathComponent(url.lastPathComponent))
+        }
+        let browser = BrowserController(tagStore: store, trashService: service, initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoBrowserTagFilter" })
+        waitUntil("folder and tags loaded") { preview.imageView.image != nil && !preview.tagMarker.isHidden }
+        let image = preview.imageView.image
+        filter.performClick(nil)
+        XCTAssertEqual(grid.numberOfItems(inSection: 0), 3)
+        XCTAssertTrue(preview.imageView.image === image)
+        filter.performClick(nil)
+        XCTAssertEqual(grid.numberOfItems(inSection: 0), 4)
+        XCTAssertEqual(try Data(contentsOf: file), originalTags)
+        filter.performClick(nil)
+        // Exercise the real double-click handler with the filtered grid index.
+        grid.layoutSubtreeIfNeeded()
+        let item = try XCTUnwrap(grid.item(at: IndexPath(item: 0, section: 0)))
+        let recognizer = try XCTUnwrap(grid.gestureRecognizers.compactMap { $0 as? NSClickGestureRecognizer }.first)
+        let click = BrowserDoubleClick()
+        let rect = item.view.convert(item.view.bounds, to: grid)
+        click.itemPoint = NSPoint(x: rect.midX, y: rect.midY)
+        XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(recognizer.action), to: recognizer.target, from: click))
+        let viewer = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        defer { viewer.close() }
+        let canvas = try XCTUnwrap(viewer.contentView as? PhotoCanvas)
+        func key(_ code: UInt16, _ characters: String) throws {
+            canvas.keyDown(with: try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
+                modifierFlags: [], timestamp: 0, windowNumber: viewer.windowNumber, context: nil,
+                characters: characters, charactersIgnoringModifiers: characters, isARepeat: false, keyCode: code)))
+        }
+        try key(124, "")
+        XCTAssertEqual(preview.filename.stringValue, "3.jpg")
+        try key(123, "")
+        XCTAssertEqual(preview.filename.stringValue, "1.jpg")
+        try key(42, "\\")
+        waitUntil("untag moves to next tagged photo") { grid.numberOfItems(inSection: 0) == 2 && preview.filename.stringValue == "3.jpg" }
+        try key(124, "")
+        XCTAssertEqual(preview.filename.stringValue, "4.jpg")
+        try key(42, "₩")
+        waitUntil("last untag moves backward") { grid.numberOfItems(inSection: 0) == 1 && preview.filename.stringValue == "3.jpg" }
+        try key(53, "\u{1b}")
+        XCTAssertFalse(viewer.isVisible)
+        XCTAssertEqual(filter.state, .on)
+        browser.openSelectedPhoto()
+        let finalViewer = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        let finalCanvas = try XCTUnwrap(finalViewer.contentView as? PhotoCanvas)
+        finalCanvas.trashCurrent?()
+        waitUntil("trash empties filtered viewer") { grid.numberOfItems(inSection: 0) == 0 && !finalViewer.isVisible }
+        XCTAssertEqual(filter.state, .on)
+        filter.performClick(nil)
+        XCTAssertEqual(grid.numberOfItems(inSection: 0), 3)
+        XCTAssertEqual(try Data(contentsOf: trash.appendingPathComponent("3.jpg")), data)
+        for name in ["1.jpg", "2.jpg", "4.jpg"] { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), data) }
+        let restored = expectation(description: "restore existing format")
+        TagStore(fileURL: file).load { result in
+            XCTAssertEqual(try? result.get(), [TagStore.key(root.appendingPathComponent("3.jpg"))])
+            restored.fulfill()
+        }
+        wait(for: [restored], timeout: 5)
+        // Removing the sole remaining tag closes the viewer without changing files.
+        grid.toggleTag?()
+        waitUntil("retag after filter off") { !preview.tagMarker.isHidden }
+        filter.performClick(nil)
+        browser.openSelectedPhoto()
+        let soleViewer = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        (soleViewer.contentView as? PhotoCanvas)?.toggleTag?()
+        waitUntil("sole untag closes viewer") { grid.numberOfItems(inSection: 0) == 0 && !soleViewer.isVisible }
+        XCTAssertEqual(preview.filename.stringValue, "선택한 사진 없음")
+    }
+
+    @MainActor
     func testBrowserStartsWithTreeGridAndPreviewColumns() throws {
         _ = NSApplication.shared
         let root = try folder()
