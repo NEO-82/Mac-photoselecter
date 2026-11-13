@@ -146,7 +146,7 @@ final class BrowserUITests: XCTestCase {
         let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoBrowserTagFilter" })
         waitUntil("1500 photo folder loaded") { grid.numberOfItems(inSection: 0) == 1502 }
         let loaded = try BrowserEntry.read(root, showHidden: false)
-        let index = try XCTUnwrap(loaded.firstIndex { $0.url == selected })
+        let index = try XCTUnwrap(loaded.firstIndex { TagStore.key($0.url) == TagStore.key(selected) })
         browser.collectionView(grid, didSelectItemsAt: [IndexPath(item: index, section: 0)])
         waitUntil("selected tagged JPG cached") { preview.imageView.image != nil && !preview.tagMarker.isHidden }
         let image = preview.imageView.image
