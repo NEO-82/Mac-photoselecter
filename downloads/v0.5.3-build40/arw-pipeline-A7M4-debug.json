@@ -1,0 +1,25 @@
+{
+  "coldDecodeMs" : 1488.664837999977,
+  "colorManagement" : "sRGB",
+  "configuration" : "Debug",
+  "displayAndZoomSameCGImage" : true,
+  "displayMeanSRGB" : [
+    0.3392434512867647,
+    0.48669577205882353,
+    0.62814031862745101
+  ],
+  "extractionWarmFileMs" : 73.642593000045053,
+  "file" : "Sony-A7M4.ARW",
+  "maxMeanSRGBDifference" : 0.0013346354166666741,
+  "nativeHeight" : 4672,
+  "nativeWidth" : 7008,
+  "sensorHeight" : 4672,
+  "sensorParity" : true,
+  "sensorWidth" : 7008,
+  "thumbnailMeanSRGB" : [
+    0.34018746170343139,
+    0.48754595588235294,
+    0.62947495404411768
+  ],
+  "warmSynchronousLookupMs" : 0.12833499999942433
+}

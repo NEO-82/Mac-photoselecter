@@ -4,7 +4,7 @@ Jeonggwang ♡ Seoa.
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[0.5.3 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/80570b931c3c119882390d91f02d38f6b3f83506/downloads/PhotoSelect-0.5.3-arm64.dmg)
+[J♡S v0.5.4 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/fd38fcee8e317824ac81ec2f6e7aa19ad8e6e266/downloads/J-S-0.5.4-arm64.dmg)
 
 DMG를 열고 **J♡S.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 `정광이의 MAC 포토셀렉터.app`, `PhotoSelect.app`, J♡S를 모두 종료하세요. J♡S.app을 Applications에 넣은 뒤 이전 이름의 **앱 번들만** 휴지통으로 옮기세요. 이름이 달라 자동 교체되지 않을 수 있습니다. Dock의 이전 바로가기도 J♡S로 다시 등록하세요. `~/Library/Application Support/dev.photoselect.app/tags.json`과 사용자 설정은 삭제하지 말고, 앱 정리 도구의 관련 데이터 삭제 기능은 사용하지 마세요.
@@ -80,3 +80,5 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 0.5.2는 메인 창 하단 크레딧과 폴더·사진·일반 파일을 함께 보여 주는 브라우저를 제공합니다. [macOS 빌드 #32](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43230004616)에서 XCTest **86개**, Release Sony RAW 검사 **3개**, arm64 빌드·ad-hoc 서명·DMG 검증을 통과했습니다. 실제 다운로드 HTTP 200과 SHA-256 일치도 확인했습니다. [UI 화면과 검증 기록](docs/finder-browser.md).
 
 0.5.3은 **태그된 사진만 보기** 필터를 추가했습니다. [macOS 빌드 #40](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43365236450)에서 XCTest **88개**, Release Sony RAW 검사 **3개**, arm64 빌드·서명·DMG 검증을 통과했습니다. 실제 다운로드 HTTP 200과 SHA-256 일치도 확인했습니다. [변경 파일·필터 검증·화면 캡처](docs/tagged-filter.md).
+
+0.5.4는 표시 이름만 **J♡S**로 변경합니다. Bundle Identifier와 기존 태그·설정 저장 구조 및 v0.5.3 기능은 유지합니다. [macOS 빌드 #41](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43370039453)에서 XCTest **89개**, Release RAW 검사 **3개**, arm64 앱·아이콘·이름·서명·DMG 검증이 통과했습니다. [안전한 교체·변경 파일·검증 기록](docs/js-branding.md).
