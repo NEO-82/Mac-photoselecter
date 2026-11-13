@@ -1,0 +1,29 @@
+{
+  "bundle_display_name" : "J♡S",
+  "bundle_identifier" : "dev.photoselect.app",
+  "bundle_name" : "J♡S",
+  "bundle_short_version" : "0.5.5",
+  "bundle_version" : "48",
+  "CFBundleIconFile" : "AppIcon.icns",
+  "dock_on_apple_silicon_executed" : false,
+  "finder_evidence" : "finder-icon.png",
+  "finder_mean_rgb_error" : 0.10645990309372447,
+  "largest_rendition_mean_rgb_error" : 0,
+  "renditions" : {
+    "icon_16x16.png" : 16,
+    "icon_16x16@2x.png" : 32,
+    "icon_32x32.png" : 32,
+    "icon_32x32@2x.png" : 64,
+    "icon_128x128.png" : 128,
+    "icon_128x128@2x.png" : 256,
+    "icon_256x256.png" : 256,
+    "icon_256x256@2x.png" : 512,
+    "icon_512x512.png" : 512,
+    "icon_512x512@2x.png" : 1024
+  },
+  "source_dimensions" : [
+    1024,
+    1024
+  ],
+  "source_sha256" : "f958eb4d4223c4c74b3684cbc9566bd25efadc77dcacdeecdbcc8e8e665b063f"
+}

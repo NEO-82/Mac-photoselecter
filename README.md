@@ -4,7 +4,9 @@ Jeonggwang ♡ Seoa.
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[J♡S v0.5.5 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/49a589ea0593ca59c5a41718b777f0e56d0c6e35/downloads/J-S-0.5.5-arm64.dmg)
+[J♡S v0.6.0 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/889f5483a0b3daabb5d083aeaf3d11e86d5e126f/downloads/J-S-0.6.0-arm64.dmg)
+
+현재 버전은 대량 목록 처리·정렬·일괄 이름 변경을 추가한 **v0.6.0 빌드61**입니다. [변경 파일·사용법·복구 절차·테스트 결과](docs/file-management.md).
 
 DMG를 열고 **J♡S.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 `정광이의 MAC 포토셀렉터.app`, `PhotoSelect.app`, J♡S를 모두 종료하세요. J♡S.app을 Applications에 넣은 뒤 이전 이름의 **앱 번들만** 휴지통으로 옮기세요. 이름이 달라 자동 교체되지 않을 수 있습니다. Dock의 이전 바로가기도 J♡S로 다시 등록하세요. `~/Library/Application Support/dev.photoselect.app/tags.json`과 사용자 설정은 삭제하지 말고, 앱 정리 도구의 관련 데이터 삭제 기능은 사용하지 마세요.
@@ -22,6 +24,8 @@ Developer ID 서명/Apple 공증이 없는 개인 테스트용입니다. macOS�
 - **←/→:** 이전/다음 사진. 왼쪽 마우스를 길게 누르면 실제 표시 JPEG의 물리 픽셀 1:1 확대, 드래그로 부분 확인, 놓으면 맞춤 보기. 정지한 누름은 시스템 더블클릭 판별 시간 후 확대하며 드래그는 즉시 확대합니다. 빠른 더블클릭은 먼저 확대되지 않고 목록으로 복귀합니다. 누른 채 사진을 넘겨도 확대를 유지합니다.
 - **Delete / fn+Delete:** 현재 한 장을 macOS 휴지통으로 이동하고 다음 사진을 표시합니다. 마지막 사진이면 이전 사진, 한 장도 없으면 목록으로 돌아갑니다.
 - **`\`:** 태그 켜기/끄기. 한글 키보드의 같은 위치 `₩` 키도 지원합니다. 썸네일·미리보기·큰 사진 창 오른쪽 위에 빨간 네모를 표시합니다.
+- **정렬:** 목록 상단의 파일 이름순·촬영 시간순·크기순. 같은 버튼을 누르면 ↑/↓가 바뀌며 다른 기준은 ↑부터 시작합니다. 촬영 정보가 없는 사진은 항상 뒤쪽, 동률은 이름순입니다. 선택과 태그 필터를 유지하고 큰 사진 창도 같은 순서로 탐색합니다.
+- **일괄 이름 변경:** 도구바에서 현재 폴더의 전체 사진에 연속 번호를 붙입니다. 태그 필터·숨김 표시와 관계없이 모든 사진이 대상이며 하위 폴더·문서·macOS `._` 파일은 제외합니다. 미리보기와 충돌을 확인한 뒤 실행하세요. 확장자와 이미지 내용은 보존하며 태그는 새 경로로 연결합니다. [사용법·복구 방법·검증 범위](docs/file-management.md).
 - **태그된 사진만 보기:** 가운데 목록 상단 체크 버튼으로 현재 폴더의 태그 사진만 표시합니다. 큰 사진 창의 방향키도 필터 목록만 탐색하며, 태그 해제 시 다음 사진(마지막이면 이전 사진)으로 이동합니다. 마지막 태그가 없어지면 목록으로 돌아갑니다. 필터 전환은 기존 캐시와 태그 데이터를 유지합니다.
 - **Esc / 큰 사진 창 더블클릭:** 현재 사진과 폴더 선택을 유지하며 목록으로 돌아갑니다. 첫 누름 확대·드래그·놓기와 그리드 더블클릭은 유지합니다.
 - **보기 메뉴:** 숨김 파일 표시(`⌘⇧.`), 시스템/라이트/다크 테마 선택. 앱 기본값은 다크이며 선택 사진은 은은한 로즈 색으로 강조합니다.
@@ -42,7 +46,7 @@ macOS 13+, Xcode 15+가 필요합니다. 외부 패키지, 서버, API 키는 �
 2. `bash scripts/validate-macos.sh`로 앱 빌드와 Swift Package XCTest 실행.
 3. `설치파일-만들기.command`를 더블클릭하거나 `bash scripts/package-macos.sh`로 테스트·Release 빌드·DMG 검증 실행.
 
-기본 결과물은 `dist/J-S-0.5.5-1-arm64/J-S-0.5.5-1-arm64.dmg`와 `SHA256SUMS`입니다.
+기본 결과물은 `dist/J-S-0.6.0-1-arm64/J-S-0.6.0-1-arm64.dmg`와 `SHA256SUMS`입니다.
 다시 만들 때는 `PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh`처럼 빌드 번호를 늘리세요.
 Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배포용 앱과 아이콘은 Xcode 프로젝트로 만듭니다.
 각 작업은 격리된 체크아웃을 사용하므로 별도 worktree는 필요하지 않습니다.
@@ -61,13 +65,15 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 - `EmbeddedPreview.swift`: ARW에서 최대 내장 카메라 JPEG/방향/색 공간을 안전하게 추출
 - `ImagePipeline.swift`: 같은 JPEG의 sRGB 변환, 현재/앞뒤 비동기 준비, 공유 작업과 예산 제한 캐시
 - `Viewer.swift`: 일반 창 뷰어, 누름 확대, 키보드 동작과 태그 표시
+- `PhotoSorting.swift`: 비동기 EXIF 메타데이터 캐시와 사진 정렬
+- `BatchRename.swift`, `BatchRenameWindow.swift`: 전체 사진 이름 변경 미리보기·충돌 검사·복구 기록·태그 연결
 
 숨김 파일은 탐색기에서 기본 숨김이며 보기 메뉴로 표시할 수 있습니다. 숨김 항목은 보기 메뉴로 켤 수 있습니다. 심볼릭 링크와 하위 폴더 내부의 사진은 현재 폴더 목록에 포함하지 않습니다. 새로고침으로 변경 내용을 반영합니다.
 영구 폴더 북마크를 저장하지 않으므로 앱 재시작 시 홈에서 시작합니다. 외부에서 파일을 이동/이름 변경하면 태그는 자동 추적하지 않습니다.
-편집·AI 분석·파일 복사·일괄 이름 변경은 구현하지 않습니다. 명시적인 휴지통 이동 외에 원본 사진에 쓰지 않습니다.
+편집·AI 분석·파일 복사는 구현하지 않습니다. 사진 내용은 수정하지 않으며, 명시적인 휴지통 이동과 일괄 이름 변경으로 파일 경로만 바꿉니다.
 
 [Retina·RAW·캐시 설계](docs/architecture.md)를 참고하세요. 모든 Sony ARW 변형을 지원한다고 주장하지 않습니다.
-실제 ARW 호환성, M1 Pro의 1,500장 성능, 실제 입력 장치·외장 드라이브 분리와 휴지통 복구는 실기기 확인이 필요합니다.
+모든 ARW 변형의 호환성, M1 Pro의 2,000–3,000장 실제 촬영 폴더 성능·장시간 메모리, 실제 입력 장치·외장 드라이브 분리와 휴지통 복구는 실기기 확인이 필요합니다.
 
 0.4.0은 [macOS 빌드 #21](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43038529075)에서 XCTest **61개**, arm64 Release 앱 빌드, 앱 서명 및 DMG 검증을 통과했습니다. 실제 다운로드 HTTP 200과 SHA-256 일치도 확인했습니다. 테스트는 Intel macOS/Xcode 16.4에서 실행했으며 실제 M1 Pro 실행·Sony ARW 호환성·대량 사진 성능·외장 저장장치 검증은 별도입니다. [화면 캡처·변경 파일·검증 결과·실기기 절차](docs/soft-romantic-pro.md)를 참고하세요.
 
@@ -84,3 +90,5 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 0.5.4는 표시 이름만 **J♡S**로 변경합니다. Bundle Identifier와 기존 태그·설정 저장 구조 및 v0.5.3 기능은 유지합니다. [macOS 빌드 #41](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43370039453)에서 XCTest **89개**, Release RAW 검사 **3개**, arm64 앱·아이콘·이름·서명·DMG 검증이 통과했습니다. [안전한 교체·변경 파일·검증 기록](docs/js-branding.md).
 
 0.5.5는 사진 전환 중 이전 프레임 유지, 메모리 바이트 기반 최근 사진 캐시 확대와 방향별 프리페치/작업 공유를 개선합니다. macOS 빌드 #48에서 XCTest **92개**, Release RAW·탐색 검사 **4개**, arm64 앱·서명·DMG 검증을 통과했습니다. CI의 Release 캐시 적중 적용 최대 **18.27ms**, 빈 draw **0회**이며 M1 Pro의 실제 촬영 폴더 성능은 별도 확인이 필요합니다. [원인·변경 파일·전체 측정값·메모리 비용·남은 지연](docs/navigation-performance.md).
+
+0.6.0은 2,000/3,000장 목록 검사, 이름·EXIF 촬영 시간·크기 정렬, 전체 사진 일괄 이름 변경과 태그 연결·중단 복구를 추가합니다. [macOS 빌드 #61](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43451626978)에서 XCTest **116개**, Release RAW/탐색 **4개**, arm64 앱·서명·아이콘·DMG 검증이 통과했습니다. 실제 다운로드 SHA-256도 일치합니다. CI Release 캐시 적중 적용 최대 **12.03ms**, 빈 draw **0회**이며 새 버전의 M1 Pro·3,000장 실제 RAW 폴더·장시간 메모리 검증은 남아 있습니다. [검증 범위와 상세 결과](docs/file-management.md).

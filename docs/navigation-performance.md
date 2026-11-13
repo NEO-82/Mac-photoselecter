@@ -70,7 +70,7 @@ ImageIO 생성 API의 짧은 시간을 순수 JPEG 디코딩 시간으로 해석
 
 Debug도 빈 draw 0회, 캐시 적중 적용 최대 18.59ms였습니다. Release 캐시 적중 경로는 이번 CI 표본에서 100ms 목표를 충족했습니다. 미검증 실기기 항목에까지 이 결과를 일반화하지 않습니다.
 
-[Release 원본 계측 JSON](../downloads/arw-navigation.json) · [Debug JSON](../downloads/arw-navigation-debug.json) · [XCTest](../downloads/xctest-results.xml) · [Release 검사](../downloads/release-preview-results.xml) · [빌드 로그](../downloads/build.log).
+[Release 원본 계측 JSON](../downloads/v0.5.5-build48/arw-navigation.json) · [Debug JSON](../downloads/v0.5.5-build48/arw-navigation-debug.json) · [XCTest](../downloads/v0.5.5-build48/xctest-results.xml) · [Release 검사](../downloads/v0.5.5-build48/release-preview-results.xml) · [빌드 로그](../downloads/v0.5.5-build48/build.log).
 
 ## 설치 파일
 

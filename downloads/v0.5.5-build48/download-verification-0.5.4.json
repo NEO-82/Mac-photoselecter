@@ -1,0 +1,12 @@
+{
+  "version": "0.5.4",
+  "build_number": "41",
+  "source_commit": "e63baf308acc4b1e0791e76418073177bd31f7de",
+  "installer_commit": "fd38fcee8e317824ac81ec2f6e7aa19ad8e6e266",
+  "url": "https://github.com/NEO-82/Mac-photoselecter/raw/fd38fcee8e317824ac81ec2f6e7aa19ad8e6e266/downloads/J-S-0.5.4-arm64.dmg",
+  "http_status": 200,
+  "bytes": 3797693,
+  "sha256": "0f3e7791054f2ba5717b0b4c07ce1e4d40e0430e83ffd7241ce6a5fa54896ce5",
+  "sha256_matches": true,
+  "verified_at": "2026-11-13T05:15:10.113578+00:00"
+}

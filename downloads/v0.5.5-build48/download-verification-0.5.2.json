@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "outcome": "success",
+    "source_commit": "6a97b8e08b87221c93eed1650d2d5574f9218ecf",
+    "version": "0.5.2",
+    "build_number": "32",
+    "run_url": "https://github.com/NEO-82/Mac-photoselecter/actions/runs/43230004616"
+  },
+  "artifact_commit": "e08e654d8253176f71d68a2555024a4ac911c60c",
+  "download_url": "https://github.com/NEO-82/Mac-photoselecter/raw/e08e654d8253176f71d68a2555024a4ac911c60c/downloads/PhotoSelect-0.5.2-arm64.dmg",
+  "resolved_url": "https://raw.githubusercontent.com/NEO-82/Mac-photoselecter/e08e654d8253176f71d68a2555024a4ac911c60c/downloads/PhotoSelect-0.5.2-arm64.dmg",
+  "http_status": 200,
+  "bytes": 3790026,
+  "sha256": "98d00a6be0a4ffd91f477b5a91cb0bb69dc5e30b7e1e20146d43a24859d912b9",
+  "tests": {
+    "xctest-results.xml": 86,
+    "release-preview-results.xml": 3
+  }
+}
