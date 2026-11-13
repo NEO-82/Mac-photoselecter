@@ -262,4 +262,16 @@ final class BatchRenameTests: XCTestCase {
         print("BATCH_RENAME_3000 synthetic tiny regular files elapsedMs=\((ProcessInfo.processInfo.systemUptime - started) * 1000)")
     }
 
+    func testAppleDoubleMetadataIsNotTreatedAsARWPhoto() throws {
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        try Data([1]).write(to: root.appendingPathComponent("photo.ARW"))
+        let sidecar = root.appendingPathComponent("._photo.ARW"), bytes = Data([0, 5, 22, 7])
+        try bytes.write(to: sidecar)
+        let plan = try makePlan(root)
+        XCTAssertEqual(plan.rows.count, 1)
+        let result = try execute(BatchRenameEngine(journalDirectory: journals), plan, TagStore(fileURL: metadata.appendingPathComponent("tags.json")))
+        XCTAssertTrue(result.completed, result.message)
+        XCTAssertEqual(try Data(contentsOf: sidecar), bytes)
+    }
+
 }

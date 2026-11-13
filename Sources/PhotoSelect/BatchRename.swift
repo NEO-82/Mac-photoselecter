@@ -20,11 +20,14 @@ struct RenamePlan {
     var rows: [RenamePreview]
     var valid: Bool {
         !rows.isEmpty && rows.count <= 10_000 && rows.allSatisfy {
-            $0.issue == nil && Self.leaf($0.original) && Self.leaf($0.proposed) && $0.proposed.utf8.count <= 255 &&
+            $0.issue == nil && Self.leaf($0.original) && Self.leaf($0.proposed) && !$0.proposed.hasPrefix("._") && $0.proposed.utf8.count <= 255 &&
             URL(fileURLWithPath: $0.original).pathExtension == URL(fileURLWithPath: $0.proposed).pathExtension
         } && Set(rows.map { Self.folded($0.proposed) }).count == rows.count
     }
     var changedCount: Int { rows.filter { $0.original != $0.proposed }.count }
+    static func isTargetPhoto(_ entry: BrowserEntry) -> Bool {
+        entry.isPhoto && !entry.url.lastPathComponent.hasPrefix("._")
+    }
     static func leaf(_ text: String) -> Bool {
         !text.isEmpty && text != "." && text != ".." && !text.contains("/") && !text.contains("\0")
     }
@@ -36,13 +39,13 @@ struct RenamePlan {
               settings.start <= Int.max - max(0, photos.count - 1) else {
             throw RenameProblem(message: "기본 이름·구분 문자에 / : 또는 줄바꿈을 사용할 수 없습니다. 시작 번호는 0 이상, 자릿수는 1–12로 입력하세요.")
         }
-        var rows = photos.filter(\.isPhoto).enumerated().map { index, photo -> RenamePreview in
+        var rows = photos.filter(isTargetPhoto).enumerated().map { index, photo -> RenamePreview in
             let number = String(settings.start + index)
             let padded = String(repeating: "0", count: max(0, settings.digits - number.count)) + number
             let name = settings.base + settings.separator + padded + "." + photo.url.pathExtension
             let sameFolder = TagStore.key(photo.url.deletingLastPathComponent()) == TagStore.key(folder)
             return RenamePreview(original: photo.url.lastPathComponent, proposed: name,
-                issue: !sameFolder ? "현재 폴더 밖의 파일" : (!leaf(name) || name.utf8.count > 255 ? "잘못되었거나 너무 긴 파일 이름" : nil))
+                issue: !sameFolder ? "현재 폴더 밖의 파일" : (!leaf(name) || name.utf8.count > 255 || name.hasPrefix("._") ? "잘못되었거나 너무 긴 이름 / macOS 메타데이터 접두사" : nil))
         }
         let original = Set(rows.map(\.original))
         let occupied = Set(existingNames.filter { !original.contains($0) }.map(folded))
@@ -177,6 +180,7 @@ final class BatchRenameEngine {
         let move: Move
         var locations: [String: String] = [:]
         var locationErrors: [String] = []
+        var locationsVerified = false
         init(journal: RenameJournal, url: URL, folder: URL, lease: FolderLease, lock: RenameLock, move: @escaping Move) {
             self.journal = journal; self.url = url; self.folder = folder; self.lease = lease; self.lock = lock; self.move = move
         }
@@ -191,6 +195,7 @@ final class BatchRenameEngine {
             a.inode == b.inode && (a.device == b.device || (journal.volumeUUID != nil && journal.volumeUUID == BatchRenameEngine.volume(folder).0))
         }
         func refresh() throws {
+            locationsVerified = false
             let volume = BatchRenameEngine.volume(folder).0
             if let original = journal.volumeUUID, volume != original { throw RenameProblem(message: "원래 저장장치를 확인할 수 없습니다.") }
             let candidates = Set(journal.items.flatMap { [$0.original, $0.destination, $0.temporary] })
@@ -205,6 +210,7 @@ final class BatchRenameEngine {
                 }
             }
             if !locationErrors.isEmpty { throw RenameProblem(message: locationErrors.joined(separator: "\n")) }
+            locationsVerified = true
         }
         func relocate(_ item: RenameJournal.Item, to name: String) throws {
             guard let current = locations[item.original] else { throw RenameProblem(message: item.original + ": 파일 위치를 확인할 수 없습니다.") }
@@ -238,8 +244,8 @@ final class BatchRenameEngine {
             }
             return errors
         }
-        var atOriginal: Bool { journal.items.allSatisfy { locations[$0.original] == $0.original } }
-        var atDestination: Bool { journal.items.allSatisfy { locations[$0.original] == $0.destination } }
+        var atOriginal: Bool { locationsVerified && journal.items.allSatisfy { locations[$0.original] == $0.original } }
+        var atDestination: Bool { locationsVerified && journal.items.allSatisfy { locations[$0.original] == $0.destination } }
         var mapping: [URL: URL] {
             Dictionary(uniqueKeysWithValues: journal.items.compactMap { item in
                 guard let name = locations[item.original] else { return nil }
@@ -270,7 +276,7 @@ final class BatchRenameEngine {
         guard plan.valid, plan.changedCount > 0 else { throw RenameProblem(message: "미리보기의 이름 충돌을 해결하거나 변경 규칙을 입력하세요.") }
         guard try pending(in: plan.folder).isEmpty else { throw RenameProblem(message: "중단된 작업을 먼저 복구하세요.") }
         let entries = try BrowserEntry.read(plan.folder, showHidden: true)
-        let current = Set(entries.filter(\.isPhoto).map { $0.url.lastPathComponent })
+        let current = Set(entries.filter(RenamePlan.isTargetPhoto).map { $0.url.lastPathComponent })
         guard current == Set(plan.rows.map(\.original)) else { throw RenameProblem(message: "폴더의 사진 목록이 변경됐습니다. 미리보기를 다시 여세요.") }
         let names = Set(try FileManager.default.contentsOfDirectory(atPath: plan.folder.path))
         let sourceNames = Set(plan.rows.map(\.original))
@@ -337,12 +343,17 @@ final class BatchRenameEngine {
         }
     }
     private func reconcile(_ transaction: Transaction, tagStore: TagStore, failure: String?, recovering: Bool, progress: @escaping Progress, completion: @escaping (RenameOutcome) -> Void) {
+        var beforeTags = failure
+        do { try transaction.refresh() } catch { beforeTags = (beforeTags ?? "") + "\n파일 위치 확인 실패: " + error.localizedDescription }
+        let verifiedFailure = beforeTags
         progress(0, 1, "태그 연결 저장")
         tagStore.updatePaths(removing: transaction.affectedKeys, adding: transaction.tagsForCurrentLocations, force: recovering) { result in
             self.queue.async {
-                var message = failure ?? ""
-                var complete = failure == nil && transaction.atDestination
+                var message = verifiedFailure ?? ""
+                do { try transaction.refresh() } catch { message += "\n완료 전 파일 위치 확인 실패: " + error.localizedDescription }
+                var complete = verifiedFailure == nil && transaction.atDestination
                 let restored = transaction.atOriginal
+                if !complete && !restored && message.isEmpty { message = "일부 파일 위치가 달라졌습니다. 복구 기록을 유지합니다." }
                 var paths: Set<String>?
                 switch result {
                 case .success(let value): paths = value

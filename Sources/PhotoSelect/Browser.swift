@@ -612,10 +612,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                         self.preparingRename = false
                         self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, recovery: journal)
                     } else {
-                        self.renamePreparation = self.sortMetadata.prepare(value.1, order: order, lease: lease) { [weak self] sorted in
+                        self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
                             self.preparingRename = false
-                            let photos = sorted.filter(\.isPhoto)
+                            let photos = sorted.filter(RenamePlan.isTargetPhoto)
                             guard !photos.isEmpty else { self.updateBadges(); self.batchError("현재 폴더에 변경할 사진이 없습니다."); return }
                             self.presentRename(folder: folder, photos: photos, names: value.2, orderTitle: order.title, lease: lease, recovery: nil)
                         }

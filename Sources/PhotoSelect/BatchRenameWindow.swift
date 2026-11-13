@@ -6,7 +6,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
     private let recoveryURL: URL?
     private let base = NSTextField(string: "Photo"), separator = NSTextField(string: "_"), start = NSTextField(string: "1"), digits = NSPopUpButton(frame: .zero, pullsDown: false)
     private let summary = NSTextField(wrappingLabelWithString: "")
-    private let outcome = NSTextField(wrappingLabelWithString: "실행 전에는 파일을 변경하지 않습니다. 태그 필터와 무관하게 현재 폴더의 모든 사진이 대상입니다.")
+    private let outcome = NSTextField(wrappingLabelWithString: "실행 전에는 파일을 변경하지 않습니다. 태그 필터·숨김 표시와 무관하게 현재 폴더의 모든 사진이 대상입니다. macOS ._ 메타데이터 파일은 제외합니다.")
     private let run = NSButton(title: "이름 변경 실행", target: nil, action: nil), closeButton = NSButton(title: "닫기", target: nil, action: nil)
     private let table = NSTableView(), progress = NSProgressIndicator()
     private(set) var plan: RenamePlan?
