@@ -273,6 +273,17 @@ final class BrowserUITests: XCTestCase {
             filter.performClick(nil); XCTAssertEqual(grid.numberOfItems(inSection: 0), 0)
             filter.performClick(nil); XCTAssertEqual(grid.numberOfItems(inSection: 0), count)
             print("LARGE_FOLDER count=\(count) elapsedMs=\((ProcessInfo.processInfo.systemUptime - start) * 1000) initialDisplayDecodes=\(initialCalls)")
+            if count == 3000 {
+                browser.openBatchRename()
+                waitUntil("3000-row rename preview", timeout: 15) { browser.window?.attachedSheet != nil }
+                let sheet = try XCTUnwrap(browser.window?.attachedSheet)
+                let sheetViews = descendants(try XCTUnwrap(sheet.contentView))
+                let table = try XCTUnwrap(sheetViews.compactMap { $0 as? NSTableView }.first)
+                XCTAssertEqual(table.numberOfRows, 3000)
+                table.scrollRowToVisible(2999); table.layoutSubtreeIfNeeded()
+                XCTAssertLessThan(descendants(table).filter { $0 is NSTableRowView }.count, 100)
+                try XCTUnwrap(sheetViews.compactMap { $0 as? NSButton }.first { $0.title == "닫기" }).performClick(nil)
+            }
             let finished = expectation(description: "cleanup and tags drained")
             browser.finishPendingTagWrites { finished.fulfill() }
             wait(for: [finished], timeout: 5)
@@ -331,6 +342,8 @@ final class BrowserUITests: XCTestCase {
         let contents = descendants(try XCTUnwrap(sheet.contentView))
         let table = try XCTUnwrap(contents.compactMap { $0 as? NSTableView }.first)
         XCTAssertEqual(table.numberOfRows, 3)
+        sheet.appearance = NSAppearance(named: .darkAqua)
+        try saveBrowserSnapshot(sheet, name: "browser-mixed-rename.png")
         XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("1.jpg").path))
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Photo_0001.jpg").path))
         let run = try XCTUnwrap(contents.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "RenameExecute" })
