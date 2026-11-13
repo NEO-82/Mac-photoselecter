@@ -1,7 +1,9 @@
 {
+  "bundle_display_name" : "J♡S",
   "bundle_identifier" : "dev.photoselect.app",
-  "bundle_short_version" : "0.5.3",
-  "bundle_version" : "40",
+  "bundle_name" : "J♡S",
+  "bundle_short_version" : "0.5.4",
+  "bundle_version" : "41",
   "CFBundleIconFile" : "AppIcon.icns",
   "dock_on_apple_silicon_executed" : false,
   "finder_evidence" : "finder-icon.png",
