@@ -120,6 +120,57 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    func testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths() throws {
+        _ = NSApplication.shared
+        let root = try folder(), metadata = try folder()
+        let file = metadata.appendingPathComponent("tags.json")
+        let data = jpegData()
+        for index in 0..<1500 {
+            try data.write(to: root.appendingPathComponent(String(format: "%04d.jpg", index)))
+        }
+        // Same-stem RAW remains untagged and must not inherit the JPG tag.
+        try Data().write(to: root.appendingPathComponent("0000.arw"))
+        try FileManager.default.createDirectory(at: root.appendingPathComponent("child"), withIntermediateDirectories: true)
+        let selected = root.appendingPathComponent("0001.jpg")
+        let paths = [root.appendingPathComponent("0000.jpg"), selected,
+                     root.appendingPathComponent("child/inside.jpg"), metadata.appendingPathComponent("outside.jpg")]
+        let document: [String: Any] = ["version": 1, "taggedPaths": paths.map { TagStore.key($0) }]
+        let original = try JSONSerialization.data(withJSONObject: document)
+        try original.write(to: file)
+        let browser = BrowserController(tagStore: TagStore(fileURL: file), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoBrowserTagFilter" })
+        waitUntil("1500 photo folder loaded") { grid.numberOfItems(inSection: 0) == 1502 }
+        let loaded = try BrowserEntry.read(root, showHidden: false)
+        let index = try XCTUnwrap(loaded.firstIndex { $0.url == selected })
+        browser.collectionView(grid, didSelectItemsAt: [IndexPath(item: index, section: 0)])
+        waitUntil("selected tagged JPG cached") { preview.imageView.image != nil && !preview.tagMarker.isHidden }
+        let image = preview.imageView.image
+        // A new disk entry stays invisible until an explicit refresh.
+        try data.write(to: root.appendingPathComponent("new.jpg"))
+        let start = ProcessInfo.processInfo.systemUptime
+        filter.performClick(nil)
+        let elapsed = ProcessInfo.processInfo.systemUptime - start
+        print("Tagged filter 1500 JPG + RAW transition seconds: \(elapsed)")
+        XCTAssertLessThan(elapsed, 1.0)
+        XCTAssertEqual(grid.numberOfItems(inSection: 0), 2)
+        XCTAssertEqual(grid.selectionIndexPaths, [IndexPath(item: 1, section: 0)])
+        XCTAssertTrue(preview.imageView.image === image)
+        browser.previousPhoto()
+        XCTAssertEqual(preview.filename.stringValue, "0000.jpg")
+        browser.nextPhoto()
+        XCTAssertEqual(preview.filename.stringValue, "0001.jpg")
+        filter.performClick(nil)
+        XCTAssertEqual(grid.numberOfItems(inSection: 0), 1502)
+        XCTAssertEqual(try Data(contentsOf: file), original)
+        XCTAssertEqual(try Data(contentsOf: selected), data)
+    }
+
+    @MainActor
     func testTaggedFilterViewerNavigationUntagTrashAndPersistence() throws {
         _ = NSApplication.shared
         let root = try folder(), metadata = try folder(), trash = try folder()
