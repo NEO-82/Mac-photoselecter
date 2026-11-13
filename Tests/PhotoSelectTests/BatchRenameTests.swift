@@ -142,6 +142,7 @@ final class BatchRenameTests: XCTestCase {
         XCTAssertFalse(bad.valid)
         XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(base: "../bad", separator: "", start: 1, digits: 3), existingNames: []))
         XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(base: "X", separator: "", start: Int.max, digits: 3), existingNames: []))
+        XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(base: String(repeating: "X", count: 100_000), separator: "", start: 1, digits: 3), existingNames: []))
     }
     func testCommittedRecoveryReplaysTagsIdempotentlyAcrossNameSwap() throws {
         let root = try folder(), journals = try folder(), metadata = try folder()
@@ -272,6 +273,14 @@ final class BatchRenameTests: XCTestCase {
         let result = try execute(BatchRenameEngine(journalDirectory: journals), plan, TagStore(fileURL: metadata.appendingPathComponent("tags.json")))
         XCTAssertTrue(result.completed, result.message)
         XCTAssertEqual(try Data(contentsOf: sidecar), bytes)
+    }
+
+    func testChangedVolumeRefusesBeforeAnyRename() throws {
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        let file = root.appendingPathComponent("photo.JPG"); try Data([4]).write(to: file)
+        var plan = try makePlan(root); plan.volumeUUID = "different-volume-identifier"
+        let result = try execute(BatchRenameEngine(journalDirectory: journals), plan, TagStore(fileURL: metadata.appendingPathComponent("tags.json")))
+        XCTAssertFalse(result.completed); XCTAssertEqual(try Data(contentsOf: file), Data([4]))
     }
 
 }

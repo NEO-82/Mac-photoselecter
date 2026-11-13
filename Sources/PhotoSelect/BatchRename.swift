@@ -18,10 +18,11 @@ struct RenamePlan {
     let folder: URL
     let orderTitle: String
     var rows: [RenamePreview]
+    var volumeUUID: String? = nil
     var valid: Bool {
         !rows.isEmpty && rows.count <= 10_000 && rows.allSatisfy {
             $0.issue == nil && Self.leaf($0.original) && Self.leaf($0.proposed) && !$0.proposed.hasPrefix("._") && $0.proposed.utf8.count <= 255 &&
-            URL(fileURLWithPath: $0.original).pathExtension == URL(fileURLWithPath: $0.proposed).pathExtension
+            ($0.original as NSString).pathExtension == ($0.proposed as NSString).pathExtension
         } && Set(rows.map { Self.folded($0.proposed) }).count == rows.count
     }
     var changedCount: Int { rows.filter { $0.original != $0.proposed }.count }
@@ -33,11 +34,12 @@ struct RenamePlan {
     }
     static func folded(_ text: String) -> String { text.precomposedStringWithCanonicalMapping.lowercased(with: Locale(identifier: "en_US_POSIX")) }
     static func make(folder: URL, photos: [BrowserEntry], orderTitle: String, settings: RenameSettings, existingNames: Set<String>) throws -> RenamePlan {
-        guard !settings.base.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+        guard settings.base.utf8.count + settings.separator.utf8.count <= 255,
+              !settings.base.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               !(settings.base + settings.separator).contains(where: { "/:\0\n\r".contains($0) }),
               settings.start >= 0, (1...12).contains(settings.digits),
               settings.start <= Int.max - max(0, photos.count - 1) else {
-            throw RenameProblem(message: "기본 이름·구분 문자에 / : 또는 줄바꿈을 사용할 수 없습니다. 시작 번호는 0 이상, 자릿수는 1–12로 입력하세요.")
+            throw RenameProblem(message: "기본 이름·구분 문자 합계는 UTF-8 255바이트 이내여야 하며 / : 또는 줄바꿈을 사용할 수 없습니다. 시작 번호는 0 이상, 자릿수는 1–12로 입력하세요.")
         }
         var rows = photos.filter(isTargetPhoto).enumerated().map { index, photo -> RenamePreview in
             let number = String(settings.start + index)
@@ -54,7 +56,7 @@ struct RenamePlan {
             if counts[folded(rows[index].proposed), default: 0] > 1 { rows[index].issue = "변경 예정 이름 중복" }
             if occupied.contains(folded(rows[index].proposed)) { rows[index].issue = "기존 폴더/파일과 충돌" }
         }
-        return RenamePlan(folder: folder, orderTitle: orderTitle, rows: rows)
+        return RenamePlan(folder: folder, orderTitle: orderTitle, rows: rows, volumeUUID: BatchRenameEngine.volume(folder).0)
     }
 }
 
@@ -274,6 +276,7 @@ final class BatchRenameEngine {
     }
     private func prepare(_ plan: RenamePlan, tags: Set<String>, lease: FolderLease, lock: RenameLock) throws -> Transaction {
         guard plan.valid, plan.changedCount > 0 else { throw RenameProblem(message: "미리보기의 이름 충돌을 해결하거나 변경 규칙을 입력하세요.") }
+        if let expected = plan.volumeUUID, expected != Self.volume(plan.folder).0 { throw RenameProblem(message: "미리보기 이후 저장장치가 달라졌습니다. 파일을 변경하지 않았습니다.") }
         guard try pending(in: plan.folder).isEmpty else { throw RenameProblem(message: "중단된 작업을 먼저 복구하세요.") }
         let entries = try BrowserEntry.read(plan.folder, showHidden: true)
         let current = Set(entries.filter(RenamePlan.isTargetPhoto).map { $0.url.lastPathComponent })

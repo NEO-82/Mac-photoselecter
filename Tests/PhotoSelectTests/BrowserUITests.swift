@@ -279,6 +279,7 @@ final class BrowserUITests: XCTestCase {
                 let sheet = try XCTUnwrap(browser.window?.attachedSheet)
                 let sheetViews = descendants(try XCTUnwrap(sheet.contentView))
                 let table = try XCTUnwrap(sheetViews.compactMap { $0 as? NSTableView }.first)
+                waitUntil("3000 preview names ready", timeout: 15) { table.numberOfRows == 3000 }
                 XCTAssertEqual(table.numberOfRows, 3000)
                 table.scrollRowToVisible(2999); table.layoutSubtreeIfNeeded()
                 XCTAssertLessThan(descendants(table).filter { $0 is NSTableRowView }.count, 100)
@@ -341,6 +342,7 @@ final class BrowserUITests: XCTestCase {
         let sheet = try XCTUnwrap(browser.window?.attachedSheet)
         let contents = descendants(try XCTUnwrap(sheet.contentView))
         let table = try XCTUnwrap(contents.compactMap { $0 as? NSTableView }.first)
+        waitUntil("rename names ready") { table.numberOfRows == 3 }
         XCTAssertEqual(table.numberOfRows, 3)
         sheet.appearance = NSAppearance(named: .darkAqua)
         try saveBrowserSnapshot(sheet, name: "browser-mixed-rename.png")
@@ -354,6 +356,31 @@ final class BrowserUITests: XCTestCase {
         let close = try XCTUnwrap(contents.compactMap { $0 as? NSButton }.first { $0.title == "닫기" })
         close.performClick(nil)
         XCTAssertNil(browser.window?.attachedSheet)
+    }
+
+    @MainActor
+    func testDeviceChangeInvalidatesRenamePreviewAndAllowsReopening() throws {
+        _ = NSApplication.shared
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        try jpegData().write(to: root.appendingPathComponent("photo.jpg"))
+        let browser = BrowserController(tagStore: TagStore(fileURL: metadata.appendingPathComponent("tags.json")), initialFolder: root, renameEngine: BatchRenameEngine(journalDirectory: journals))
+        defer { browser.close() }
+        browser.showWindow(nil)
+        waitUntil("device-preview initial folder") { !browser.navigationSamples.isEmpty && !browser.sorting }
+        browser.openBatchRename()
+        waitUntil("device-preview sheet") { browser.window?.attachedSheet != nil }
+        let sheet = try XCTUnwrap(browser.window?.attachedSheet)
+        let views = descendants(try XCTUnwrap(sheet.contentView))
+        let run = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "RenameExecute" })
+        waitUntil("device-preview ready") { run.isEnabled }
+        NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didUnmountNotification, object: nil)
+        XCTAssertFalse(run.isEnabled)
+        try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.title == "닫기" }).performClick(nil)
+        browser.openBatchRename()
+        waitUntil("preview reopens after device signal") { browser.window?.attachedSheet != nil }
+        let next = try XCTUnwrap(browser.window?.attachedSheet)
+        try XCTUnwrap(descendants(try XCTUnwrap(next.contentView)).compactMap { $0 as? NSButton }.first { $0.title == "닫기" }).performClick(nil)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("photo.jpg").path))
     }
 
     @MainActor

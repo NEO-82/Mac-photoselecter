@@ -4,6 +4,8 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
     private let folder: URL, photos: [BrowserEntry], existingNames: Set<String>, orderTitle: String
     private let engine: BatchRenameEngine, tags: TagStore, lease: FolderLease
     private let recoveryURL: URL?
+    private let sourceVolumeUUID: String?
+    private var stalePreview = false
     private let base = NSTextField(string: "Photo"), separator = NSTextField(string: "_"), start = NSTextField(string: "1"), digits = NSPopUpButton(frame: .zero, pullsDown: false)
     private let summary = NSTextField(wrappingLabelWithString: "")
     private let outcome = NSTextField(wrappingLabelWithString: "실행 전에는 파일을 변경하지 않습니다. 태그 필터·숨김 표시와 무관하게 현재 폴더의 모든 사진이 대상입니다. macOS ._ 메타데이터 파일은 제외합니다.")
@@ -12,12 +14,19 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
     private(set) var plan: RenamePlan?
     private(set) var busy = false
     private var notifiedClose = false
+    private let previewQueue: OperationQueue = {
+        let queue = OperationQueue(); queue.maxConcurrentOperationCount = 1; queue.qualityOfService = .userInitiated; return queue
+    }()
+    private var previewOperation: Operation?
+    private var delayedPreview: DispatchWorkItem?
+    private var previewGeneration = UUID()
     var onBusy: (() -> Void)?
     var onComplete: ((RenameOutcome) -> Void)?
     var onClose: (() -> Void)?
-    init(folder: URL, photos: [BrowserEntry], existingNames: Set<String>, orderTitle: String, engine: BatchRenameEngine, tags: TagStore, lease: FolderLease, recoveryURL: URL? = nil) {
+    init(folder: URL, photos: [BrowserEntry], existingNames: Set<String>, orderTitle: String, engine: BatchRenameEngine, tags: TagStore, lease: FolderLease, sourceVolumeUUID: String?, recoveryURL: URL? = nil) {
         self.folder = folder; self.photos = photos; self.existingNames = existingNames; self.orderTitle = orderTitle
         self.engine = engine; self.tags = tags; self.lease = lease; self.recoveryURL = recoveryURL
+        self.sourceVolumeUUID = sourceVolumeUUID
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 850, height: 600), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         window.title = "일괄 이름 변경 — " + AppBranding.displayName
         window.minSize = NSSize(width: 700, height: 620); window.isReleasedWhenClosed = false
@@ -68,24 +77,50 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
         } else { rebuild() }
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    func controlTextDidChange(_ notification: Notification) { rebuild() }
+    func controlTextDidChange(_ notification: Notification) { rebuild(delay: 0.15) }
     @objc private func settingsChanged() { rebuild() }
-    private func rebuild() {
-        guard !busy, recoveryURL == nil else { return }
-        do {
-            guard let number = Int(start.stringValue) else { throw RenameProblem(message: "시작 번호를 정수로 입력하세요.") }
-            plan = try RenamePlan.make(folder: folder, photos: photos, orderTitle: orderTitle,
-                settings: RenameSettings(base: base.stringValue, separator: separator.stringValue, start: number, digits: Int(digits.titleOfSelectedItem ?? "4") ?? 4), existingNames: existingNames)
-            let conflicts = plan?.rows.filter { $0.issue != nil }.count ?? 0
-            summary.stringValue = "대상 \(photos.count)개 · \(orderTitle) · 변경 \(plan?.changedCount ?? 0)개 · 충돌 \(conflicts)개"
-            run.isEnabled = plan?.valid == true && (plan?.changedCount ?? 0) > 0
-        } catch { plan = nil; summary.stringValue = error.localizedDescription; run.isEnabled = false }
-        table.reloadData()
+    private func rebuild(delay: TimeInterval = 0) {
+        guard !busy, !stalePreview, recoveryURL == nil else { return }
+        delayedPreview?.cancel(); previewOperation?.cancel(); previewGeneration = UUID()
+        let token = previewGeneration
+        run.isEnabled = false; summary.stringValue = "대상 \(photos.count)개 · \(orderTitle) · 미리보기 계산 중…"
+        guard let number = Int(start.stringValue) else {
+            plan = nil; summary.stringValue = "시작 번호를 정수로 입력하세요."; table.reloadData(); return
+        }
+        let settings = RenameSettings(base: base.stringValue, separator: separator.stringValue, start: number, digits: Int(digits.titleOfSelectedItem ?? "4") ?? 4)
+        let folder = self.folder, photos = self.photos, title = orderTitle, names = existingNames, volume = sourceVolumeUUID
+        let operation = BlockOperation(); previewOperation = operation
+        operation.addExecutionBlock { [weak self, weak operation] in
+            guard let operation, !operation.isCancelled else { return }
+            let result = Result { () -> (RenamePlan, Bool, Int, Int) in
+                var plan = try RenamePlan.make(folder: folder, photos: photos, orderTitle: title, settings: settings, existingNames: names)
+                plan.volumeUUID = volume
+                return (plan, plan.valid, plan.changedCount, plan.rows.filter { $0.issue != nil }.count)
+            }
+            DispatchQueue.main.async { [weak self, weak operation] in
+                guard let self, let operation, !operation.isCancelled, self.previewGeneration == token, !self.notifiedClose else { return }
+                switch result {
+                case .success(let values):
+                    self.plan = values.0
+                    self.summary.stringValue = "대상 \(self.photos.count)개 · \(self.orderTitle) · 변경 \(values.2)개 · 충돌 \(values.3)개"
+                    self.run.isEnabled = values.1 && values.2 > 0
+                case .failure(let error): self.plan = nil; self.summary.stringValue = error.localizedDescription
+                }
+                self.table.reloadData()
+            }
+        }
+        let work = DispatchWorkItem { [weak self, weak operation] in
+            guard let self, let operation, self.previewGeneration == token else { return }
+            self.previewQueue.addOperation(operation)
+        }
+        delayedPreview = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
     }
     func numberOfRows(in tableView: NSTableView) -> Int { plan?.rows.count ?? 0 }
     func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool { false }
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-        guard let value = plan?.rows[row], let column = tableColumn else { return nil }
+        guard let rows = plan?.rows, rows.indices.contains(row), let column = tableColumn else { return nil }
+        let value = rows[row]
         let field = tableView.makeView(withIdentifier: column.identifier, owner: self) as? NSTextField ?? NSTextField(labelWithString: "")
         field.identifier = column.identifier; field.font = .systemFont(ofSize: 11); field.textColor = value.issue != nil && !["완료", "원래 이름 복구"].contains(value.issue!) ? .systemRed : ProTheme.text
         switch column.identifier.rawValue {
@@ -96,7 +131,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
         field.lineBreakMode = .byTruncatingMiddle; field.toolTip = field.stringValue; return field
     }
     @objc private func execute() {
-        guard !busy, recoveryURL != nil || plan?.valid == true else { return }
+        guard !busy, !stalePreview, recoveryURL != nil || (plan != nil && run.isEnabled) else { return }
         busy = true; run.isEnabled = false; closeButton.isEnabled = false
         for field in [base, separator, start] { field.isEnabled = false }; digits.isEnabled = false
         onBusy?()
@@ -111,6 +146,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
             let changed = self.plan?.changedCount ?? 0
             self.outcome.stringValue = "정상 완료 \(result.completed ? changed : 0)개 · 실패/취소 \(result.completed ? 0 : changed)개\n" + result.message
             if let plan = self.plan {
+                let currentNames = Dictionary(uniqueKeysWithValues: result.mapping.map { (TagStore.key($0.key), $0.value.lastPathComponent) })
                 self.plan?.rows = plan.rows.map { row in
                     var updated = row
                     if result.completed { updated.issue = "완료" }
@@ -118,7 +154,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
                     else if result.mapping.isEmpty && result.journalURL == nil { updated.issue = "실행 전 확인 실패 · 변경 안 함" }
                     else {
                         let old = TagStore.key(self.folder.appendingPathComponent(row.original))
-                        let current = result.mapping.first { TagStore.key($0.key) == old }?.value.lastPathComponent ?? "위치 확인 불가"
+                        let current = currentNames[old] ?? "위치 확인 불가"
                         updated.issue = "복구 확인 필요 · " + current
                     }
                     return updated
@@ -130,8 +166,19 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
         if let recoveryURL { engine.recover(recoveryURL, folder: folder, tagStore: tags, lease: lease, progress: update, completion: finish) }
         else if let plan { engine.execute(plan, tagStore: tags, lease: lease, progress: update, completion: finish) }
     }
+    func invalidatePreviewForDeviceChange() {
+        guard !busy else { return }
+        stalePreview = true; previewGeneration = UUID(); previewOperation?.cancel(); delayedPreview?.cancel()
+        run.isEnabled = false
+        for field in [base, separator, start] { field.isEnabled = false }; digits.isEnabled = false
+        outcome.stringValue = "저장장치 상태가 변경됐습니다. 파일은 변경하지 않았습니다. 닫고 폴더를 다시 확인한 뒤 미리보기를 여세요."
+    }
     func windowShouldClose(_ sender: NSWindow) -> Bool { !busy }
-    private func notifyClose() { if !notifiedClose { notifiedClose = true; onClose?() } }
+    private func notifyClose() {
+        if !notifiedClose {
+            notifiedClose = true; previewGeneration = UUID(); previewOperation?.cancel(); delayedPreview?.cancel(); onClose?()
+        }
+    }
     func windowWillClose(_ notification: Notification) {
         if let window, let parent = window.sheetParent { parent.endSheet(window) }
         notifyClose()

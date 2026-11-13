@@ -59,6 +59,7 @@ final class PhotoSortMetadata {
         let queue = OperationQueue(); queue.maxConcurrentOperationCount = 1
         queue.qualityOfService = .utility; return queue
     }()
+    func clear() { queue.addBarrierBlock { [weak self] in self?.cache.removeAll() } }
     func remapFiles(_ mapping: [URL: URL]) {
         queue.addBarrierBlock { [weak self] in
             guard let self else { return }

@@ -373,11 +373,15 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             object: nil, queue: .main) { [weak self] _ in
                 guard let self else { return }
                 self.pipeline.clear(); self.thumbnails.clear(); self.tree.refresh(all: true)
+                self.sortRequest?.cancel(); self.sortGeneration = UUID(); self.sorting = false; self.folderLoading = false
+                self.renamePreparation?.cancel(); self.sortMetadata.clear()
+                if !self.renameBusy { self.preparingRename = false; self.renameWindow?.invalidatePreviewForDeviceChange() }
                 self.generation = UUID(); self.imageGeneration = UUID(); self.displayed = nil
                 self.previewError = "저장장치 변경 감지 — 새로고침하거나 폴더를 다시 선택하세요"
                 self.viewer?.canvas.decoded = nil; self.preview.clear()
                 self.viewer?.hud.stringValue = "저장장치 변경 감지 — Esc로 돌아가 폴더를 다시 선택하세요"
                 self.setStatus("저장장치 변경 감지 — 새로고침하거나 폴더를 다시 선택하세요", error: true)
+                self.updateBadges()
             }
         screenObserver = NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
             object: nil, queue: .main) { [weak self] _ in self?.fitToCurrentScreen() }
@@ -594,7 +598,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     @objc func openBatchRename() {
         guard !fileManagementActive, !sorting, !isTrashing, !finishingTagWrites, let folder = currentFolder, let lease else { return }
         preparingRename = true; updateBadges(); let token = generation
-        let order = appliedSortOrder
+        let order = appliedSortOrder, volume = BatchRenameEngine.volume(folder).0
         setStatus("현재 폴더의 전체 사진 미리보기 준비 중…")
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
@@ -610,14 +614,14 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 case .success(let value):
                     if let journal = value.0 {
                         self.preparingRename = false
-                        self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, recovery: journal)
+                        self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal)
                     } else {
                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
                             self.preparingRename = false
                             let photos = sorted.filter(RenamePlan.isTargetPhoto)
                             guard !photos.isEmpty else { self.updateBadges(); self.batchError("현재 폴더에 변경할 사진이 없습니다."); return }
-                            self.presentRename(folder: folder, photos: photos, names: value.2, orderTitle: order.title, lease: lease, recovery: nil)
+                            self.presentRename(folder: folder, photos: photos, names: value.2, orderTitle: order.title, lease: lease, volume: volume, recovery: nil)
                         }
                     }
                 }
@@ -630,8 +634,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         alert.addButton(withTitle: "확인")
         if let window { alert.beginSheetModal(for: window) }
     }
-    private func presentRename(folder: URL, photos: [BrowserEntry], names: Set<String>, orderTitle: String, lease: FolderLease, recovery: URL?) {
-        let controller = BatchRenameWindow(folder: folder, photos: photos, existingNames: names, orderTitle: orderTitle, engine: renameEngine, tags: tagStore, lease: lease, recoveryURL: recovery)
+    private func presentRename(folder: URL, photos: [BrowserEntry], names: Set<String>, orderTitle: String, lease: FolderLease, volume: String?, recovery: URL?) {
+        let controller = BatchRenameWindow(folder: folder, photos: photos, existingNames: names, orderTitle: orderTitle, engine: renameEngine, tags: tagStore, lease: lease, sourceVolumeUUID: volume, recoveryURL: recovery)
         renameWindow = controller; updateBadges()
         controller.onBusy = { [weak self] in
             guard let self else { return }
