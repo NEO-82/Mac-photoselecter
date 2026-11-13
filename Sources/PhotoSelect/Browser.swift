@@ -126,7 +126,7 @@ final class PreviewPane: ProSurfaceView {
         filename.toolTip = nil; detail.stringValue = ""; detail.toolTip = nil; tagMarker.isHidden = true
     }
     func select(_ photo: Photo) {
-        imageView.image = nil; filename.stringValue = photo.url.lastPathComponent
+        filename.stringValue = photo.url.lastPathComponent
         filename.toolTip = photo.url.path; detail.stringValue = "불러오는 중…"; detail.toolTip = nil
     }
     func display(_ decoded: DecodedImage) {
@@ -141,7 +141,7 @@ final class PreviewPane: ProSurfaceView {
 }
 
 final class BrowserController: NSWindowController, NSCollectionViewDataSource, NSCollectionViewDelegate, NSWindowDelegate, NSSplitViewDelegate, NSMenuItemValidation {
-    private let pipeline = ImagePipeline()
+    private let pipeline: ImagePipeline
     private let thumbnails = ImagePipeline(cacheLimit: 96 * 1024 * 1024)
     private let tree = FolderTree()
     private let grid = PhotoCollectionView()
@@ -174,6 +174,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var imageGeneration = UUID()
     private var viewer: ViewerController?
     private var displayed: DecodedImage?
+    private var loading = false
+    private var navigationDirection = 1
+    private var previousPhotoIndex: Int?
+    private(set) var navigationSamples: [[String: Double]] = []
     private var previewError: String?
     private var actionMessage: String?
     private var isTrashing = false
@@ -184,7 +188,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let logger = Logger(subsystem: "dev.photoselect", category: "navigation")
 
     init(tagStore: TagStore = TagStore(), trashService: PhotoTrash = PhotoTrash(),
-         initialFolder: URL? = FileManager.default.homeDirectoryForCurrentUser) {
+         initialFolder: URL? = FileManager.default.homeDirectoryForCurrentUser, pipeline: ImagePipeline = ImagePipeline()) {
+        self.pipeline = pipeline
         self.tagStore = tagStore; self.trashService = trashService
         let available = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 800),
@@ -505,6 +510,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     private func loadFolder(_ url: URL, lease: FolderLease) {
         generation = UUID(); let token = generation
+        previousPhotoIndex = nil; loading = false
         imageGeneration = UUID(); allEntries = []; entries = []; selectedURL = nil; list.replace(with: []); pipeline.clear(); thumbnails.clear()
         viewer?.close(); displayed = nil; previewError = nil; preview.clear()
         self.lease = lease; currentFolder = url; actionMessage = nil
@@ -667,39 +673,47 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     private func showPhoto(_ index: Int) {
         guard let lease, list.select(index), let photo = list.selectedPhoto else { return }
+        let start = ProcessInfo.processInfo.systemUptime
         selectedURL = photo.url
         // Keep useful neighboring work alive. Only this UI subscriber is canceled.
         request?.cancel()
         imageGeneration = UUID(); let token = imageGeneration
-        let neighbors = [index - 1, index + 1].filter { list.photos.indices.contains($0) }.map { list.photos[$0] }
+        if let previousPhotoIndex, previousPhotoIndex != index { navigationDirection = index > previousPhotoIndex ? 1 : -1 }
+        previousPhotoIndex = index
+        let neighbors = [index + navigationDirection, index + 2 * navigationDirection,
+                         index - navigationDirection].filter { list.photos.indices.contains($0) }.map { list.photos[$0] }
         pipeline.retain(photos: [photo] + neighbors)
-        previewError = nil; actionMessage = nil
+        loading = false; previewError = nil; actionMessage = nil
         preview.filename.stringValue = photo.url.lastPathComponent
         preview.filename.toolTip = photo.url.path
         viewer?.window?.title = photo.url.lastPathComponent + " — " + AppBranding.displayName
         synchronizeGrid(); updateBadges()
         setStatus("\(currentFolder?.path ?? "") — \(entries.count)개 항목 · 1장 선택")
-        let start = ProcessInfo.processInfo.systemUptime
         if let cached = pipeline.cached(photo, quality: .preview) {
             displayed = cached; viewer?.canvas.decoded = cached; preview.display(cached); updateHUD()
+            recordNavigation(start: start, hit: true)
             logger.info("preview cacheHit=true latencyMs=\((ProcessInfo.processInfo.systemUptime - start) * 1000)")
         } else {
             // A loading state is preferable to enlarging a thumbnail or showing
             // a different source that would change sharpness/color a moment later.
-            displayed = nil; viewer?.canvas.decoded = nil; preview.select(photo)
-            viewer?.hud.stringValue = photo.url.lastPathComponent + " — 고해상도 프리뷰 읽는 중…"
+            loading = true; preview.select(photo)
+            preview.detail.stringValue = "읽는 중…" + (displayed != nil ? " · 이전 사진 유지" : "")
+            updateHUD(); updateBadges()
             request = pipeline.load(photo, lease: lease, quality: .preview) { [weak self] result, hit in
                 guard let self, self.imageGeneration == token else { return }
                 let ms = (ProcessInfo.processInfo.systemUptime - start) * 1000
                 self.logger.info("preview cacheHit=\(hit) latencyMs=\(ms)")
                 switch result {
                 case .success(let image):
+                    self.loading = false
                     self.displayed = image; self.viewer?.canvas.decoded = image
-                    self.preview.display(image); self.updateHUD()
+                    self.preview.display(image); self.updateHUD(); self.updateBadges()
+                    self.recordNavigation(start: start, hit: hit)
                 case .failure(let error):
+                    self.loading = false
                     self.previewError = error.localizedDescription
                     self.preview.detail.stringValue = error.localizedDescription
-                    self.viewer?.hud.stringValue = error.localizedDescription + " — ←/→ 계속 탐색 · Esc 복귀"
+                    self.updateHUD(); self.updateBadges()
                 }
             }
         }
@@ -708,8 +722,19 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             pipeline.load(neighbor, lease: lease, quality: .preview, prefetch: true) { _, _ in }
         }
     }
+    private func recordNavigation(start: TimeInterval, hit: Bool) {
+        navigationSamples.append(["requestToApplyMs": (ProcessInfo.processInfo.systemUptime - start) * 1000,
+                                  "cacheHit": hit ? 1 : 0, "index": Double(list.selectedIndex ?? -1)])
+        if navigationSamples.count > 256 { navigationSamples.removeFirst() }
+    }
     private func updateHUD() {
-        guard let photo = list.selectedPhoto, let index = list.selectedIndex, let displayed else { return }
+        guard let photo = list.selectedPhoto, let index = list.selectedIndex else { return }
+        if loading || previewError != nil {
+            viewer?.hud.stringValue = photo.url.lastPathComponent + " — " + (previewError ?? "읽는 중…") +
+                (displayed != nil ? " · 이전 사진 유지" : "") + " — ←/→ 탐색 · Esc 복귀"
+            return
+        }
+        guard let displayed else { return }
         let quality = displayed.qualityDescription
         viewer?.hud.stringValue = "\(index + 1)/\(list.photos.count)  \(photo.url.lastPathComponent)  \(quality)\n←/→ 탐색 · 누르는 동안 100% · \\ 태그 · Delete 휴지통 · Esc/더블클릭 복귀" + (actionMessage.map { "\n" + $0 } ?? "")
     }
@@ -720,7 +745,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         let tagged = list.selectedPhoto.map { taggedPaths.contains(TagStore.key($0.url)) } ?? false
         tagButton.contentTintColor = tagged ? ProTheme.accent : nil
         tagButton.state = tagged ? .on : .off
-        preview.tagMarker.isHidden = !tagged; viewer?.tagMarker.isHidden = !tagged
+        preview.tagMarker.isHidden = !tagged || loading || previewError != nil; viewer?.tagMarker.isHidden = preview.tagMarker.isHidden
         for case let item as ThumbnailItem in grid.visibleItems() {
             item.tagMarker.isHidden = !(item.representedURL.map { taggedPaths.contains(TagStore.key($0)) } ?? false)
         }

@@ -31,6 +31,10 @@ final class TagMarkerView: NSView {
 
 final class PhotoCanvas: NSView {
     var decoded: DecodedImage? { didSet { needsDisplay = true } }
+    private(set) var drawnFrames = 0
+    private(set) var emptyFramesAfterImage = 0
+    private(set) var lastDrawMs: Double = 0
+    private var hasDrawnImage = false
     var zoomChanged: ((Bool) -> Void)?
     var navigate: ((Int) -> Void)?
     var close: (() -> Void)?
@@ -42,6 +46,11 @@ final class PhotoCanvas: NSView {
     private var cursor = CGPoint.zero
     override var acceptsFirstResponder: Bool { true }
     override func draw(_ dirtyRect: NSRect) {
+        let start = ProcessInfo.processInfo.systemUptime
+        defer { lastDrawMs = (ProcessInfo.processInfo.systemUptime - start) * 1000 }
+        drawnFrames += 1
+        if decoded == nil && hasDrawnImage { emptyFramesAfterImage += 1 }
+        if decoded != nil { hasDrawnImage = true }
         NSColor.black.setFill(); bounds.fill()
         guard let decoded, let context = NSGraphicsContext.current?.cgContext else { return }
         let image = decoded.image

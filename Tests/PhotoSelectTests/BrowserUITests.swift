@@ -120,6 +120,117 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    func testNavigationKeepsLastFrameRejectsStaleCompletionAndSurvivesFailure() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        for name in ["1.jpg", "2.jpg", "3.jpg", "4.jpg"] { try jpegData().write(to: root.appendingPathComponent(name)) }
+        let source = try XCTUnwrap(CGImageSourceCreateWithData(jpegData() as CFData, nil))
+        let bitmap = try XCTUnwrap(CGImageSourceCreateImageAtIndex(source, 0, nil))
+        let image = DecodedImage(image: bitmap, sourceSize: CGSize(width: 20, height: 10), fullResolution: true, raw: false)
+        let release = DispatchSemaphore(value: 0)
+        defer { release.signal() }
+        let pipeline = ImagePipeline(decoder: { url, _ in
+            if url.lastPathComponent == "2.jpg" { _ = release.wait(timeout: .now() + 10) }
+            if url.lastPathComponent == "4.jpg" { throw CocoaError(.fileReadCorruptFile) }
+            return image
+        })
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: root, pipeline: pipeline)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        waitUntil("initial frame") { !browser.navigationSamples.isEmpty }
+        browser.openSelectedPhoto()
+        let window = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        defer { window.close() }
+        let canvas = try XCTUnwrap(window.contentView as? PhotoCanvas)
+        canvas.display()
+        browser.nextPhoto()
+        XCTAssertTrue(canvas.decoded?.image === bitmap)
+        XCTAssertTrue(descendants(canvas).compactMap { $0 as? NSTextField }.contains { $0.stringValue.contains("이전 사진 유지") })
+        canvas.display()
+        browser.nextPhoto()
+        waitUntil("latest target replaces held frame") { browser.navigationSamples.count == 2 }
+        release.signal()
+        let drained = expectation(description: "stale result drained")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { drained.fulfill() }
+        wait(for: [drained], timeout: 2)
+        XCTAssertTrue(window.title.hasPrefix("3.jpg"))
+        XCTAssertEqual(browser.navigationSamples.count, 2)
+        browser.nextPhoto()
+        waitUntil("failed target is clearly labeled") {
+            self.descendants(canvas).compactMap { $0 as? NSTextField }.contains { $0.stringValue.contains("이전 사진 유지") && !$0.stringValue.contains("읽는 중") }
+        }
+        canvas.display()
+        XCTAssertNotNil(canvas.decoded)
+        XCTAssertEqual(canvas.emptyFramesAfterImage, 0)
+        browser.previousPhoto()
+        XCTAssertEqual(browser.navigationSamples.last?["cacheHit"], 1)
+        XCTAssertLessThan(browser.navigationSamples.last?["requestToApplyMs"] ?? 1000, 100)
+    }
+
+    @MainActor
+    func testRealA7M4NavigationBenchmark() throws {
+        _ = NSApplication.shared
+        guard let directory = ProcessInfo.processInfo.environment["PHOTOSELECT_ARW_SAMPLE_DIRECTORY"] else { throw XCTSkip("Sony samples required") }
+        let root = try folder(), original = URL(fileURLWithPath: directory).appendingPathComponent("Sony-A7M4.ARW")
+        for index in 0..<12 {
+            try FileManager.default.linkItem(at: original, to: root.appendingPathComponent(String(format: "%02d.ARW", index)))
+        }
+        let pipeline = ImagePipeline()
+        let start = ProcessInfo.processInfo.systemUptime
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: root, pipeline: pipeline)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        waitUntil("first Sony image", timeout: 30) { !browser.navigationSamples.isEmpty }
+        let firstMs = (ProcessInfo.processInfo.systemUptime - start) * 1000
+        browser.openSelectedPhoto()
+        let window = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        defer { window.close() }
+        let canvas = try XCTUnwrap(window.contentView as? PhotoCanvas)
+        canvas.display()
+        var scenarios: [String: Any] = [:]
+        func navigate(_ name: String, steps: Int, forward: Bool) {
+            let start = ProcessInfo.processInfo.systemUptime, before = browser.navigationSamples.count
+            var draws: [Double] = []
+            for _ in 0..<steps {
+                let count = browser.navigationSamples.count
+                if forward { browser.nextPhoto() } else { browser.previousPhoto() }
+                canvas.display()
+                waitUntil(name, timeout: 30) { browser.navigationSamples.count > count }
+                canvas.display(); draws.append(canvas.lastDrawMs)
+            }
+            scenarios[name] = ["totalMs": (ProcessInfo.processInfo.systemUptime - start) * 1000,
+                "requests": Array(browser.navigationSamples.dropFirst(before)), "drawMs": draws]
+        }
+        navigate("forward10", steps: 10, forward: true)
+        navigate("reverse10", steps: 10, forward: false)
+        navigate("forward10Again", steps: 10, forward: true)
+        navigate("back5", steps: 5, forward: false)
+        // Rapid input without awaiting each intermediate target.
+        for _ in 0..<5 { browser.previousPhoto(); canvas.display() }
+        waitUntil("rapid final target", timeout: 30) { window.title.hasPrefix("00.ARW") && browser.navigationSamples.last?["index"] == 0 }
+        canvas.display()
+        XCTAssertEqual(canvas.emptyFramesAfterImage, 0)
+        let hitTimes = browser.navigationSamples.filter { $0["cacheHit"] == 1 }.compactMap { $0["requestToApplyMs"] }
+        XCTAssertFalse(hitTimes.isEmpty)
+        XCTAssertLessThan(hitTimes.max() ?? 1000, 100)
+        #if DEBUG
+        let configuration = "Debug"
+        #else
+        let configuration = "Release"
+        #endif
+        if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+            let evidence: [String: Any] = ["configuration": configuration, "fixture": "12 distinct paths hard-linked to one real Sony A7M4 file; same pixel contents",
+                "firstFolderToImageMs": firstMs, "scenarios": scenarios, "cacheHitApplyMaxMs": hitTimes.max() ?? 0,
+                "navigationRequests": browser.navigationSamples, "emptyDrawsAfterFirstImage": canvas.emptyFramesAfterImage,
+                "drawnFrames": canvas.drawnFrames, "pipeline": pipeline.diagnostics,
+                "physicalMemoryBytes": ProcessInfo.processInfo.physicalMemory, "cacheBudgetBytes": ImagePipeline.defaultCacheLimit,
+                "limitation": "Intel macOS CI; warm OS file cache; draw callback timing, not GPU presentation or M1 Pro/SSD comparison"]
+            let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("arw-navigation.json")
+            try JSONSerialization.data(withJSONObject: evidence, options: [.prettyPrinted, .sortedKeys]).write(to: output)
+        }
+    }
+
+    @MainActor
     func testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths() throws {
         _ = NSApplication.shared
         let root = try folder(), metadata = try folder()

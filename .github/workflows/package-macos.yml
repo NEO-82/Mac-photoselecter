@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.5.4'
+        default: '0.5.5'
         type: string
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.5.4' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.5.5' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
   PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
@@ -68,9 +68,9 @@ jobs:
           import xml.etree.ElementTree as ET
           root = ET.parse('.build/release-preview-results.xml').getroot()
           cases = list(root.iter('testcase'))
-          assert len(cases) == 3, f'Expected 3 optimized RAW checks, got {len(cases)}'
+          assert len(cases) == 4, f'Expected 4 optimized RAW checks, got {len(cases)}'
           assert not any(case.find(tag) is not None for case in cases for tag in ('failure', 'error', 'skipped'))
-          print('Verified 3 Release RAW preview checks executed without failures or skips')
+          print('Verified 4 Release RAW preview checks executed without failures or skips')
           PYTEST
           icon_mount="$RUNNER_TEMP/photoselect-icon-mount"
           mkdir -p "$icon_mount"

@@ -246,6 +246,22 @@ final class ImagePipelineTests: XCTestCase {
         XCTAssertNil(cache.value(for: "previous"))
         cache.clear(); XCTAssertNil(cache.value(for: "current"))
     }
+    func testMemoryPressureKeepsSelectedBitmapAndActiveForegroundCompletion() throws {
+        let root = try folder(), url = root.appendingPathComponent("tiny.jpg")
+        try jpeg(width: 20, height: 10).write(to: url)
+        let image = try load(ImagePipeline(), url).0
+        let cache = BitmapCache(limit: 1024 * 1024)
+        cache.pin("selected"); cache.insert(image, for: "selected"); cache.insert(image, for: "history")
+        cache.trim()
+        XCTAssertNotNil(cache.value(for: "selected")); XCTAssertNil(cache.value(for: "history"))
+        let entered = expectation(description: "active foreground"), done = expectation(description: "foreground survives pressure")
+        let release = DispatchSemaphore(value: 0)
+        let pipeline = ImagePipeline(decoder: { _, _ in entered.fulfill(); _ = release.wait(timeout: .now() + 5); return image })
+        pipeline.load(Photo(url: url), lease: FolderLease(root), quality: .preview) { result, _ in XCTAssertNotNil(try? result.get()); done.fulfill() }
+        wait(for: [entered], timeout: 2)
+        pipeline.handleMemoryPressure(); release.signal()
+        wait(for: [done], timeout: 3)
+    }
     private func realSample(_ name: String) throws -> URL {
         guard let directory = ProcessInfo.processInfo.environment["PHOTOSELECT_ARW_SAMPLE_DIRECTORY"] else {
             throw XCTSkip("실제 Sony ARW fixture 경로가 지정되지 않았습니다.")

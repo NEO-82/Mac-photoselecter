@@ -1,5 +1,6 @@
 import AppKit
 import ImageIO
+import OSLog
 
 struct DecodedImage {
     enum Provenance: Equatable { case jpegOriginal, embeddedJPEG }
@@ -72,6 +73,14 @@ final class BitmapCache {
         }
         if let oldKey, let oldValue { insertLocked(oldValue, for: oldKey) }
     }
+    var residentBytes: Int {
+        lock.lock(); defer { lock.unlock() }
+        return total + (pinnedValue.map { $0.image.bytesPerRow * $0.image.height } ?? 0)
+    }
+    func trim() {
+        lock.lock(); defer { lock.unlock() }
+        entries.removeAll(); total = 0
+    }
     func clear() {
         lock.lock(); defer { lock.unlock() }
         entries.removeAll(); total = 0; pinnedKey = nil; pinnedValue = nil
@@ -85,7 +94,7 @@ private final class EmbeddedSourceCache {
     private var entries: [URL: (value: EmbeddedJPEG, age: UInt64)] = [:]
     private var clock: UInt64 = 0
     private var bytes = 0
-    private let limit = 64 * 1024 * 1024
+    private let limit = 128 * 1024 * 1024
     func value(for url: URL) -> EmbeddedJPEG? {
         lock.lock(); defer { lock.unlock() }
         guard let entry = entries[url] else { return nil }
@@ -95,7 +104,7 @@ private final class EmbeddedSourceCache {
         guard value.data.count <= limit else { return }
         lock.lock(); defer { lock.unlock() }
         if let old = entries.removeValue(forKey: url) { bytes -= old.value.data.count }
-        while bytes + value.data.count > limit || entries.count >= 4 {
+        while bytes + value.data.count > limit {
             guard let key = entries.min(by: { $0.value.age < $1.value.age })?.key,
                   let old = entries.removeValue(forKey: key) else { break }
             bytes -= old.value.data.count
@@ -116,16 +125,22 @@ final class ImagePipeline {
         let completion: (Result<DecodedImage, Error>, Bool) -> Void
     }
     private final class Work {
-        let operation = BlockOperation()
+        var operation = BlockOperation()
+        var started = false
         let url: URL
         let epoch: UInt64
         var subscribers: [Subscriber] = []
         var prefetch = false
+        var foreground = false
         init(url: URL, epoch: UInt64) { self.url = url; self.epoch = epoch }
     }
     private let queue: OperationQueue = {
         let q = OperationQueue(); q.maxConcurrentOperationCount = 2
         q.qualityOfService = .userInitiated; return q
+    }()
+    private let speculative: OperationQueue = {
+        let q = OperationQueue(); q.maxConcurrentOperationCount = 1
+        q.qualityOfService = .utility; return q
     }()
     private let lock = NSLock()
     private var works: [String: Work] = [:]
@@ -134,13 +149,42 @@ final class ImagePipeline {
     private let embedded = EmbeddedSourceCache()
     private let injectedDecoder: Decoder?
 
-    init(cacheLimit: Int = 512 * 1024 * 1024, decoder: Decoder? = nil) {
-        cache = BitmapCache(limit: cacheLimit); injectedDecoder = decoder
+    private var pressure: DispatchSourceMemoryPressure?
+    private let metricsLock = NSLock()
+    private var measurements: [[String: Double]] = []
+    private var hits = 0, misses = 0
+    static var defaultCacheLimit: Int { Int(min(ProcessInfo.processInfo.physicalMemory / 8, 1536 * 1024 * 1024)) }
+    var diagnostics: [String: Any] {
+        metricsLock.lock(); defer { metricsLock.unlock() }
+        return ["hits": hits, "misses": misses, "residentBitmapBytes": cache.residentBytes, "stages": measurements]
     }
+    private func measure(_ values: [String: Double]) {
+        metricsLock.lock(); defer { metricsLock.unlock() }
+        measurements.append(values)
+        if measurements.count > 256 { measurements.removeFirst() }
+    }
+    func handleMemoryPressure() {
+        lock.lock(); defer { lock.unlock() }
+        cache.trim(); embedded.clear()
+        for key in works.compactMap({ !$0.value.foreground && !$0.value.started ? $0.key : nil }) {
+            if let work = works.removeValue(forKey: key) { work.operation.cancel() }
+        }
+    }
+    init(cacheLimit: Int = ImagePipeline.defaultCacheLimit, decoder: Decoder? = nil) {
+        cache = BitmapCache(limit: cacheLimit); injectedDecoder = decoder
+        let source = DispatchSource.makeMemoryPressureSource(eventMask: [.warning, .critical], queue: .global(qos: .utility))
+        source.setEventHandler { [weak self] in self?.handleMemoryPressure() }
+        source.resume(); pressure = source
+    }
+    deinit { pressure?.cancel() }
     private func key(_ photo: Photo, _ quality: Quality) -> String {
         photo.url.standardizedFileURL.path + (quality == .thumbnail ? "|thumbnail" : "|display")
     }
-    func cached(_ photo: Photo, quality: Quality) -> DecodedImage? { cache.value(for: key(photo, quality)) }
+    func cached(_ photo: Photo, quality: Quality) -> DecodedImage? {
+        let value = cache.value(for: key(photo, quality))
+        metricsLock.lock(); if value != nil { hits += 1 } else { misses += 1 }; metricsLock.unlock()
+        return value
+    }
 
     // Keep the selected image first. Preserve and promote in-flight neighbors;
     // cancel only work outside the current navigation window, not every switch.
@@ -148,8 +192,11 @@ final class ImagePipeline {
         let urls = Set(photos.map(\.url))
         lock.lock()
         for key in works.compactMap({ urls.contains($0.value.url) ? nil : $0.key }) {
-            if let work = works.removeValue(forKey: key) {
-                work.operation.cancel(); work.subscribers.forEach { $0.ticket.cancel() }
+            if let work = works[key] {
+                // Running synchronous decoders stay registered for sharing on reversal.
+                // Obsolete queued work is removed before it can compete with the selection.
+                work.subscribers.forEach { $0.ticket.cancel() }
+                if !work.started { works.removeValue(forKey: key); work.operation.cancel() }
             }
         }
         cache.pin(photos.first.map { key($0, .preview) })
@@ -177,6 +224,7 @@ final class ImagePipeline {
         let cacheKey = key(photo, quality)
         lock.lock()
         if let value = cache.value(for: cacheKey) {
+            metricsLock.lock(); hits += 1; metricsLock.unlock()
             let generation = epoch
             lock.unlock()
             DispatchQueue.main.async { [weak self] in
@@ -186,49 +234,67 @@ final class ImagePipeline {
             }
             return nil
         }
+        metricsLock.lock(); misses += 1; metricsLock.unlock()
         // A subscriber owns its cancellation ticket, not a shared decoder.
         let ticket = BlockOperation()
         let subscriber = Subscriber(ticket: ticket, completion: completion)
         if let existing = works[cacheKey], !existing.operation.isCancelled {
             existing.subscribers.append(subscriber)
+            existing.foreground = existing.foreground || !prefetch
             existing.prefetch = existing.prefetch || prefetch
+            if !prefetch && !existing.started && existing.prefetch {
+                // Move a queued prefetch to the foreground lane without duplicating decode.
+                existing.operation.cancel()
+                let promoted = BlockOperation()
+                existing.operation = promoted
+                promoted.queuePriority = .veryHigh
+                promoted.addExecutionBlock { [weak self, weak existing] in
+                    guard let self, let existing else { return }
+                    self.execute(existing, cacheKey: cacheKey, lease: lease, quality: quality)
+                }
+                lock.unlock(); queue.addOperation(promoted); return ticket
+            }
             if !prefetch { existing.operation.queuePriority = .veryHigh }
             lock.unlock(); return ticket
         }
         let work = Work(url: photo.url, epoch: epoch)
-        work.subscribers = [subscriber]; work.prefetch = prefetch
+        work.subscribers = [subscriber]; work.prefetch = prefetch; work.foreground = !prefetch
         work.operation.queuePriority = prefetch ? .veryLow : .veryHigh
         works[cacheKey] = work
         let decodeQuality: Quality = quality == .thumbnail ? .thumbnail : .preview
         work.operation.addExecutionBlock { [weak self, weak work] in
-            guard let self, let work, !work.operation.isCancelled else { return }
-            self.lock.lock()
-            let interested = work.prefetch || work.subscribers.contains { !$0.ticket.isCancelled }
-            if !interested, self.works[cacheKey] === work { self.works.removeValue(forKey: cacheKey) }
-            self.lock.unlock()
-            guard interested else { return }
-            let result: Result<DecodedImage, Error> = withExtendedLifetime(lease) {
-                autoreleasepool { Result { try self.injectedDecoder?(photo.url, decodeQuality) ?? self.decode(photo.url, quality: decodeQuality, generation: work.epoch) } }
-            }
-            self.lock.lock()
-            let valid = self.epoch == work.epoch
-            // A synchronous JPEG decoder cannot be interrupted. Its valid result
-            // still warms the cache even if the user navigated away meanwhile.
-            if valid, case .success(let image) = result { self.cache.insert(image, for: cacheKey) }
-            let subscribers = work.subscribers
-            if self.works[cacheKey] === work { self.works.removeValue(forKey: cacheKey) }
-            self.lock.unlock()
-            guard valid else { return }
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
-                self.lock.lock(); let current = self.epoch == work.epoch; self.lock.unlock()
-                guard current, !work.operation.isCancelled else { return }
-                for subscriber in subscribers where !subscriber.ticket.isCancelled { subscriber.completion(result, false) }
-            }
+            guard let self, let work else { return }
+            self.execute(work, cacheKey: cacheKey, lease: lease, quality: decodeQuality)
         }
         lock.unlock()
-        queue.addOperation(work.operation)
+        (prefetch ? speculative : queue).addOperation(work.operation)
         return ticket
+    }
+    private func execute(_ work: Work, cacheKey: String, lease: FolderLease, quality: Quality) {
+        lock.lock()
+        guard !work.started, !work.operation.isCancelled, works[cacheKey] === work else { lock.unlock(); return }
+        let interested = work.prefetch || work.subscribers.contains { !$0.ticket.isCancelled }
+        guard interested else { works.removeValue(forKey: cacheKey); lock.unlock(); return }
+        work.started = true
+        lock.unlock()
+        let start = ProcessInfo.processInfo.systemUptime
+        let result: Result<DecodedImage, Error> = withExtendedLifetime(lease) {
+            autoreleasepool { Result { try injectedDecoder?(work.url, quality == .thumbnail ? .thumbnail : .preview) ?? decode(work.url, quality: quality == .thumbnail ? .thumbnail : .preview, generation: work.epoch) } }
+        }
+        measure(["totalDecodeMs": (ProcessInfo.processInfo.systemUptime - start) * 1000])
+        lock.lock()
+        let valid = epoch == work.epoch
+        if valid, case .success(let image) = result { cache.insert(image, for: cacheKey) }
+        let subscribers = work.subscribers
+        if works[cacheKey] === work { works.removeValue(forKey: cacheKey) }
+        lock.unlock()
+        guard valid else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.lock.lock(); let current = self.epoch == work.epoch; self.lock.unlock()
+            guard current, !work.operation.isCancelled else { return }
+            for subscriber in subscribers where !subscriber.ticket.isCancelled { subscriber.completion(result, false) }
+        }
     }
 
     private func decode(_ url: URL, quality: Quality, generation: UInt64) throws -> DecodedImage {
@@ -236,9 +302,11 @@ final class ImagePipeline {
         let source: CGImageSource
         let embeddedJPEG: EmbeddedJPEG?
         let jpegData: Data
+        let extractionStart = ProcessInfo.processInfo.systemUptime
+        var sourceHit = false
         if raw {
             let jpeg: EmbeddedJPEG
-            if let cached = embedded.value(for: url) { jpeg = cached }
+            if let cached = embedded.value(for: url) { jpeg = cached; sourceHit = true }
             else {
                 jpeg = try EmbeddedPreview.extract(from: url)
                 lock.lock()
@@ -256,6 +324,8 @@ final class ImagePipeline {
                     [kCGImageSourceShouldCache: false] as CFDictionary) else { throw failure("파일을 읽을 수 없습니다: \(url.lastPathComponent)") }
             source = jpegSource
         }
+        let extractionMs = (ProcessInfo.processInfo.systemUptime - extractionStart) * 1000
+        let decodeStart = ProcessInfo.processInfo.systemUptime
         let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] ?? [:]
         let width = (properties[kCGImagePropertyPixelWidth] as? NSNumber)?.intValue ?? 0
         let height = (properties[kCGImagePropertyPixelHeight] as? NSNumber)?.intValue ?? 0
@@ -295,7 +365,12 @@ final class ImagePipeline {
         } else {
             sourceSpace = CGColorSpace(name: CGColorSpace.sRGB); colorDescription = "색공간 정보 없음 · sRGB 가정"
         }
+        let jpegMs = (ProcessInfo.processInfo.systemUptime - decodeStart) * 1000
+        let normalizeStart = ProcessInfo.processInfo.systemUptime
         let normalized = try Self.normalized(image, orientation: orientation, sourceSpace: sourceSpace)
+        measure(["sourceReadExtractMs": extractionMs, "jpegDecodeMs": jpegMs,
+                 "normalizeMs": (ProcessInfo.processInfo.systemUptime - normalizeStart) * 1000,
+                 "compressedCacheHit": sourceHit ? 1 : 0])
         let sensor = embeddedJPEG?.sensorSize.map { size in
             (5...8).contains(orientation) ? CGSize(width: size.height, height: size.width) : size
         }
