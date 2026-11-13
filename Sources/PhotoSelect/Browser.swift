@@ -18,6 +18,17 @@ final class PhotoCollectionView: NSCollectionView {
     }
 }
 
+// Native switch cells can override attributed-title colors when drawing.
+// Keep the standard checkbox and draw only its label in the existing rose color.
+private final class TagFilterButtonCell: NSButtonCell {
+    override func drawTitle(_ title: NSAttributedString, withFrame frame: NSRect, in controlView: NSView) -> NSRect {
+        let label = NSMutableAttributedString(attributedString: title)
+        label.addAttribute(.foregroundColor, value: ProTheme.accent, range: NSRange(location: 0, length: label.length))
+        label.draw(in: frame)
+        return frame
+    }
+}
+
 final class ThumbnailItem: NSCollectionViewItem {
     var request: Operation?
     var representedURL: URL?
@@ -251,12 +262,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         let photoScroll = NSScrollView(); photoScroll.hasVerticalScroller = true; photoScroll.documentView = grid
         photoScroll.backgroundColor = ProTheme.canvas
         let folderPane = pane(title: "파일 탐색기", content: folderScroll)
+        taggedOnlyButton.cell = TagFilterButtonCell(textCell: "태그된 사진만 보기")
+        taggedOnlyButton.setButtonType(.switch)
         taggedOnlyButton.target = self; taggedOnlyButton.action = #selector(changeTagFilter)
         taggedOnlyButton.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserTagFilter")
         taggedOnlyButton.font = .systemFont(ofSize: 11, weight: .medium)
         taggedOnlyButton.contentTintColor = ProTheme.accent
-        taggedOnlyButton.attributedTitle = NSAttributedString(string: taggedOnlyButton.title,
-            attributes: [.foregroundColor: ProTheme.accent, .font: NSFont.systemFont(ofSize: 11, weight: .medium)])
         let photoPane = pane(title: "현재 폴더 · 모든 항목", content: photoScroll, filter: taggedOnlyButton)
         split.addArrangedSubview(folderPane); split.addArrangedSubview(photoPane); split.addArrangedSubview(preview)
         // setPosition alone is only an initial frame hint. Auto Layout can discard

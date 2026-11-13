@@ -203,6 +203,7 @@ final class BrowserUITests: XCTestCase {
         filter.performClick(nil)
         XCTAssertEqual(grid.numberOfItems(inSection: 0), 3)
         XCTAssertTrue(preview.imageView.image === image)
+        browser.window?.appearance = NSAppearance(named: .darkAqua)
         try saveBrowserSnapshot(try XCTUnwrap(browser.window), name: "browser-mixed-tagged.png")
         filter.performClick(nil)
         XCTAssertEqual(grid.numberOfItems(inSection: 0), 4)
