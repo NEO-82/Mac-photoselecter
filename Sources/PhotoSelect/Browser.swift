@@ -687,7 +687,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         preview.filename.toolTip = photo.url.path
         viewer?.window?.title = photo.url.lastPathComponent + " — " + AppBranding.displayName
         if let cached = pipeline.cached(photo, quality: .preview) {
-            displayed = cached; viewer?.canvas.decoded = cached; preview.display(cached)
+            displayed = cached; viewer?.canvas.present(cached, requestedAt: start); preview.display(cached)
             recordNavigation(start: start, hit: true)
             updateHUD()
             logger.info("preview cacheHit=true latencyMs=\((ProcessInfo.processInfo.systemUptime - start) * 1000)")
@@ -705,7 +705,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 switch result {
                 case .success(let image):
                     self.loading = false
-                    self.displayed = image; self.viewer?.canvas.decoded = image
+                    self.displayed = image; self.viewer?.canvas.present(image, requestedAt: start)
                     self.preview.display(image); self.updateHUD(); self.updateBadges()
                     self.recordNavigation(start: start, hit: hit)
                 case .failure(let error):

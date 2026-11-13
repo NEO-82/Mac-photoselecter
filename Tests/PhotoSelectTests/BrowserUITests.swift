@@ -190,16 +190,16 @@ final class BrowserUITests: XCTestCase {
         var scenarios: [String: Any] = [:]
         func navigate(_ name: String, steps: Int, forward: Bool) {
             let start = ProcessInfo.processInfo.systemUptime, before = browser.navigationSamples.count
-            var draws: [Double] = []
+            var draws: [Double] = [], requestDraws: [Double] = []
             for _ in 0..<steps {
                 let count = browser.navigationSamples.count
                 if forward { browser.nextPhoto() } else { browser.previousPhoto() }
                 canvas.display()
                 waitUntil(name, timeout: 30) { browser.navigationSamples.count > count }
-                canvas.display(); draws.append(canvas.lastDrawMs)
+                canvas.display(); draws.append(canvas.lastDrawMs); requestDraws.append(canvas.lastRequestToDrawMs)
             }
             scenarios[name] = ["totalMs": (ProcessInfo.processInfo.systemUptime - start) * 1000,
-                "requests": Array(browser.navigationSamples.dropFirst(before)), "drawMs": draws]
+                "requests": Array(browser.navigationSamples.dropFirst(before)), "drawMs": draws, "requestToDrawMs": requestDraws]
         }
         navigate("forward10", steps: 10, forward: true)
         navigate("reverse10", steps: 10, forward: false)

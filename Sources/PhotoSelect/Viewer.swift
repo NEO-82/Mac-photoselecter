@@ -35,6 +35,14 @@ final class PhotoCanvas: NSView {
     private(set) var emptyFramesAfterImage = 0
     private(set) var lastDrawMs: Double = 0
     private var hasDrawnImage = false
+    private var pendingRequestStart: TimeInterval?
+    private(set) var lastRequestToDrawMs: Double = 0
+    func present(_ image: DecodedImage, requestedAt: TimeInterval) {
+        pendingRequestStart = requestedAt
+        decoded = image
+        // Render the ready frame before browser layout and speculative scheduling.
+        displayIfNeeded()
+    }
     var zoomChanged: ((Bool) -> Void)?
     var navigate: ((Int) -> Void)?
     var close: (() -> Void)?
@@ -47,7 +55,14 @@ final class PhotoCanvas: NSView {
     override var acceptsFirstResponder: Bool { true }
     override func draw(_ dirtyRect: NSRect) {
         let start = ProcessInfo.processInfo.systemUptime
-        defer { lastDrawMs = (ProcessInfo.processInfo.systemUptime - start) * 1000 }
+        defer {
+            let end = ProcessInfo.processInfo.systemUptime
+            lastDrawMs = (end - start) * 1000
+            if let pendingRequestStart {
+                lastRequestToDrawMs = (end - pendingRequestStart) * 1000
+                self.pendingRequestStart = nil
+            }
+        }
         drawnFrames += 1
         if decoded == nil && hasDrawnImage { emptyFramesAfterImage += 1 }
         if decoded != nil { hasDrawnImage = true }
