@@ -295,6 +295,7 @@ final class BrowserUITests: XCTestCase {
         waitUntil("ready for sort") { preview.imageView.image != nil }
         let nameButton = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-name" })
         nameButton.performClick(nil)
+        waitUntil("name direction applied") { !self.descendants(try! XCTUnwrap(browser.window?.contentView)).compactMap { $0 as? NSTextField }.contains { $0.stringValue.contains("사진 정렬 중") } }
         XCTAssertEqual(preview.filename.stringValue, "1.jpg")
         browser.previousPhoto()
         waitUntil("descending viewer order") { preview.filename.stringValue == "2.jpg" }

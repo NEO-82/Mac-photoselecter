@@ -583,10 +583,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     private func applyCurrentSort() {
         sortRequest?.cancel(); sortGeneration = UUID(); let token = sortGeneration
-        sorting = sortOrder.criterion == .captured
-        guard sorting, let lease else { appliedSortOrder = sortOrder; applyTagFilter(); return }
-        setStatus("촬영 시간 분석 중… 목록 순서는 분석 완료 후 한 번에 적용됩니다")
-        sortRequest = sortMetadata.prepare(allEntries, lease: lease) { [weak self] prepared in
+        guard let lease else { appliedSortOrder = sortOrder; applyTagFilter(); return }
+        sorting = true
+        setStatus(sortOrder.criterion == .captured ? "촬영 시간 분석 중… 목록 순서는 분석 완료 후 한 번에 적용됩니다" : "사진 정렬 중…")
+        sortRequest = sortMetadata.prepare(allEntries, order: sortOrder, lease: lease) { [weak self] prepared in
             guard let self, self.sortGeneration == token else { return }
             self.sorting = false; self.appliedSortOrder = self.sortOrder; self.allEntries = prepared; self.applyTagFilter()
         }
@@ -599,10 +599,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private func applyTagFilter() {
         let previousURL = selectedURL
         let previousIndex = list.selectedIndex ?? 0
-        let ordered = appliedSortOrder.arrange(allEntries)
         entries = taggedOnlyButton.state == .on
-            ? ordered.filter { $0.isPhoto && taggedPaths.contains(TagStore.key($0.url)) }
-            : ordered
+            ? allEntries.filter { $0.isPhoto && taggedPaths.contains(TagStore.key($0.url)) }
+            : allEntries
         list.replace(with: entries.filter(\.isPhoto).map { Photo(url: $0.url) })
         if list.photos.isEmpty { viewer?.close() }
         if let index = list.photos.firstIndex(where: { $0.url == previousURL }) {

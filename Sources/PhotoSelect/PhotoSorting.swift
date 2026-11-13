@@ -80,12 +80,12 @@ final class PhotoSortMetadata {
         return date
     }
     @discardableResult
-    func prepare(_ entries: [BrowserEntry], lease: FolderLease, completion: @escaping ([BrowserEntry]) -> Void) -> Operation {
+    func prepare(_ entries: [BrowserEntry], order: PhotoSortOrder = PhotoSortOrder(criterion: .captured, ascending: true), lease: FolderLease, completion: @escaping ([BrowserEntry]) -> Void) -> Operation {
         let operation = BlockOperation()
         operation.addExecutionBlock { [weak self, weak operation] in
             guard let self, let operation else { return }
             var result = entries
-            for index in result.indices where result[index].isPhoto {
+            for index in result.indices where order.criterion == .captured && result[index].isPhoto {
                 if operation.isCancelled { return }
                 autoreleasepool {
                     var url = result[index].url; url.removeAllCachedResourceValues()
@@ -102,7 +102,7 @@ final class PhotoSortMetadata {
                 }
             }
             if self.cache.count > 12_000 { self.cache.removeAll() }
-            let prepared = result
+            let prepared = order.arrange(result)
             DispatchQueue.main.async { if !operation.isCancelled { completion(prepared) } }
         }
         queue.addOperation(operation); return operation
