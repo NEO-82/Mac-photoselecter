@@ -528,6 +528,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             ? allEntries.filter { $0.isPhoto && taggedPaths.contains(TagStore.key($0.url)) }
             : allEntries
         list.replace(with: entries.filter(\.isPhoto).map { Photo(url: $0.url) })
+        if list.photos.isEmpty { viewer?.close() }
         if let index = list.photos.firstIndex(where: { $0.url == previousURL }) {
             list.select(index)
         } else if let previousURL, entries.contains(where: { $0.url == previousURL && !$0.isPhoto }) {
