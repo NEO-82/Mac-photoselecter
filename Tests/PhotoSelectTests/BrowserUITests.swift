@@ -175,7 +175,7 @@ final class BrowserUITests: XCTestCase {
         for index in 0..<12 {
             try FileManager.default.linkItem(at: original, to: root.appendingPathComponent(String(format: "%02d.ARW", index)))
         }
-        let pipeline = ImagePipeline()
+        let pipeline = ImagePipeline(foregroundConcurrency: 1)
         let start = ProcessInfo.processInfo.systemUptime
         let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: root, pipeline: pipeline)
         defer { browser.close() }

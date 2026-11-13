@@ -188,7 +188,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let logger = Logger(subsystem: "dev.photoselect", category: "navigation")
 
     init(tagStore: TagStore = TagStore(), trashService: PhotoTrash = PhotoTrash(),
-         initialFolder: URL? = FileManager.default.homeDirectoryForCurrentUser, pipeline: ImagePipeline = ImagePipeline()) {
+         initialFolder: URL? = FileManager.default.homeDirectoryForCurrentUser, pipeline: ImagePipeline = ImagePipeline(foregroundConcurrency: 1)) {
         self.pipeline = pipeline
         self.tagStore = tagStore; self.trashService = trashService
         let available = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)

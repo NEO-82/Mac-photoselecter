@@ -1,6 +1,5 @@
 import AppKit
 import ImageIO
-import OSLog
 
 struct DecodedImage {
     enum Provenance: Equatable { case jpegOriginal, embeddedJPEG }
@@ -129,6 +128,7 @@ final class ImagePipeline {
         var started = false
         let url: URL
         let epoch: UInt64
+        let queuedAt = ProcessInfo.processInfo.systemUptime
         var subscribers: [Subscriber] = []
         var prefetch = false
         var foreground = false
@@ -170,8 +170,9 @@ final class ImagePipeline {
             if let work = works.removeValue(forKey: key) { work.operation.cancel() }
         }
     }
-    init(cacheLimit: Int = ImagePipeline.defaultCacheLimit, decoder: Decoder? = nil) {
+    init(cacheLimit: Int = ImagePipeline.defaultCacheLimit, foregroundConcurrency: Int = 2, decoder: Decoder? = nil) {
         cache = BitmapCache(limit: cacheLimit); injectedDecoder = decoder
+        queue.maxConcurrentOperationCount = max(1, foregroundConcurrency)
         let source = DispatchSource.makeMemoryPressureSource(eventMask: [.warning, .critical], queue: .global(qos: .utility))
         source.setEventHandler { [weak self] in self?.handleMemoryPressure() }
         source.resume(); pressure = source
@@ -281,7 +282,8 @@ final class ImagePipeline {
         let result: Result<DecodedImage, Error> = withExtendedLifetime(lease) {
             autoreleasepool { Result { try injectedDecoder?(work.url, quality == .thumbnail ? .thumbnail : .preview) ?? decode(work.url, quality: quality == .thumbnail ? .thumbnail : .preview, generation: work.epoch) } }
         }
-        measure(["totalDecodeMs": (ProcessInfo.processInfo.systemUptime - start) * 1000])
+        measure(["totalDecodeMs": (ProcessInfo.processInfo.systemUptime - start) * 1000,
+                 "queueWaitMs": (start - work.queuedAt) * 1000])
         lock.lock()
         let valid = epoch == work.epoch
         if valid, case .success(let image) = result { cache.insert(image, for: cacheKey) }
@@ -338,12 +340,12 @@ final class ImagePipeline {
             // thumbnail. The exact same JPEG+ICC is used by the display decoder.
             let options: [CFString: Any] = [kCGImageSourceCreateThumbnailFromImageAlways: true,
                 kCGImageSourceCreateThumbnailWithTransform: false, kCGImageSourceThumbnailMaxPixelSize: 320,
-                kCGImageSourceShouldCacheImmediately: true]
+                kCGImageSourceShouldCache: true, kCGImageSourceShouldCacheImmediately: true]
             guard let decoded = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { throw failure("JPEG 썸네일 디코딩 실패") }
             image = decoded
         } else {
             guard let decoded = CGImageSourceCreateImageAtIndex(source, 0,
-                    [kCGImageSourceShouldCacheImmediately: true] as CFDictionary) else { throw failure("JPEG 디코딩 실패") }
+                    [kCGImageSourceShouldCache: true, kCGImageSourceShouldCacheImmediately: true] as CFDictionary) else { throw failure("JPEG 디코딩 실패") }
             image = decoded
         }
         let hasICC = Self.hasICCProfile(jpegData)
