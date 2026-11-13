@@ -133,7 +133,7 @@ final class BatchRenameEngine {
     }
     func readJournal(_ url: URL, folder: URL) throws -> RenameJournal {
         let journal = try JSONDecoder().decode(RenameJournal.self, from: Data(contentsOf: url))
-        guard journal.version == 1, url.deletingLastPathComponent().standardizedFileURL == journalDirectory.standardizedFileURL,
+        guard journal.version == 1, TagStore.key(url.deletingLastPathComponent()) == TagStore.key(journalDirectory),
               url.lastPathComponent == journal.id.uuidString + ".json",
               !journal.items.isEmpty, journal.items.count <= 10_000,
               journal.items.allSatisfy({ RenamePlan.leaf($0.original) && RenamePlan.leaf($0.destination) && RenamePlan.leaf($0.temporary) && $0.temporary.hasPrefix(".J-S-rename-" + journal.id.uuidString + "-") }),
@@ -291,10 +291,10 @@ final class BatchRenameEngine {
         try transaction.refresh(); try transaction.save("prepared"); return transaction
     }
     private func progressHandler(_ callback: @escaping Progress) -> Progress {
-        var last = TimeInterval(0)
+        var last = TimeInterval(0), lastPhase = ""
         return { done, total, phase in
             let now = ProcessInfo.processInfo.systemUptime
-            if now - last > 0.05 || done == total { last = now; DispatchQueue.main.async { callback(done, total, phase) } }
+            if phase != lastPhase || now - last > 0.05 || done == total { last = now; lastPhase = phase; DispatchQueue.main.async { callback(done, total, phase) } }
         }
     }
     func execute(_ plan: RenamePlan, tagStore: TagStore, lease: FolderLease, progress: @escaping Progress, completion: @escaping (RenameOutcome) -> Void) {
@@ -336,7 +336,8 @@ final class BatchRenameEngine {
         }
     }
     private func reconcile(_ transaction: Transaction, tagStore: TagStore, failure: String?, recovering: Bool, progress: @escaping Progress, completion: @escaping (RenameOutcome) -> Void) {
-        tagStore.updatePaths(removing: transaction.affectedKeys, adding: transaction.tagsForCurrentLocations) { result in
+        progress(0, 1, "태그 연결 저장")
+        tagStore.updatePaths(removing: transaction.affectedKeys, adding: transaction.tagsForCurrentLocations, force: recovering) { result in
             self.queue.async {
                 var message = failure ?? ""
                 var complete = failure == nil && transaction.atDestination

@@ -36,7 +36,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
         for value in 1...12 { digits.addItem(withTitle: String(value)) }; digits.selectItem(withTitle: "4")
         digits.target = self; digits.action = #selector(settingsChanged)
         summary.textColor = ProTheme.accent; summary.font = .systemFont(ofSize: 12, weight: .medium)
-        outcome.textColor = ProTheme.secondary; outcome.font = .systemFont(ofSize: 11); outcome.maximumNumberOfLines = 5
+        outcome.isSelectable = true; outcome.textColor = ProTheme.secondary; outcome.font = .systemFont(ofSize: 11); outcome.maximumNumberOfLines = 5
         for (id, title, width) in [("original", "기존 파일명", CGFloat(240)), ("proposed", "변경 예정 파일명", 240), ("status", "충돌 / 상태", 280)] {
             let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier(id)); column.title = title; column.width = width; table.addTableColumn(column)
         }
@@ -107,6 +107,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
         let finish: (RenameOutcome) -> Void = { [weak self] result in
             guard let self else { return }
             self.busy = false; self.closeButton.isEnabled = true
+            self.progress.maxValue = 1; self.progress.doubleValue = result.completed || result.restored ? 1 : 0
             let changed = self.plan?.changedCount ?? 0
             self.outcome.stringValue = "정상 완료 \(result.completed ? changed : 0)개 · 실패/취소 \(result.completed ? 0 : changed)개\n" + result.message
             if let plan = self.plan {

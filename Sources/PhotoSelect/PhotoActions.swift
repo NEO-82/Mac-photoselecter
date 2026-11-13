@@ -7,12 +7,14 @@ final class TagStore {
         let taggedPaths: [String]
     }
     private let fileURL: URL
+    private let writeData: (Data, URL) throws -> Void
     private let queue = DispatchQueue(label: "dev.photoselect.tags", qos: .utility)
     private var paths: Set<String> = []
     private var loaded = false
     private var loadError: Error?
 
-    init(fileURL: URL? = nil) {
+    init(fileURL: URL? = nil, writeData: @escaping (Data, URL) throws -> Void = { data, url in try data.write(to: url, options: .atomic) }) {
+        self.writeData = writeData
         let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         self.fileURL = fileURL ?? support.appendingPathComponent("dev.photoselect.app/tags.json")
     }
@@ -58,7 +60,7 @@ final class TagStore {
                 let data = try JSONEncoder().encode(Document(version: 1, taggedPaths: updated.sorted()))
                 try FileManager.default.createDirectory(at: self.fileURL.deletingLastPathComponent(),
                     withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
-                try data.write(to: self.fileURL, options: .atomic)
+                try self.writeData(data, self.fileURL)
                 self.paths = updated
                 return tagged
             }
@@ -66,15 +68,15 @@ final class TagStore {
         }
     }
     // Rename commits use one atomic set update so swaps/cycles are safe and replay is idempotent.
-    func updatePaths(removing: Set<String>, adding: Set<String>, completion: @escaping (Result<Set<String>, Error>) -> Void) {
+    func updatePaths(removing: Set<String>, adding: Set<String>, force: Bool = false, completion: @escaping (Result<Set<String>, Error>) -> Void) {
         queue.async {
             let result = Result { () -> Set<String> in
                 try self.ensureLoaded()
                 let updated = self.paths.subtracting(removing).union(adding)
-                if updated != self.paths {
+                if force || updated != self.paths {
                     let data = try JSONEncoder().encode(Document(version: 1, taggedPaths: updated.sorted()))
                     try FileManager.default.createDirectory(at: self.fileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
-                    try data.write(to: self.fileURL, options: .atomic)
+                    try self.writeData(data, self.fileURL)
                     self.paths = updated
                 }
                 return self.paths
