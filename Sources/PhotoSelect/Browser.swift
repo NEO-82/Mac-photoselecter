@@ -682,20 +682,19 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         previousPhotoIndex = index
         let neighbors = [index + navigationDirection, index + 2 * navigationDirection,
                          index - navigationDirection].filter { list.photos.indices.contains($0) }.map { list.photos[$0] }
-        pipeline.retain(photos: [photo] + neighbors)
         loading = false; previewError = nil; actionMessage = nil
         preview.filename.stringValue = photo.url.lastPathComponent
         preview.filename.toolTip = photo.url.path
         viewer?.window?.title = photo.url.lastPathComponent + " — " + AppBranding.displayName
-        synchronizeGrid(); updateBadges()
-        setStatus("\(currentFolder?.path ?? "") — \(entries.count)개 항목 · 1장 선택")
         if let cached = pipeline.cached(photo, quality: .preview) {
-            displayed = cached; viewer?.canvas.decoded = cached; preview.display(cached); updateHUD()
+            displayed = cached; viewer?.canvas.decoded = cached; preview.display(cached)
             recordNavigation(start: start, hit: true)
+            updateHUD()
             logger.info("preview cacheHit=true latencyMs=\((ProcessInfo.processInfo.systemUptime - start) * 1000)")
         } else {
             // A loading state is preferable to enlarging a thumbnail or showing
             // a different source that would change sharpness/color a moment later.
+            pipeline.retain(photos: [photo] + neighbors)
             loading = true; preview.select(photo)
             preview.detail.stringValue = "읽는 중…" + (displayed != nil ? " · 이전 사진 유지" : "")
             updateHUD(); updateBadges()
@@ -717,7 +716,11 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 }
             }
         }
-        // Start both neighbors now, not only after a slow current decode completes.
+        // Apply the cached frame before grid layout, cache pinning or speculative work.
+        synchronizeGrid(); updateBadges()
+        setStatus("\(currentFolder?.path ?? "") — \(entries.count)개 항목 · 1장 선택")
+        pipeline.retain(photos: [photo] + neighbors)
+        // Prepare the travel direction first; keep one reverse neighbor.
         for neighbor in neighbors {
             pipeline.load(neighbor, lease: lease, quality: .preview, prefetch: true) { _, _ in }
         }

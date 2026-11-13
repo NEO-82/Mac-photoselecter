@@ -588,7 +588,7 @@ final class BrowserUITests: XCTestCase {
         grid.selectionIndexPaths = [selected]
         browser.collectionView(grid, didSelectItemsAt: [selected])
         waitUntil("selected scrolled thumbnail and preview ready") {
-            preview.filename.stringValue == "031.jpg" && preview.imageView.image != nil && grid.item(at: selected) != nil
+            preview.filename.stringValue == "031.jpg" && preview.imageView.image != nil && grid.item(at: selected) != nil && browser.navigationSamples.last?["index"] == 30
         }
         let originalPreview = try XCTUnwrap(preview.imageView.image)
         let originalItem = try XCTUnwrap(grid.item(at: selected))
@@ -629,7 +629,7 @@ final class BrowserUITests: XCTestCase {
         let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
         waitUntil("broken photo reports completed preview failure") {
-            preview.filename.stringValue == "broken.jpg" && !preview.detail.stringValue.isEmpty && preview.detail.stringValue != "불러오는 중…"
+            preview.filename.stringValue == "broken.jpg" && !preview.detail.stringValue.isEmpty && !preview.detail.stringValue.contains("읽는 중") && preview.detail.stringValue != "불러오는 중…"
         }
         let originalFailure = preview.detail.stringValue
         XCTAssertNil(preview.imageView.image)
