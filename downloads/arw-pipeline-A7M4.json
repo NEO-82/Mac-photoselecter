@@ -1,14 +1,14 @@
 {
-  "coldDecodeMs" : 1024.8981879999519,
+  "coldDecodeMs" : 464.12539599998581,
   "colorManagement" : "sRGB",
-  "configuration" : "Debug",
+  "configuration" : "Release",
   "displayAndZoomSameCGImage" : true,
   "displayMeanSRGB" : [
     0.3392434512867647,
     0.48669577205882353,
     0.62814031862745101
   ],
-  "extractionWarmFileMs" : 60.221656999942752,
+  "extractionWarmFileMs" : 7.1842979999701129,
   "file" : "Sony-A7M4.ARW",
   "maxMeanSRGBDifference" : 0.0013346354166666741,
   "nativeHeight" : 4672,
@@ -21,5 +21,5 @@
     0.48754595588235294,
     0.62947495404411768
   ],
-  "warmSynchronousLookupMs" : 0.14908900004684256
+  "warmSynchronousLookupMs" : 0.10931999997865205
 }

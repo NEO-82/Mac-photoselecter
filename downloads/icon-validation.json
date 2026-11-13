@@ -1,7 +1,7 @@
 {
   "bundle_identifier" : "dev.photoselect.app",
-  "bundle_short_version" : "0.5.2",
-  "bundle_version" : "32",
+  "bundle_short_version" : "0.5.3",
+  "bundle_version" : "39",
   "CFBundleIconFile" : "AppIcon.icns",
   "dock_on_apple_silicon_executed" : false,
   "finder_evidence" : "finder-icon.png",
