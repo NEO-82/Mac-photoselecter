@@ -1,4 +1,5 @@
 import AppKit
+import Darwin
 import ImageIO
 import XCTest
 @testable import PhotoSelect
@@ -219,7 +220,18 @@ final class BrowserUITests: XCTestCase {
         let configuration = "Release"
         #endif
         if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
-            let evidence: [String: Any] = ["configuration": configuration, "fixture": "12 distinct paths hard-linked to one real Sony A7M4 file; same pixel contents",
+            var info = mach_task_basic_info_data_t()
+            var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info_data_t>.size / MemoryLayout<integer_t>.size)
+            let status = withUnsafeMutablePointer(to: &info) { pointer in
+                pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                    task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+                }
+            }
+            let memory: [String: Any] = status == KERN_SUCCESS
+                ? ["residentBytes": UInt64(info.resident_size), "peakResidentBytes": UInt64(info.resident_size_max)]
+                : ["unavailableStatus": status]
+            let evidence: [String: Any] = ["configuration": configuration, "processMemory": memory,
+                "fixture": "12 distinct paths hard-linked to one real Sony A7M4 file; same pixel contents",
                 "firstFolderToImageMs": firstMs, "scenarios": scenarios, "cacheHitApplyMaxMs": hitTimes.max() ?? 0,
                 "navigationRequests": browser.navigationSamples, "emptyDrawsAfterFirstImage": canvas.emptyFramesAfterImage,
                 "drawnFrames": canvas.drawnFrames, "pipeline": pipeline.diagnostics,
