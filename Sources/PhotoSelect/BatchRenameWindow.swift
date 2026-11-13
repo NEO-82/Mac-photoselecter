@@ -20,7 +20,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
         self.engine = engine; self.tags = tags; self.lease = lease; self.recoveryURL = recoveryURL
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 850, height: 600), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         window.title = "일괄 이름 변경 — " + AppBranding.displayName
-        window.minSize = NSSize(width: 700, height: 480); window.isReleasedWhenClosed = false
+        window.minSize = NSSize(width: 700, height: 620); window.isReleasedWhenClosed = false
         super.init(window: window); window.delegate = self
         let content = ProSurfaceView(); content.fillColor = ProTheme.background; window.contentView = content
         let fields = NSStackView(); fields.orientation = .horizontal; fields.spacing = 12; fields.alignment = .bottom

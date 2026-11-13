@@ -59,6 +59,16 @@ final class PhotoSortMetadata {
         let queue = OperationQueue(); queue.maxConcurrentOperationCount = 1
         queue.qualityOfService = .utility; return queue
     }()
+    func remapFiles(_ mapping: [URL: URL]) {
+        queue.addBarrierBlock { [weak self] in
+            guard let self else { return }
+            let old = self.cache
+            let keys = Dictionary(uniqueKeysWithValues: mapping.map { (TagStore.key($0.key), TagStore.key($0.value)) })
+            let targets = Set(keys.values)
+            self.cache = old.filter { keys[$0.key] == nil && !targets.contains($0.key) }
+            for (from, to) in keys { if let value = old[from] { self.cache[to] = value } }
+        }
+    }
     static func captureDate(_ url: URL) -> Date? {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary),
               let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] else { return nil }

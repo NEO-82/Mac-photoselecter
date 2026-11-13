@@ -645,6 +645,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             if let pending = self.pendingExit { self.pendingExit = nil; self.finishPendingTagWrites(completion: pending); return }
             let selected = self.selectedURL.flatMap { old in result.mapping.first { TagStore.key($0.key) == TagStore.key(old) }?.value ?? old }
             self.pipeline.remapFiles(result.mapping); self.thumbnails.remapFiles(result.mapping)
+            self.sortMetadata.remapFiles(result.mapping)
             self.tree.refresh(url: folder)
             self.loadFolder(folder, lease: lease, preserving: selected, preserveImages: true)
         }
