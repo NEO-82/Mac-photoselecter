@@ -249,13 +249,17 @@ final class ImagePipeline {
                 let promoted = BlockOperation()
                 existing.operation = promoted
                 promoted.queuePriority = .veryHigh
+                promoted.qualityOfService = .userInitiated
                 promoted.addExecutionBlock { [weak self, weak existing] in
                     guard let self, let existing else { return }
                     self.execute(existing, cacheKey: cacheKey, lease: lease, quality: quality)
                 }
                 lock.unlock(); queue.addOperation(promoted); return ticket
             }
-            if !prefetch { existing.operation.queuePriority = .veryHigh }
+            if !prefetch {
+                existing.operation.queuePriority = .veryHigh
+                existing.operation.qualityOfService = .userInitiated
+            }
             lock.unlock(); return ticket
         }
         let work = Work(url: photo.url, epoch: epoch)
@@ -340,12 +344,12 @@ final class ImagePipeline {
             // thumbnail. The exact same JPEG+ICC is used by the display decoder.
             let options: [CFString: Any] = [kCGImageSourceCreateThumbnailFromImageAlways: true,
                 kCGImageSourceCreateThumbnailWithTransform: false, kCGImageSourceThumbnailMaxPixelSize: 320,
-                kCGImageSourceShouldCache: true, kCGImageSourceShouldCacheImmediately: true]
+                kCGImageSourceShouldCacheImmediately: true]
             guard let decoded = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { throw failure("JPEG 썸네일 디코딩 실패") }
             image = decoded
         } else {
             guard let decoded = CGImageSourceCreateImageAtIndex(source, 0,
-                    [kCGImageSourceShouldCache: true, kCGImageSourceShouldCacheImmediately: true] as CFDictionary) else { throw failure("JPEG 디코딩 실패") }
+                    [kCGImageSourceShouldCacheImmediately: true] as CFDictionary) else { throw failure("JPEG 디코딩 실패") }
             image = decoded
         }
         let hasICC = Self.hasICCProfile(jpegData)
@@ -370,8 +374,8 @@ final class ImagePipeline {
         let jpegMs = (ProcessInfo.processInfo.systemUptime - decodeStart) * 1000
         let normalizeStart = ProcessInfo.processInfo.systemUptime
         let normalized = try Self.normalized(image, orientation: orientation, sourceSpace: sourceSpace)
-        measure(["sourceReadExtractMs": extractionMs, "jpegDecodeMs": jpegMs,
-                 "normalizeMs": (ProcessInfo.processInfo.systemUptime - normalizeStart) * 1000,
+        measure(["sourceReadExtractMs": extractionMs, "imageIOCreateMs": jpegMs,
+                 "rasterizeIncludingDeferredJPEGMs": (ProcessInfo.processInfo.systemUptime - normalizeStart) * 1000,
                  "compressedCacheHit": sourceHit ? 1 : 0])
         let sensor = embeddedJPEG?.sensorSize.map { size in
             (5...8).contains(orientation) ? CGSize(width: size.height, height: size.width) : size

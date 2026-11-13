@@ -556,6 +556,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             list.select(min(previousIndex, list.photos.count - 1))
         }
         selectedURL = list.selectedPhoto?.url ?? entries.first(where: { $0.url == previousURL })?.url
+        previousPhotoIndex = list.selectedIndex
         synchronizeGrid(reload: true)
         if let index = list.selectedIndex {
             if previousURL != selectedURL { showPhoto(index) }
