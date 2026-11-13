@@ -58,7 +58,7 @@ final class BatchRenameTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: child.appendingPathComponent("inside.ARW")), rawData)
         let restored = expectation(description: "renamed tag survives restart")
         TagStore(fileURL: metadata.appendingPathComponent("tags.json")).load { result in
-            XCTAssertEqual(try? result.get(), Set([TagStore.key(root.appendingPathComponent("Wedding_001.ARW")))])); restored.fulfill()
+            XCTAssertEqual(try? result.get(), Set([TagStore.key(root.appendingPathComponent("Wedding_001.ARW"))])); restored.fulfill()
         }
         wait(for: [restored], timeout: 5); XCTAssertTrue(try engine.pending(in: root).isEmpty)
     }
@@ -143,4 +143,94 @@ final class BatchRenameTests: XCTestCase {
         XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(base: "../bad", separator: "", start: 1, digits: 3), existingNames: []))
         XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(base: "X", separator: "", start: Int.max, digits: 3), existingNames: []))
     }
+    func testCommittedRecoveryReplaysTagsIdempotentlyAcrossNameSwap() throws {
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        let a = root.appendingPathComponent("A.JPG"), b = root.appendingPathComponent("B.JPG")
+        try Data([1]).write(to: a); try Data([2]).write(to: b)
+        let id = UUID(), tempA = ".J-S-rename-" + id.uuidString + "-0.JPG", tempB = ".J-S-rename-" + id.uuidString + "-1.JPG"
+        let items = [RenameJournal.Item(original: "A.JPG", destination: "B.JPG", temporary: tempA, identity: try RenameIdentity.read(a)),
+                     RenameJournal.Item(original: "B.JPG", destination: "A.JPG", temporary: tempB, identity: try RenameIdentity.read(b))]
+        let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json")); tag(a, store: store)
+        try BatchRenameEngine.exclusiveMove(a, root.appendingPathComponent(tempA)); try BatchRenameEngine.exclusiveMove(b, root.appendingPathComponent(tempB))
+        try BatchRenameEngine.exclusiveMove(root.appendingPathComponent(tempA), b); try BatchRenameEngine.exclusiveMove(root.appendingPathComponent(tempB), a)
+        let volume = BatchRenameEngine.volume(root)
+        let journal = RenameJournal(version: 1, id: id, folderPath: root.path, volumeUUID: volume.0, relativeFolder: volume.1,
+            orderTitle: "파일 이름순 ↓", items: items, tagSnapshot: [TagStore.key(a)], phase: "committed")
+        let file = journals.appendingPathComponent(id.uuidString + ".json")
+        for _ in 0..<2 {
+            try JSONEncoder().encode(journal).write(to: file)
+            let engine = BatchRenameEngine(journalDirectory: journals, move: { _, _ in XCTFail("A committed recovery must not move files again") })
+            let done = expectation(description: "idempotent replay")
+            var result: RenameOutcome?
+            engine.recover(file, folder: root, tagStore: store, lease: FolderLease(root), progress: { _, _, _ in }) { result = $0; done.fulfill() }
+            wait(for: [done], timeout: 10)
+            XCTAssertTrue(try XCTUnwrap(result).completed)
+            XCTAssertEqual(result?.taggedPaths, Set([TagStore.key(b)]))
+        }
+        XCTAssertEqual(try Data(contentsOf: a), Data([2])); XCTAssertEqual(try Data(contentsOf: b), Data([1]))
+    }
+    func testTagWriteFailureRestoresFilesAndRetainsJournalUntilTagsAreWritable() throws {
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        let original = root.appendingPathComponent("old.JPG"); try Data([7]).write(to: original)
+        var fail = false
+        let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json"), writeData: { data, url in
+            if fail { throw CocoaError(.fileWriteNoPermission) }
+            try data.write(to: url, options: .atomic)
+        })
+        tag(original, store: store); fail = true
+        let engine = BatchRenameEngine(journalDirectory: journals)
+        let result = try execute(engine, makePlan(root), store)
+        XCTAssertFalse(result.completed); XCTAssertTrue(result.restored)
+        XCTAssertEqual(try Data(contentsOf: original), Data([7]))
+        let journal = try XCTUnwrap(try engine.pending(in: root).first)
+        fail = false
+        let done = expectation(description: "tags become writable")
+        var recovered: RenameOutcome?
+        engine.recover(journal, folder: root, tagStore: store, lease: FolderLease(root), progress: { _, _, _ in }) { recovered = $0; done.fulfill() }
+        wait(for: [done], timeout: 10)
+        XCTAssertTrue(try XCTUnwrap(recovered).restored)
+        XCTAssertEqual(recovered?.taggedPaths, Set([TagStore.key(original)]))
+        XCTAssertTrue(try engine.pending(in: root).isEmpty)
+    }
+    func testForeignFileCreatedDuringFailureIsNeverOverwrittenOnRollback() throws {
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        for i in 1...3 { try Data([UInt8(i)]).write(to: root.appendingPathComponent("\(i).JPG")) }
+        var calls = 0
+        let engine = BatchRenameEngine(journalDirectory: journals, move: { a, b in
+            calls += 1
+            if calls == 5 {
+                try Data([99]).write(to: root.appendingPathComponent("1.JPG"))
+                throw CocoaError(.fileWriteNoPermission)
+            }
+            try BatchRenameEngine.exclusiveMove(a, b)
+        })
+        let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json"))
+        let result = try execute(engine, makePlan(root), store)
+        XCTAssertFalse(result.restored); XCTAssertNotNil(result.journalURL)
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("1.JPG")), Data([99]))
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("2.JPG")), Data([2]))
+        let journal = try XCTUnwrap(result.journalURL)
+        try FileManager.default.removeItem(at: root.appendingPathComponent("1.JPG"))
+        let done = expectation(description: "foreign conflict removed")
+        var restored: RenameOutcome?
+        BatchRenameEngine(journalDirectory: journals).recover(journal, folder: root, tagStore: store, lease: FolderLease(root), progress: { _, _, _ in }) { restored = $0; done.fulfill() }
+        wait(for: [done], timeout: 10)
+        XCTAssertTrue(try XCTUnwrap(restored).restored)
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("1.JPG")), Data([1]))
+    }
+    func testHardLinkAliasesAndCorruptTagStoreRefuseBeforeFileChanges() throws {
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        let a = root.appendingPathComponent("1.JPG"), b = root.appendingPathComponent("2.JPG")
+        try Data([8]).write(to: a); try FileManager.default.linkItem(at: a, to: b)
+        let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json"))
+        let engine = BatchRenameEngine(journalDirectory: journals)
+        XCTAssertFalse(try execute(engine, makePlan(root), store).completed)
+        XCTAssertEqual(try Data(contentsOf: a), Data([8])); XCTAssertEqual(try Data(contentsOf: b), Data([8]))
+        try FileManager.default.removeItem(at: b)
+        let tags = metadata.appendingPathComponent("broken-tags.json"), bytes = Data("corrupt metadata".utf8)
+        try bytes.write(to: tags)
+        XCTAssertFalse(try execute(engine, makePlan(root), TagStore(fileURL: tags)).completed)
+        XCTAssertEqual(try Data(contentsOf: tags), bytes); XCTAssertEqual(try Data(contentsOf: a), Data([8]))
+    }
+
 }

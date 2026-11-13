@@ -262,6 +262,25 @@ final class ImagePipelineTests: XCTestCase {
         pipeline.handleMemoryPressure(); release.signal()
         wait(for: [done], timeout: 3)
     }
+    func testSimultaneousCacheKeySwapKeepsDecodedPixelsAndPressureBudgetIsPersistent() throws {
+        let root = try folder(), a = root.appendingPathComponent("a.jpg"), b = root.appendingPathComponent("b.jpg")
+        try jpeg(width: 20, height: 10).write(to: a); try jpeg(width: 40, height: 20).write(to: b)
+        let pipeline = ImagePipeline()
+        pipeline.retain(photos: [Photo(url: a), Photo(url: b)])
+        let first = try load(pipeline, a).0, second = try load(pipeline, b).0
+        pipeline.remapFiles([a: b, b: a])
+        XCTAssertTrue(pipeline.cached(Photo(url: b), quality: .preview)?.image === first.image)
+        XCTAssertTrue(pipeline.cached(Photo(url: a), quality: .preview)?.image === second.image)
+        let cost = first.image.bytesPerRow * first.image.height
+        let cache = BitmapCache(limit: cost * 8)
+        cache.pin("selected"); cache.insert(first, for: "selected"); cache.trim(to: cost * 2)
+        for i in 0..<3000 { cache.insert(first, for: String(i)); XCTAssertLessThanOrEqual(cache.residentBytes, cost * 3) }
+        XCTAssertNotNil(cache.value(for: "selected"))
+        cache.setBudget(cost * 8)
+        for i in 0..<8 { cache.insert(first, for: "restored\(i)") }
+        XCTAssertLessThanOrEqual(cache.residentBytes, cost * 9)
+    }
+
     private func realSample(_ name: String) throws -> URL {
         guard let directory = ProcessInfo.processInfo.environment["PHOTOSELECT_ARW_SAMPLE_DIRECTORY"] else {
             throw XCTSkip("실제 Sony ARW fixture 경로가 지정되지 않았습니다.")
