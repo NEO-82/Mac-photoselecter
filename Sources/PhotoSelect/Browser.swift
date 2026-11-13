@@ -255,6 +255,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         taggedOnlyButton.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserTagFilter")
         taggedOnlyButton.font = .systemFont(ofSize: 11, weight: .medium)
         taggedOnlyButton.contentTintColor = ProTheme.accent
+        taggedOnlyButton.attributedTitle = NSAttributedString(string: taggedOnlyButton.title,
+            attributes: [.foregroundColor: ProTheme.accent, .font: NSFont.systemFont(ofSize: 11, weight: .medium)])
         let photoPane = pane(title: "현재 폴더 · 모든 항목", content: photoScroll, filter: taggedOnlyButton)
         split.addArrangedSubview(folderPane); split.addArrangedSubview(photoPane); split.addArrangedSubview(preview)
         // setPosition alone is only an initial frame hint. Auto Layout can discard
