@@ -71,7 +71,7 @@ work_dir="$(mktemp -d "$repo_dir/.build/package.XXXXXXXX")"
 mkdir -p "$work_dir/image" "$work_dir/artifacts" "$work_dir/mount"
 
 echo '1/5 XCTest 실행'
-xcrun swift test --parallel --jobs 2 --xunit-output .build/xctest-results.xml
+xcrun swift test --parallel --num-workers 1 --jobs 2 --xunit-output .build/xctest-results.xml
 
 echo '2/5 Apple Silicon Release 앱 빌드'
 xcodebuild -project PhotoSelect.xcodeproj -scheme PhotoSelect -configuration Release \

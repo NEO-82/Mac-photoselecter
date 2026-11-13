@@ -172,7 +172,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let sortMetadata = PhotoSortMetadata()
     private var sortRequest: Operation?
     private var sortGeneration = UUID()
-    private var sorting = false
+    private(set) var sorting = false
     private var sortButtons: [NSButton] = []
     private let status = NSTextField(labelWithString: "폴더를 선택하세요")
     private let up = NSButton(title: "상위 폴더", target: nil, action: nil)
@@ -293,6 +293,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         for (index, criterion) in PhotoSortCriterion.allCases.enumerated() {
             let button = NSButton(title: criterion.title, target: self, action: #selector(changeSort(_:)))
             button.cell = SortButtonCell(textCell: criterion.title); button.setButtonType(.pushOnPushOff)
+            button.target = self; button.action = #selector(changeSort(_:))
             button.tag = index; button.bezelStyle = .rounded; button.controlSize = .small
             button.font = .systemFont(ofSize: 11)
             button.identifier = NSUserInterfaceItemIdentifier("PhotoSort-" + criterion.rawValue)

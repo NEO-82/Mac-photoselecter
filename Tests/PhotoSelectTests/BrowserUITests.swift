@@ -295,16 +295,17 @@ final class BrowserUITests: XCTestCase {
         waitUntil("ready for sort") { preview.imageView.image != nil }
         let nameButton = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-name" })
         nameButton.performClick(nil)
-        waitUntil("name direction applied") { !self.descendants(try! XCTUnwrap(browser.window?.contentView)).compactMap { $0 as? NSTextField }.contains { $0.stringValue.contains("사진 정렬 중") } }
+        waitUntil("name direction applied") { !browser.sorting }
         XCTAssertEqual(preview.filename.stringValue, "1.jpg")
         browser.previousPhoto()
         waitUntil("descending viewer order") { preview.filename.stringValue == "2.jpg" }
         let sizeButton = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-size" })
         sizeButton.performClick(nil)
+        waitUntil("size direction applied") { !browser.sorting }
         XCTAssertTrue(sizeButton.title.contains("↑")); XCTAssertEqual(preview.filename.stringValue, "2.jpg")
         let dateButton = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-captured" })
         dateButton.performClick(nil)
-        waitUntil("date metadata applied") { !preview.detail.stringValue.contains("읽는 중") }
+        waitUntil("date metadata applied") { !browser.sorting }
         XCTAssertEqual(try Data(contentsOf: tags), original)
     }
 
