@@ -183,7 +183,7 @@ final class BrowserUITests: XCTestCase {
         for name in ["1.jpg", "3.jpg", "4.jpg"] {
             let done = expectation(description: "seed tag")
             store.toggle(root.appendingPathComponent(name)) { result in
-                XCTAssertNoThrow(try result.get()); done.fulfill()
+                XCTAssertEqual(try? result.get(), true); done.fulfill()
             }
             wait(for: [done], timeout: 5)
         }
@@ -261,6 +261,17 @@ final class BrowserUITests: XCTestCase {
         (soleViewer.contentView as? PhotoCanvas)?.toggleTag?()
         waitUntil("sole untag closes viewer") { grid.numberOfItems(inSection: 0) == 0 && !soleViewer.isVisible }
         XCTAssertEqual(preview.filename.stringValue, "선택한 사진 없음")
+        // A tag write started before switching modes completes into the live filter.
+        filter.performClick(nil)
+        let remaining = try BrowserEntry.read(root, showHidden: false)
+        let second = try XCTUnwrap(remaining.firstIndex { $0.url.lastPathComponent == "2.jpg" })
+        browser.collectionView(grid, didSelectItemsAt: [IndexPath(item: second, section: 0)])
+        grid.toggleTag?()
+        filter.performClick(nil)
+        waitUntil("new tag joins active filter") {
+            grid.numberOfItems(inSection: 0) == 1 && preview.filename.stringValue == "2.jpg" && !preview.tagMarker.isHidden
+        }
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("2.jpg")), data)
     }
 
     @MainActor
