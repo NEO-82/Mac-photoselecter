@@ -281,6 +281,33 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    func testSortButtonsKeepSelectionAndViewerOrderWithoutTouchingTags() throws {
+        _ = NSApplication.shared
+        let root = try folder(), data = jpegData()
+        for name in ["1.jpg", "2.jpg", "10.jpg"] { try data.write(to: root.appendingPathComponent(name)) }
+        let tags = root.appendingPathComponent(".tags.json")
+        let original = Data(#"{"version":1,"taggedPaths":[]}"#.utf8); try original.write(to: tags)
+        let browser = BrowserController(tagStore: TagStore(fileURL: tags), initialFolder: root)
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("ready for sort") { preview.imageView.image != nil }
+        let nameButton = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-name" })
+        nameButton.performClick(nil)
+        XCTAssertEqual(preview.filename.stringValue, "1.jpg")
+        browser.previousPhoto()
+        waitUntil("descending viewer order") { preview.filename.stringValue == "2.jpg" }
+        let sizeButton = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-size" })
+        sizeButton.performClick(nil)
+        XCTAssertTrue(sizeButton.title.contains("↑")); XCTAssertEqual(preview.filename.stringValue, "2.jpg")
+        let dateButton = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-captured" })
+        dateButton.performClick(nil)
+        waitUntil("date metadata applied") { !preview.detail.stringValue.contains("읽는 중") }
+        XCTAssertEqual(try Data(contentsOf: tags), original)
+    }
+
+    @MainActor
     func testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths() throws {
         _ = NSApplication.shared
         let root = try folder(), metadata = try folder()

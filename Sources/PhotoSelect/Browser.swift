@@ -29,6 +29,15 @@ private final class TagFilterButtonCell: NSButtonCell {
     }
 }
 
+private final class SortButtonCell: NSButtonCell {
+    override func drawTitle(_ title: NSAttributedString, withFrame frame: NSRect, in controlView: NSView) -> NSRect {
+        let label = NSMutableAttributedString(attributedString: title)
+        label.addAttribute(.foregroundColor, value: state == .on ? ProTheme.accent : ProTheme.secondary,
+                           range: NSRange(location: 0, length: label.length))
+        label.draw(in: frame); return frame
+    }
+}
+
 final class ThumbnailItem: NSCollectionViewItem {
     var request: Operation?
     var representedURL: URL?
@@ -158,6 +167,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let trashButton = NSButton(title: "휴지통", target: nil, action: nil)
     private let taggedOnlyButton = NSButton(checkboxWithTitle: "태그된 사진만 보기", target: nil, action: nil)
     private var allEntries: [BrowserEntry] = []
+    private var sortOrder = PhotoSortOrder()
+    private var appliedSortOrder = PhotoSortOrder()
+    private let sortMetadata = PhotoSortMetadata()
+    private var sortRequest: Operation?
+    private var sortGeneration = UUID()
+    private var sorting = false
+    private var sortButtons: [NSButton] = []
     private let status = NSTextField(labelWithString: "폴더를 선택하세요")
     private let up = NSButton(title: "상위 폴더", target: nil, action: nil)
     private let tagStore: TagStore
@@ -273,7 +289,19 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         taggedOnlyButton.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserTagFilter")
         taggedOnlyButton.font = .systemFont(ofSize: 11, weight: .medium)
         taggedOnlyButton.contentTintColor = ProTheme.accent
-        let photoPane = pane(title: "현재 폴더 · 모든 항목", content: photoScroll, filter: taggedOnlyButton)
+        let sortBar = NSStackView(); sortBar.spacing = 6; sortBar.orientation = .horizontal
+        for (index, criterion) in PhotoSortCriterion.allCases.enumerated() {
+            let button = NSButton(title: criterion.title, target: self, action: #selector(changeSort(_:)))
+            button.cell = SortButtonCell(textCell: criterion.title); button.setButtonType(.pushOnPushOff)
+            button.tag = index; button.bezelStyle = .rounded; button.controlSize = .small
+            button.font = .systemFont(ofSize: 11)
+            button.identifier = NSUserInterfaceItemIdentifier("PhotoSort-" + criterion.rawValue)
+            sortButtons.append(button); sortBar.addArrangedSubview(button)
+        }
+        let photoHeader = NSStackView(views: [taggedOnlyButton, sortBar])
+        photoHeader.orientation = .vertical; photoHeader.alignment = .leading; photoHeader.spacing = 6
+        updateSortButtons()
+        let photoPane = pane(title: "현재 폴더 · 모든 항목", content: photoScroll, filter: photoHeader)
         split.addArrangedSubview(folderPane); split.addArrangedSubview(photoPane); split.addArrangedSubview(preview)
         // setPosition alone is only an initial frame hint. Auto Layout can discard
         // it on the first image/label update, so keep explicit preferred widths.
@@ -403,7 +431,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         return proposedPosition
     }
 
-    private func pane(title: String, content: NSView, filter: NSButton? = nil) -> NSView {
+    private func pane(title: String, content: NSView, filter: NSView? = nil) -> NSView {
         let box = ProSurfaceView(); box.fillColor = ProTheme.panel; let label = NSTextField(labelWithString: title)
         label.font = .systemFont(ofSize: 11, weight: .semibold); label.textColor = ProTheme.secondary
         for view in [label, content] { view.translatesAutoresizingMaskIntoConstraints = false; box.addSubview(view) }
@@ -507,12 +535,14 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     func finishPendingTagWrites(completion: @escaping () -> Void) {
         finishingTagWrites = true
         imageGeneration = UUID(); pipeline.clear(); thumbnails.clear()
+        sortRequest?.cancel(); sortGeneration = UUID()
         request?.cancel()
         tagStore.finishPendingWrites(completion: completion)
     }
     private func loadFolder(_ url: URL, lease: FolderLease) {
         generation = UUID(); let token = generation
         previousPhotoIndex = nil; loading = false
+        sortRequest?.cancel(); sortGeneration = UUID(); sorting = false
         imageGeneration = UUID(); allEntries = []; entries = []; selectedURL = nil; list.replace(with: []); pipeline.clear(); thumbnails.clear()
         viewer?.close(); displayed = nil; previewError = nil; preview.clear()
         self.lease = lease; currentFolder = url; actionMessage = nil
@@ -528,13 +558,37 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 switch result {
                 case .success(let urls):
                     self.allEntries = urls
-                    self.applyTagFilter()
+                    self.applyCurrentSort()
                 case .failure(let error):
                     let message = FolderReader.errorMessage(for: error)
                     self.setStatus("폴더 읽기 실패: \(message)", error: true)
                     self.preview.detail.stringValue = message
                 }
             }
+        }
+    }
+    private func updateSortButtons() {
+        for (index, button) in sortButtons.enumerated() {
+            let criterion = PhotoSortCriterion.allCases[index]
+            let active = sortOrder.criterion == criterion
+            button.title = criterion.title + (active ? (sortOrder.ascending ? " ↑" : " ↓") : "")
+            button.contentTintColor = active ? ProTheme.accent : ProTheme.secondary
+            button.state = active ? .on : .off
+        }
+    }
+    @objc private func changeSort(_ sender: NSButton) {
+        sortOrder.choose(PhotoSortCriterion.allCases[sender.tag]); updateSortButtons()
+        applyCurrentSort()
+        window?.makeFirstResponder(grid)
+    }
+    private func applyCurrentSort() {
+        sortRequest?.cancel(); sortGeneration = UUID(); let token = sortGeneration
+        sorting = sortOrder.criterion == .captured
+        guard sorting, let lease else { appliedSortOrder = sortOrder; applyTagFilter(); return }
+        setStatus("촬영 시간 분석 중… 목록 순서는 분석 완료 후 한 번에 적용됩니다")
+        sortRequest = sortMetadata.prepare(allEntries, lease: lease) { [weak self] prepared in
+            guard let self, self.sortGeneration == token else { return }
+            self.sorting = false; self.appliedSortOrder = self.sortOrder; self.allEntries = prepared; self.applyTagFilter()
         }
     }
     @objc private func changeTagFilter() {
@@ -545,9 +599,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private func applyTagFilter() {
         let previousURL = selectedURL
         let previousIndex = list.selectedIndex ?? 0
+        let ordered = appliedSortOrder.arrange(allEntries)
         entries = taggedOnlyButton.state == .on
-            ? allEntries.filter { $0.isPhoto && taggedPaths.contains(TagStore.key($0.url)) }
-            : allEntries
+            ? ordered.filter { $0.isPhoto && taggedPaths.contains(TagStore.key($0.url)) }
+            : ordered
         list.replace(with: entries.filter(\.isPhoto).map { Photo(url: $0.url) })
         if list.photos.isEmpty { viewer?.close() }
         if let index = list.photos.firstIndex(where: { $0.url == previousURL }) {
