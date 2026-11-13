@@ -7,52 +7,133 @@ Building for debugging...
 [4/11] Write PhotoSelect-entitlement.plist
 [5/11] Write swift-version--79AA4F9932D1E87A.txt
 [7/16] Emitting module PhotoSelect
-[8/20] Compiling PhotoSelect ImagePipeline.swift
-[9/20] Compiling PhotoSelect PhotoActions.swift
-[10/20] Compiling PhotoSelect PhotoModel.swift
-[11/20] Compiling PhotoSelect Viewer.swift
-[12/20] Compiling PhotoSelect App.swift
-[13/20] Compiling PhotoSelect Browser.swift
-[14/20] Compiling PhotoSelect EmbeddedPreview.swift
-[15/20] Compiling PhotoSelect FolderTree.swift
+[8/16] Compiling PhotoSelect App.swift
+[9/16] Compiling PhotoSelect Browser.swift
+[10/16] Compiling PhotoSelect EmbeddedPreview.swift
+[11/16] Compiling PhotoSelect FolderTree.swift
+[12/20] Compiling PhotoSelect ImagePipeline.swift
+[13/20] Compiling PhotoSelect PhotoActions.swift
+[14/20] Compiling PhotoSelect PhotoModel.swift
+[15/20] Compiling PhotoSelect Viewer.swift
 [15/20] Write Objects.LinkFileList
 [16/20] Linking PhotoSelect
 [17/20] Applying PhotoSelect
-[19/25] Emitting module PhotoSelectTests
-[20/25] Compiling PhotoSelectTests BrowserUITests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:185:61: error: invalid conversion from throwing function of type '(Result<Bool, any Error>) throws -> Void' to non-throwing function type '(Result<Bool, any Error>) -> Void'
- 183 |         for name in ["1.jpg", "3.jpg", "4.jpg"] {
- 184 |             let done = expectation(description: "seed tag")
- 185 |             store.toggle(root.appendingPathComponent(name)) { result in
-     |                                                             `- error: invalid conversion from throwing function of type '(Result<Bool, any Error>) throws -> Void' to non-throwing function type '(Result<Bool, any Error>) -> Void'
- 186 |                 XCTAssertNoThrow(try result.get()); done.fulfill()
- 187 |             }
-[21/25] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:185:61: error: invalid conversion from throwing function of type '(Result<Bool, any Error>) throws -> Void' to non-throwing function type '(Result<Bool, any Error>) -> Void'
- 183 |         for name in ["1.jpg", "3.jpg", "4.jpg"] {
- 184 |             let done = expectation(description: "seed tag")
- 185 |             store.toggle(root.appendingPathComponent(name)) { result in
-     |                                                             `- error: invalid conversion from throwing function of type '(Result<Bool, any Error>) throws -> Void' to non-throwing function type '(Result<Bool, any Error>) -> Void'
- 186 |                 XCTAssertNoThrow(try result.get()); done.fulfill()
- 187 |             }
-[22/25] Compiling PhotoSelectTests FolderTreeTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:185:61: error: invalid conversion from throwing function of type '(Result<Bool, any Error>) throws -> Void' to non-throwing function type '(Result<Bool, any Error>) -> Void'
- 183 |         for name in ["1.jpg", "3.jpg", "4.jpg"] {
- 184 |             let done = expectation(description: "seed tag")
- 185 |             store.toggle(root.appendingPathComponent(name)) { result in
-     |                                                             `- error: invalid conversion from throwing function of type '(Result<Bool, any Error>) throws -> Void' to non-throwing function type '(Result<Bool, any Error>) -> Void'
- 186 |                 XCTAssertNoThrow(try result.get()); done.fulfill()
- 187 |             }
-[23/25] Compiling PhotoSelectTests ImagePipelineTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:185:61: error: invalid conversion from throwing function of type '(Result<Bool, any Error>) throws -> Void' to non-throwing function type '(Result<Bool, any Error>) -> Void'
- 183 |         for name in ["1.jpg", "3.jpg", "4.jpg"] {
- 184 |             let done = expectation(description: "seed tag")
- 185 |             store.toggle(root.appendingPathComponent(name)) { result in
-     |                                                             `- error: invalid conversion from throwing function of type '(Result<Bool, any Error>) throws -> Void' to non-throwing function type '(Result<Bool, any Error>) -> Void'
- 186 |                 XCTAssertNoThrow(try result.get()); done.fulfill()
- 187 |             }
+[19/25] Compiling PhotoSelectTests BrowserUITests.swift
+[20/25] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
+[21/25] Compiling PhotoSelectTests FolderTreeTests.swift
+[22/25] Compiling PhotoSelectTests ImagePipelineTests.swift
+[23/25] Emitting module PhotoSelectTests
 [24/29] Compiling PhotoSelectTests PhotoActionsTests.swift
 [25/29] Compiling PhotoSelectTests PhotoSelectTests.swift
 [26/29] Compiling PhotoSelectTests ViewerInteractionTests.swift
 [27/29] Compiling PhotoSelectTests WindowLayoutTests.swift
-error: fatalError
+[28/31] Emitting module PhotoSelectPackageTests
+[29/31] Compiling PhotoSelectPackageTests runner.swift
+[29/31] Write Objects.LinkFileList
+[30/31] Linking PhotoSelectPackageTests
+Build complete! (77.72s)
+[1/88] Testing PhotoSelectTests.BrowserUITests/testBrowserStartsWithTreeGridAndPreviewColumns
+[2/88] Testing PhotoSelectTests.BrowserUITests/testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized
+[3/88] Testing PhotoSelectTests.BrowserUITests/testAboutMenuShowsSeoaCreditsInRoseOnNativePanel
+[4/88] Testing PhotoSelectTests.BrowserUITests/testDeviceChangeNotificationRetainsErrorWhenReopeningViewer
+[5/88] Testing PhotoSelectTests.BrowserUITests/testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns
+[6/88] Testing PhotoSelectTests.BrowserUITests/testInitialBrowserFrameFitsActualAvailableScreen
+[7/88] Testing PhotoSelectTests.BrowserUITests/testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch
+[8/88] Testing PhotoSelectTests.BrowserUITests/testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded
+[9/88] Testing PhotoSelectTests.BrowserUITests/testPreviewFilenameIsBelowImage
+[10/88] Testing PhotoSelectTests.BrowserUITests/testNativeMenuCommandsNavigateAndTagCurrentPhoto
+[11/88] Testing PhotoSelectTests.BrowserUITests/testPresentingVisibleViewerKeepsManualWindowSize
+[12/88] Testing PhotoSelectTests.BrowserUITests/testMixedBrowserFolderNavigationFilePreviewAndCreditLayout
+[13/88] Testing PhotoSelectTests.BrowserUITests/testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList
+[14/88] Testing PhotoSelectTests.BrowserUITests/testStandardMenusDisablePhotoActionsUntilFolderHasPhotos
+[15/88] Testing PhotoSelectTests.BrowserUITests/testSelectingThumbnailChangesRightPreview
+[16/88] Testing PhotoSelectTests.BrowserUITests/testSoftRomanticPaletteRendersInDarkAndLightAppearances
+[17/88] Testing PhotoSelectTests.BrowserUITests/testTagBadgeReturnsAfterClosingAndRecreatingBrowser
+[18/88] Testing PhotoSelectTests.BrowserUITests/testRealA7M4PreviewStaysIdenticalDuringHeldZoomAndCachedNavigation
+[19/88] Testing PhotoSelectTests.BrowserUITests/testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge
+[20/88] Testing PhotoSelectTests.BrowserUITests/testViewerDoubleClickReturnsToSamePhotoAndFolder
+[21/88] Testing PhotoSelectTests.BrowserUITests/testViewerStartsAsMaximizedWindowInsideVisibleScreen
+[22/88] Testing PhotoSelectTests.EmbeddedPreviewTests/testAdobeRGBHintUsesOuterExifInteropWhenJPEGHasNoExif
+[23/88] Testing PhotoSelectTests.EmbeddedPreviewTests/testCFASensorStripIsNotScannedOrSelectedOverCameraPreview
+[24/88] Testing PhotoSelectTests.EmbeddedPreviewTests/testCyclicIFDAndOversizedOffsetsAreBounded
+[25/88] Testing PhotoSelectTests.EmbeddedPreviewTests/testEightBitYCbCrJPEGStripRemainsAProcessedPreview
+[26/88] Testing PhotoSelectTests.EmbeddedPreviewTests/testLargestLinkedPreviewWinsOverThumbnailAndPrimaryPreview
+[27/88] Testing PhotoSelectTests.EmbeddedPreviewTests/testLosslessBayerAndNonEightBitFramesCannotBecomePreview
+[28/88] Testing PhotoSelectTests.EmbeddedPreviewTests/testSonyMakerNoteHeaderAnd32BytePreviewPrefix
+[29/88] Testing PhotoSelectTests.EmbeddedPreviewTests/testTinyOnlyOrTruncatedJPEGIsNeverUsedAsLargePreview
+[30/88] Testing PhotoSelectTests.EmbeddedPreviewTests/testUnknownLayoutRecoveryFindsLargestCompleteProgressiveJPEG
+[31/88] Testing PhotoSelectTests.BrowserUITests/testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll
+[32/88] Testing PhotoSelectTests.FolderTreeTests/testDesktopShortcutUsesSystemDesktopLocation
+[33/88] Testing PhotoSelectTests.FolderTreeTests/testGeneralEntriesStaySeparateFromPhotoDecodeList
+[34/88] Testing PhotoSelectTests.FolderTreeTests/testDeniedFolderCanBeExpandedAgainAfterAccessChanges
+[35/88] Testing PhotoSelectTests.FolderTreeTests/testHiddenRefreshPreservesExpandedPathAndSelectedFolder
+[36/88] Testing PhotoSelectTests.BrowserUITests/testTaggedFilterViewerNavigationUntagTrashAndPersistence
+[37/88] Testing PhotoSelectTests.BrowserUITests/testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths
+[38/88] Testing PhotoSelectTests.FolderTreeTests/testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter
+[39/88] Testing PhotoSelectTests.FolderTreeTests/testSelectingCachedFolderRevealsCollapsedAncestors
+[40/88] Testing PhotoSelectTests.FolderTreeTests/testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache
+[41/88] Testing PhotoSelectTests.ImagePipelineTests/testAllEightJPEGOrientationsMatchImageIOReferenceGeometry
+[42/88] Testing PhotoSelectTests.ImagePipelineTests/testARWUsesSameNativeJPEGForDisplayZoomAndThumbnailColor
+[43/88] Testing PhotoSelectTests.FolderTreeTests/testUserSelectionDuringRefreshOverridesPendingRestoration
+[44/88] Testing PhotoSelectTests.FolderTreeTests/testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter
+[45/88] Testing PhotoSelectTests.ImagePipelineTests/testEmbeddedICCOverridesContradictoryOuterColorHint
+[46/88] Testing PhotoSelectTests.ImagePipelineTests/testClearRejectsFinishedOldWorkAndDoesNotRepopulateCache
+[47/88] Testing PhotoSelectTests.ImagePipelineTests/testCancelledQueuedThumbnailDoesNotDecodeBehindVisibleRequests
+[48/88] Testing PhotoSelectTests.ImagePipelineTests/testJPEGDisplayAndZoomNeverReplaceWithAnotherResolution
+[49/88] Testing PhotoSelectTests.ImagePipelineTests/testOuterAdobeRGBHintIsAppliedBeforeConsistentSRGBConversion
+[50/88] Testing PhotoSelectTests.ImagePipelineTests/testPinnedCurrentAndNeighborsUseBoundedLRUWithoutDiscardingSelectedBitmap
+[51/88] Testing PhotoSelectTests.ImagePipelineTests/testPrefetchForegroundAndFullRequestsCoalesceWithIndependentCancellation
+[52/88] Testing PhotoSelectTests.PhotoActionsTests/testDeletingAnotherPhotoPreservesSelectionAndIndependentPair
+[53/88] Testing PhotoSelectTests.PhotoActionsTests/testCorruptTagMetadataIsPreserved
+[54/88] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M3PortraitAdobeRGBPreviewIsStableAndHonest
+[55/88] Testing PhotoSelectTests.PhotoActionsTests/testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor
+[56/88] Testing PhotoSelectTests.PhotoActionsTests/testImmediateFinishPersistsTagsAndUntaggingAcrossSessions
+[57/88] Testing PhotoSelectTests.PhotoActionsTests/testNativeMacOSTrashReturnsRecoverableFixture
+[58/88] Testing PhotoSelectTests.PhotoActionsTests/testRapidTagTogglesSerializeAndEndUntagged
+[59/88] Testing PhotoSelectTests.PhotoActionsTests/testTagSurvivesReloadAndDoesNotChangeRawOrJpeg
+[60/88] Testing PhotoSelectTests.PhotoActionsTests/testTagWriteFailureIsReported
+[61/88] Testing PhotoSelectTests.PhotoActionsTests/testTrashFailureKeepsSourceAndHasNoDeleteFallback
+[62/88] Testing PhotoSelectTests.PhotoActionsTests/testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting
+[63/88] Testing PhotoSelectTests.PhotoActionsTests/testTrashMovesOnlyRequestedFileAndKeepsPair
+[64/88] Testing PhotoSelectTests.PhotoActionsTests/testTrashReceiptCapturesDestinationAndExternalSpaceGuidance
+[65/88] Testing PhotoSelectTests.PhotoSelectTests/testCorruptImageReturnsFailure
+[66/88] Testing PhotoSelectTests.PhotoSelectTests/testExtensionsAndRawJpegPair
+[67/88] Testing PhotoSelectTests.PhotoSelectTests/testRetinaOneSourcePixelPerPhysicalPixel
+[68/88] Testing PhotoSelectTests.PhotoSelectTests/testFolderEnumerationIsNonRecursiveAndKeepsPairs
+[69/88] Testing PhotoSelectTests.PhotoSelectTests/testZoomEdgesNeverRevealEmptySpaceForLargeImage
+[70/88] Testing PhotoSelectTests.ViewerInteractionTests/testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer
+[71/88] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M4FullSizeCameraJPEGIsStableAndColorManaged
+[72/88] Testing PhotoSelectTests.ViewerInteractionTests/testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat
+[73/88] Testing PhotoSelectTests.ViewerInteractionTests/testDeactivationCancelsPendingZoom
+[74/88] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeCancelsPendingZoomBeforeClosing
+[75/88] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeStillResetsZoomAndCloses
+[76/88] Testing PhotoSelectTests.ViewerInteractionTests/testLimitedRawFitDoesNotUpscaleAndJpegFitKeepsExistingBehavior
+[77/88] Testing PhotoSelectTests.ViewerInteractionTests/testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements
+[78/88] Testing PhotoSelectTests.ViewerInteractionTests/testPressAndReleaseStillSwitchBetweenZoomAndFit
+[79/88] Testing PhotoSelectTests.ViewerInteractionTests/testZoomUsesActualDecodedPixelsEvenWhenRawMetadataIsLarger
+[80/88] Testing PhotoSelectTests.WindowLayoutTests/testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas
+[81/88] Testing PhotoSelectTests.WindowLayoutTests/testMinimumSizesNeverForceWindowOutsideSmallDisplay
+[82/88] Testing PhotoSelectTests.ViewerInteractionTests/testQuickDoubleClickClosesWithoutEverStartingZoom
+[83/88] Testing PhotoSelectTests.WindowLayoutTests/testMovedOrDisconnectedDisplayFrameFitsNewScreen
+[84/88] Testing PhotoSelectTests.WindowLayoutTests/testUserSidebarWidthCanGrowAndSurvivesResize
+[85/88] Testing PhotoSelectTests.WindowLayoutTests/testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt
+[86/88] Testing PhotoSelectTests.WindowLayoutTests/testPhotoGridGetsMostWidthAndPreviewHasBoundedSize
+[87/88] Testing PhotoSelectTests.ViewerInteractionTests/testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit
+[88/88] Testing PhotoSelectTests.ViewerInteractionTests/testShortClickReleaseDoesNotCauseDelayedZoom
+Test Suite 'Selected tests' started at 2026-11-13 04:14:10.969.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-13 04:14:10.990.
+Test Suite 'BrowserUITests' started at 2026-11-13 04:14:10.990.
+Test Case '-[PhotoSelectTests.BrowserUITests testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:149: error: -[PhotoSelectTests.BrowserUITests testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths] : XCTUnwrap failed: expected non-nil value of type "Int"
+Test Case '-[PhotoSelectTests.BrowserUITests testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths]' failed (4.326 seconds).
+Test Suite 'BrowserUITests' failed at 2026-11-13 04:14:15.317.
+	 Executed 1 test, with 1 failure (0 unexpected) in 4.326 (4.327) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-13 04:14:15.317.
+	 Executed 1 test, with 1 failure (0 unexpected) in 4.326 (4.327) seconds
+Test Suite 'Selected tests' failed at 2026-11-13 04:14:15.317.
+	 Executed 1 test, with 1 failure (0 unexpected) in 4.326 (4.349) seconds
+
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: x86_64-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.
