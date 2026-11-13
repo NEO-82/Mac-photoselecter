@@ -702,7 +702,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         synchronizeGrid(reload: true)
         if let index = list.selectedIndex {
             if previousURL != selectedURL || (displayed == nil && !loading && previewError == nil) { showPhoto(index) }
-            else { updateHUD(); updateBadges() }
+            else { updateHUD(); updateBadges(); prepareNeighbors() }
         } else if let index = entries.firstIndex(where: { $0.url == selectedURL }) {
             selectEntry(at: index)
         } else if !entries.isEmpty {
@@ -823,8 +823,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         imageGeneration = UUID(); let token = imageGeneration
         if let previousPhotoIndex, previousPhotoIndex != index { navigationDirection = index > previousPhotoIndex ? 1 : -1 }
         previousPhotoIndex = index
-        let neighbors = [index + navigationDirection, index + 2 * navigationDirection,
-                         index - navigationDirection].filter { list.photos.indices.contains($0) }.map { list.photos[$0] }
+        let neighbors = neighborPhotos(index)
         loading = false; previewError = nil; actionMessage = nil
         preview.filename.stringValue = photo.url.lastPathComponent
         preview.filename.toolTip = photo.url.path
@@ -863,11 +862,17 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         // Apply the cached frame before grid layout, cache pinning or speculative work.
         synchronizeGrid(); updateBadges()
         setStatus("\(currentFolder?.path ?? "") — \(entries.count)개 항목 · 1장 선택")
+        prepareNeighbors()
+    }
+    private func neighborPhotos(_ index: Int) -> [Photo] {
+        [index + navigationDirection, index + 2 * navigationDirection, index - navigationDirection]
+            .filter { list.photos.indices.contains($0) }.map { list.photos[$0] }
+    }
+    private func prepareNeighbors() {
+        guard !renameBusy, let lease, let index = list.selectedIndex, let photo = list.selectedPhoto else { return }
+        let neighbors = neighborPhotos(index)
         pipeline.retain(photos: [photo] + neighbors)
-        // Prepare the travel direction first; keep one reverse neighbor.
-        for neighbor in neighbors {
-            pipeline.load(neighbor, lease: lease, quality: .preview, prefetch: true) { _, _ in }
-        }
+        for neighbor in neighbors { pipeline.load(neighbor, lease: lease, quality: .preview, prefetch: true) { _, _ in } }
     }
     private func recordNavigation(start: TimeInterval, hit: Bool) {
         navigationSamples.append(["requestToApplyMs": (ProcessInfo.processInfo.systemUptime - start) * 1000,

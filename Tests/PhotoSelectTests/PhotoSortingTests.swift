@@ -63,4 +63,26 @@ final class PhotoSortingTests: XCTestCase {
             XCTAssertNotNil(PhotoSortMetadata.captureDate(URL(fileURLWithPath: path).appendingPathComponent(name)), name)
         }
     }
+    func testMetadataCacheSurvivesRenameAndInvalidatesChangedBytes() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let old = root.appendingPathComponent("old.JPG"), new = root.appendingPathComponent("new.JPG")
+        try Data([1, 2, 3]).write(to: old)
+        var calls = 0
+        let service = PhotoSortMetadata(reader: { _ in calls += 1; return Date(timeIntervalSince1970: 10) })
+        func prepare(_ url: URL) {
+            let done = expectation(description: "metadata snapshot")
+            service.prepare([BrowserEntry(url: url, isDirectory: false)], lease: FolderLease(root)) { values in
+                XCTAssertEqual(values.first?.capturedAt, Date(timeIntervalSince1970: 10)); done.fulfill()
+            }
+            wait(for: [done], timeout: 5)
+        }
+        prepare(old); XCTAssertEqual(calls, 1)
+        try FileManager.default.moveItem(at: old, to: new)
+        service.remapFiles([old: new]); prepare(new); XCTAssertEqual(calls, 1)
+        try Data([1, 2, 3, 4]).write(to: new)
+        prepare(new); XCTAssertEqual(calls, 2)
+    }
+
 }

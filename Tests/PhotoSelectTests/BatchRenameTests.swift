@@ -8,11 +8,11 @@ final class BatchRenameTests: XCTestCase {
         addTeardownBlock { try? FileManager.default.removeItem(at: root) }; return root
     }
     private func entries(_ root: URL) throws -> [BrowserEntry] { try BrowserEntry.read(root, showHidden: true) }
-    private func execute(_ engine: BatchRenameEngine, _ plan: RenamePlan, _ store: TagStore) throws -> RenameOutcome {
+    private func execute(_ engine: BatchRenameEngine, _ plan: RenamePlan, _ store: TagStore, timeout: TimeInterval = 30) throws -> RenameOutcome {
         let done = expectation(description: "batch transaction")
         var output: RenameOutcome?
         engine.execute(plan, tagStore: store, lease: FolderLease(plan.folder), progress: { _, _, _ in }) { result in output = result; done.fulfill() }
-        wait(for: [done], timeout: 30); return try XCTUnwrap(output)
+        wait(for: [done], timeout: timeout); return try XCTUnwrap(output)
     }
     private func tag(_ url: URL, store: TagStore) {
         let done = expectation(description: "seed tag")
@@ -231,6 +231,35 @@ final class BatchRenameTests: XCTestCase {
         try bytes.write(to: tags)
         XCTAssertFalse(try execute(engine, makePlan(root), TagStore(fileURL: tags)).completed)
         XCTAssertEqual(try Data(contentsOf: tags), bytes); XCTAssertEqual(try Data(contentsOf: a), Data([8]))
+    }
+
+    func testThreeThousandActualRenamesWithOneThousandTagsPreserveEveryFile() throws {
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        var oldTags: [String] = []
+        for i in 0..<3000 {
+            let ext = i.isMultiple(of: 2) ? "ARW" : "JPG"
+            let url = root.appendingPathComponent(String(format: "%04d.%@", i, ext))
+            try Data([UInt8(i % 251), UInt8((i / 251) % 251)]).write(to: url)
+            if i.isMultiple(of: 3) { oldTags.append(TagStore.key(url)) }
+        }
+        let file = metadata.appendingPathComponent("tags.json")
+        try JSONSerialization.data(withJSONObject: ["version": 1, "taggedPaths": oldTags]).write(to: file)
+        let plan = try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "파일 이름순 ↑",
+            settings: RenameSettings(base: "Wedding", separator: "_", start: 1, digits: 4), existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)))
+        let engine = BatchRenameEngine(journalDirectory: journals)
+        let started = ProcessInfo.processInfo.systemUptime
+        let result = try execute(engine, plan, TagStore(fileURL: file), timeout: 120)
+        XCTAssertTrue(result.completed, result.message)
+        XCTAssertEqual(result.mapping.count, 3000); XCTAssertEqual(result.taggedPaths?.count, 1000)
+        for i in 0..<3000 {
+            let ext = i.isMultiple(of: 2) ? "ARW" : "JPG"
+            let url = root.appendingPathComponent(String(format: "Wedding_%04d.%@", i + 1, ext))
+            XCTAssertEqual(try Data(contentsOf: url), Data([UInt8(i % 251), UInt8((i / 251) % 251)]))
+            XCTAssertEqual(result.taggedPaths?.contains(TagStore.key(url)), i.isMultiple(of: 3))
+        }
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path).count, 3000)
+        XCTAssertTrue(try engine.pending(in: root).isEmpty)
+        print("BATCH_RENAME_3000 synthetic tiny regular files elapsedMs=\((ProcessInfo.processInfo.systemUptime - started) * 1000)")
     }
 
 }

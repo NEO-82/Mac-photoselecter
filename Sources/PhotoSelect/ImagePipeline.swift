@@ -203,7 +203,7 @@ final class ImagePipeline {
             if self.pressure?.data.contains(.normal) == true { self.cache.setBudget(self.normalCacheLimit) }
             else { self.handleMemoryPressure() }
         }
-        source.resume(); pressure = source
+        pressure = source; source.resume()
     }
     deinit { pressure?.cancel() }
     private func key(_ photo: Photo, _ quality: Quality) -> String {

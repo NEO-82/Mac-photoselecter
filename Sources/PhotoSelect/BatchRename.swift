@@ -257,9 +257,10 @@ final class BatchRenameEngine {
             let snapshot = Set(journal.tagSnapshot)
             if atOriginal && TagStore.key(folder) == TagStore.key(URL(fileURLWithPath: journal.folderPath)) { return snapshot }
             var result: Set<String> = []
+            let current = mapping
             for item in journal.items {
                 let old = URL(fileURLWithPath: journal.folderPath).appendingPathComponent(item.original)
-                if snapshot.contains(TagStore.key(old)) { result.insert(TagStore.key(mapping[old] ?? old)) }
+                if snapshot.contains(TagStore.key(old)) { result.insert(TagStore.key(current[old] ?? old)) }
             }
             return result
         }
