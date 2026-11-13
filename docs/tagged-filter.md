@@ -29,6 +29,6 @@ arm64 전용 Release 앱, ad-hoc 서명, DMG 무결성, 읽기 전용 마운트 
 
 [다운로드 검증 JSON](../downloads/download-verification-0.5.3.json), [XCTest 결과](../downloads/v0.5.3-build40/xctest-results.xml), [Release 검사](../downloads/v0.5.3-build40/release-preview-results.xml), [빌드 로그](../downloads/v0.5.3-build40/build.log), [아이콘 검증](../downloads/v0.5.3-build40/icon-validation.json).
 
-![다크 테마의 태그 필터와 기존 빨간 태그 표시](../downloads/browser-mixed-tagged.png)
+![다크 테마의 태그 필터와 기존 빨간 태그 표시](../downloads/v0.5.3-build40/browser-mixed-tagged.png)
 
 설치 파일은 개인 테스트용 ad-hoc 서명이며 Developer ID 서명/Apple 공증은 포함하지 않습니다. 실제 Apple Silicon Mac에 설치하여 실행한 결과로 안내하지 않습니다.
