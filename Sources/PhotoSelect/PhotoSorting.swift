@@ -63,18 +63,20 @@ final class PhotoSortMetadata {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary),
               let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any] else { return nil }
         let exif = properties[kCGImagePropertyExifDictionary] as? [String: Any] ?? [:]
-        let tiff = properties[kCGImagePropertyTIFFDictionary] as? [String: Any] ?? [:]
-        guard let text = exif[kCGImagePropertyExifDateTimeOriginal as String] as? String ??
-                exif[kCGImagePropertyExifDateTimeDigitized as String] as? String ?? tiff[kCGImagePropertyTIFFDateTime as String] as? String else { return nil }
+        let original = exif[kCGImagePropertyExifDateTimeOriginal as String] as? String
+        guard let text = original ?? exif[kCGImagePropertyExifDateTimeDigitized as String] as? String else { return nil }
+        // TIFF DateTime is an edit timestamp, not a reliable capture time.
+        let offsetKey = original != nil ? "OffsetTimeOriginal" : "OffsetTimeDigitized"
+        let subsecondKey = original != nil ? "SubsecTimeOriginal" : "SubsecTimeDigitized"
         let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.calendar = Calendar(identifier: .gregorian); formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        if let offset = exif["OffsetTimeOriginal"] as? String {
+        if let offset = exif[offsetKey] as? String {
             formatter.dateFormat = "yyyy:MM:dd HH:mm:ssXXXXX"
             if let date = formatter.date(from: text + offset) { return date }
         }
         formatter.dateFormat = "yyyy:MM:dd HH:mm:ss"; formatter.isLenient = false
         guard var date = formatter.date(from: text) else { return nil }
-        if let sub = exif["SubsecTimeOriginal"] as? String, let fraction = Double("0." + sub) { date.addTimeInterval(fraction) }
+        if let sub = exif[subsecondKey] as? String, let fraction = Double("0." + sub) { date.addTimeInterval(fraction) }
         return date
     }
     @discardableResult

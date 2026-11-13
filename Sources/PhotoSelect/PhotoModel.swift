@@ -145,7 +145,7 @@ enum FolderReader {
         return error.localizedDescription
     }
     static func entries(_ url: URL, directories: Bool, allFiles: Bool = false, showHidden: Bool = false) throws -> [URL] {
-        let keys: Set<URLResourceKey> = [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey]
+        let keys: Set<URLResourceKey> = [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey, .fileSizeKey]
         return try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: Array(keys),
             options: showHidden ? [] : [.skipsHiddenFiles]).filter { item in
                 let values = try item.resourceValues(forKeys: keys)
