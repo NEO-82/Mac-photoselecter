@@ -506,6 +506,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     func finishPendingTagWrites(completion: @escaping () -> Void) {
         finishingTagWrites = true
+        imageGeneration = UUID(); pipeline.clear(); thumbnails.clear()
+        request?.cancel()
         tagStore.finishPendingWrites(completion: completion)
     }
     private func loadFolder(_ url: URL, lease: FolderLease) {

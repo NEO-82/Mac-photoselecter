@@ -35,7 +35,7 @@ final class BitmapCache {
     private var entries: [String: (value: DecodedImage, cost: Int, age: UInt64)] = [:]
     private var total = 0
     private var clock: UInt64 = 0
-    private let limit: Int
+    private var limit: Int
     private var pinnedKey: String?
     private var pinnedValue: DecodedImage?
     init(limit: Int = 512 * 1024 * 1024) { self.limit = max(0, limit) }
@@ -76,8 +76,10 @@ final class BitmapCache {
         lock.lock(); defer { lock.unlock() }
         return total + (pinnedValue.map { $0.image.bytesPerRow * $0.image.height } ?? 0)
     }
-    func trim() {
+    func setBudget(_ bytes: Int) { lock.lock(); limit = max(0, bytes); lock.unlock() }
+    func trim(to bytes: Int? = nil) {
         lock.lock(); defer { lock.unlock() }
+        if let bytes { limit = max(0, bytes) }
         entries.removeAll(); total = 0
     }
     func clear() {
@@ -146,6 +148,7 @@ final class ImagePipeline {
     private var works: [String: Work] = [:]
     private var epoch: UInt64 = 0
     private let cache: BitmapCache
+    private let normalCacheLimit: Int
     private let embedded = EmbeddedSourceCache()
     private let injectedDecoder: Decoder?
 
@@ -165,16 +168,21 @@ final class ImagePipeline {
     }
     func handleMemoryPressure() {
         lock.lock(); defer { lock.unlock() }
-        cache.trim(); embedded.clear()
+        cache.trim(to: normalCacheLimit / 4); embedded.clear()
         for key in works.compactMap({ !$0.value.foreground && !$0.value.started ? $0.key : nil }) {
             if let work = works.removeValue(forKey: key) { work.operation.cancel() }
         }
     }
     init(cacheLimit: Int = ImagePipeline.defaultCacheLimit, foregroundConcurrency: Int = 2, decoder: Decoder? = nil) {
+        normalCacheLimit = cacheLimit
         cache = BitmapCache(limit: cacheLimit); injectedDecoder = decoder
         queue.maxConcurrentOperationCount = max(1, foregroundConcurrency)
-        let source = DispatchSource.makeMemoryPressureSource(eventMask: [.warning, .critical], queue: .global(qos: .utility))
-        source.setEventHandler { [weak self] in self?.handleMemoryPressure() }
+        let source = DispatchSource.makeMemoryPressureSource(eventMask: [.normal, .warning, .critical], queue: .global(qos: .utility))
+        source.setEventHandler { [weak self] in
+            guard let self else { return }
+            if self.pressure?.data.contains(.normal) == true { self.cache.setBudget(self.normalCacheLimit) }
+            else { self.handleMemoryPressure() }
+        }
         source.resume(); pressure = source
     }
     deinit { pressure?.cancel() }

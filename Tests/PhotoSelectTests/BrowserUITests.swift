@@ -243,6 +243,44 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    func testLargeFolders2000And3000UseLazyThumbnailsAndBoundedDisplayWork() throws {
+        _ = NSApplication.shared
+        let root = try folder(), data = jpegData()
+        let source = try XCTUnwrap(CGImageSourceCreateWithData(data as CFData, nil))
+        let bitmap = try XCTUnwrap(CGImageSourceCreateImageAtIndex(source, 0, nil))
+        let image = DecodedImage(image: bitmap, sourceSize: CGSize(width: 20, height: 10), fullResolution: true, raw: false)
+        for count in [2000, 3000] {
+            let directory = root.appendingPathComponent(String(count))
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            for index in 0..<count { try data.write(to: directory.appendingPathComponent(String(format: "%04d.jpg", index))) }
+            let lock = NSLock(); var calls = 0
+            let pipeline = ImagePipeline(foregroundConcurrency: 1, decoder: { _, _ in lock.lock(); calls += 1; lock.unlock(); return image })
+            let start = ProcessInfo.processInfo.systemUptime
+            let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: directory, pipeline: pipeline)
+            browser.showWindow(nil)
+            let views = descendants(try XCTUnwrap(browser.window?.contentView))
+            let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+            waitUntil("large folder loaded", timeout: 20) { grid.numberOfItems(inSection: 0) == count && !browser.navigationSamples.isEmpty }
+            lock.lock(); let initialCalls = calls; lock.unlock()
+            XCTAssertLessThanOrEqual(initialCalls, 4, "Do not decode the whole folder")
+            grid.scrollToItems(at: [IndexPath(item: count - 1, section: 0)], scrollPosition: .bottom)
+            grid.layoutSubtreeIfNeeded()
+            XCTAssertLessThan(grid.visibleItems().count, 100)
+            for _ in 0..<20 { browser.nextPhoto() }
+            for _ in 0..<10 { browser.previousPhoto() }
+            waitUntil("rapid final selection") { browser.navigationSamples.last?["index"] == 10 }
+            let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoBrowserTagFilter" })
+            filter.performClick(nil); XCTAssertEqual(grid.numberOfItems(inSection: 0), 0)
+            filter.performClick(nil); XCTAssertEqual(grid.numberOfItems(inSection: 0), count)
+            print("LARGE_FOLDER count=\(count) elapsedMs=\((ProcessInfo.processInfo.systemUptime - start) * 1000) initialDisplayDecodes=\(initialCalls)")
+            let finished = expectation(description: "cleanup and tags drained")
+            browser.finishPendingTagWrites { finished.fulfill() }
+            wait(for: [finished], timeout: 5)
+            browser.close()
+        }
+    }
+
+    @MainActor
     func testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths() throws {
         _ = NSApplication.shared
         let root = try folder(), metadata = try folder()
