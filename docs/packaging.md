@@ -6,6 +6,10 @@
 
 ## 현재 상태
 
+0.5.3 빌드 40의 태그 필터 설치 파일과 XCTest 88개·Release RAW 3개·서명·DMG·다운로드 검증은 [최종 0.5.3 검증 기록](tagged-filter.md#최종-검증과-설치-파일)을 참고하세요.
+
+## 이전 0.5.2 검증 기록
+
 0.5.2 빌드 32를 GitHub의 Intel macOS 러너(Xcode 16.4)에서 생성했습니다.
 [빌드 실행 #32](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43230004616)에서 XCTest **86개**와 Release Sony RAW 검사 **3개**가 실패·건너뜀 없이 통과했습니다.
 arm64 전용 Release 앱 빌드, 앱 이름·공식 아이콘, ad-hoc 서명, DMG 무결성, 읽기 전용 마운트 후 앱 서명 검증도 통과했습니다.
@@ -30,7 +34,7 @@ arm64 전용 Release 앱 빌드, 앱 이름·공식 아이콘, ad-hoc 서명, DM
 2. 소스 묶음을 압축 해제하고 `설치파일-만들기.command`를 더블클릭합니다.
    터미널에서 실행할 경우 저장소 디렉터리로 이동해 `bash scripts/package-macos.sh`를 실행합니다.
 3. XCTest 및 Release 빌드가 성공하면 `dist` 폴더가 열립니다.
-4. `PhotoSelect-0.5.2-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
+4. `PhotoSelect-0.5.3-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
 5. 디스크 이미지를 추출한 뒤 응용 프로그램 폴더에서 앱을 실행합니다.
 
 완성된 앱의 실행 요건은 M1 이상, macOS 13 이상입니다. 앱 실행에는 Xcode나 Swift 설치가 필요하지 않습니다.
@@ -48,15 +52,15 @@ Locations → Command Line Tools에서 사용할 Xcode를 선택하세요.
 기본 결과물:
 
 ```text
-dist/PhotoSelect-0.5.2-1-arm64/
-  PhotoSelect-0.5.2-1-arm64.dmg
+dist/PhotoSelect-0.5.3-1-arm64/
+  PhotoSelect-0.5.3-1-arm64.dmg
   SHA256SUMS
 ```
 
 같은 버전/빌드 번호의 기존 결과물을 덮어쓰지 않습니다. 새로 빌드할 때 번호를 늘릴 수 있습니다.
 
 ```bash
-PHOTOSELECT_VERSION=0.5.2 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
+PHOTOSELECT_VERSION=0.5.3 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
 ```
 
 DMG가 들어 있는 디렉터리에서 `shasum -a 256 -c SHA256SUMS`로 파일 전송 후 무결성을 확인할 수 있습니다.
