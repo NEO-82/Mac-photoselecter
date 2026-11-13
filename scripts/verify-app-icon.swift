@@ -60,6 +60,12 @@ do {
         throw IconCheckError(message: "Bundle icon registration is missing")
     }
     try require(iconName == "AppIcon.icns", "Unexpected CFBundleIconFile")
+    try require(appURL.lastPathComponent == "J♡S.app", "Unexpected installed app name")
+    try require(bundle.bundleIdentifier == "dev.photoselect.app", "Data compatibility: bundle identifier changed")
+    for key in ["CFBundleName", "CFBundleDisplayName"] {
+        try require(bundle.object(forInfoDictionaryKey: key) as? String == "J♡S", "Unexpected display name: \(key)")
+    }
+    try require(bundle.object(forInfoDictionaryKey: "CFBundleExecutable") as? String == "PhotoSelect", "Internal executable must stay PhotoSelect")
     let iconURL = appURL.appendingPathComponent("Contents/Resources").appendingPathComponent(iconName)
     let iconsetURL = outputURL.appendingPathComponent("verified-AppIcon.iconset", isDirectory: true)
     if fileManager.fileExists(atPath: iconsetURL.path) { try fileManager.removeItem(at: iconsetURL) }
@@ -105,6 +111,8 @@ do {
     let report: [String: Any] = [
         "source_sha256": SHA256.hash(data: sourceData).map { String(format: "%02x", $0) }.joined(),
         "source_dimensions": [source.width, source.height],
+        "bundle_name": bundle.object(forInfoDictionaryKey: "CFBundleName") ?? "",
+        "bundle_display_name": bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? "",
         "bundle_identifier": bundle.bundleIdentifier ?? "",
         "bundle_version": bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "",
         "bundle_short_version": bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",

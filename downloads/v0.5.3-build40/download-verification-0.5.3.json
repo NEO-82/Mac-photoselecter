@@ -1,0 +1,13 @@
+{
+  "version": "0.5.3",
+  "build_number": "40",
+  "source_commit": "4815ad658c7b25e7603b10ebb0d3e1a71b88cea4",
+  "installer_commit": "80570b931c3c119882390d91f02d38f6b3f83506",
+  "run_url": "https://github.com/NEO-82/Mac-photoselecter/actions/runs/43365236450",
+  "url": "https://github.com/NEO-82/Mac-photoselecter/raw/80570b931c3c119882390d91f02d38f6b3f83506/downloads/PhotoSelect-0.5.3-arm64.dmg",
+  "http_status": 200,
+  "bytes": 3797415,
+  "sha256": "5186932b0b067f3b523c2c952546b9b879fdd295f945e6377c7b886c60c7e519",
+  "sha256_matches": true,
+  "verified_at": "2026-11-13T04:30:01.971153+00:00"
+}

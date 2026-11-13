@@ -1,7 +1,7 @@
 import AppKit
 
 enum AppBranding {
-    static let displayName = "정광이의 MAC 포토셀렉터"
+    static let displayName = "J♡S"
 }
 
 // Semantic colors resolve for the view's effective appearance, including live theme changes.

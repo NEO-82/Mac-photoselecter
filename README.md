@@ -1,11 +1,13 @@
-# 정광이의 MAC 포토셀렉터
+# J♡S
+
+Jeonggwang ♡ Seoa.
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
 [0.5.3 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/80570b931c3c119882390d91f02d38f6b3f83506/downloads/PhotoSelect-0.5.3-arm64.dmg)
 
-DMG를 열고 **정광이의 MAC 포토셀렉터.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
-기존 앱을 종료한 뒤 새 버전으로 교체하세요. 예전 `PhotoSelect.app`이 남아 있다면 이전 앱만 휴지통으로 옮기세요.
+DMG를 열고 **J♡S.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
+기존 `정광이의 MAC 포토셀렉터.app`, `PhotoSelect.app`, J♡S를 모두 종료하세요. J♡S.app을 Applications에 넣은 뒤 이전 이름의 **앱 번들만** 휴지통으로 옮기세요. 이름이 달라 자동 교체되지 않을 수 있습니다. Dock의 이전 바로가기도 J♡S로 다시 등록하세요. `~/Library/Application Support/dev.photoselect.app/tags.json`과 사용자 설정은 삭제하지 말고, 앱 정리 도구의 관련 데이터 삭제 기능은 사용하지 마세요.
 Developer ID 서명/Apple 공증이 없는 개인 테스트용입니다. macOS가 차단하면 출처를 확인한 후 개인정보 보호 및 보안의 실행 허용 안내를 따르세요.
 
 ## 사용
@@ -40,7 +42,7 @@ macOS 13+, Xcode 15+가 필요합니다. 외부 패키지, 서버, API 키는 �
 2. `bash scripts/validate-macos.sh`로 앱 빌드와 Swift Package XCTest 실행.
 3. `설치파일-만들기.command`를 더블클릭하거나 `bash scripts/package-macos.sh`로 테스트·Release 빌드·DMG 검증 실행.
 
-기본 결과물은 `dist/PhotoSelect-0.5.3-1-arm64/PhotoSelect-0.5.3-1-arm64.dmg`와 `SHA256SUMS`입니다.
+기본 결과물은 `dist/J-S-0.5.4-1-arm64/J-S-0.5.4-1-arm64.dmg`와 `SHA256SUMS`입니다.
 다시 만들 때는 `PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh`처럼 빌드 번호를 늘리세요.
 Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배포용 앱과 아이콘은 Xcode 프로젝트로 만듭니다.
 각 작업은 격리된 체크아웃을 사용하므로 별도 worktree는 필요하지 않습니다.

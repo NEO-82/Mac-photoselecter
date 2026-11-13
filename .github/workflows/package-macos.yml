@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.5.3'
+        default: '0.5.4'
         type: string
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.5.3' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.5.4' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
   PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
@@ -75,19 +75,19 @@ jobs:
           icon_mount="$RUNNER_TEMP/photoselect-icon-mount"
           mkdir -p "$icon_mount"
           trap 'hdiutil detach "$icon_mount"' EXIT
-          icon_artifact="PhotoSelect-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
+          icon_artifact="J-S-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
           hdiutil attach -readonly -nobrowse -mountpoint "$icon_mount" "dist/$icon_artifact/$icon_artifact.dmg"
-          xcrun swift scripts/verify-app-icon.swift Resources/AppIcon.png "$icon_mount/정광이의 MAC 포토셀렉터.app" .build
+          xcrun swift scripts/verify-app-icon.swift Resources/AppIcon.png "$icon_mount/J♡S.app" .build
           hdiutil detach "$icon_mount"
           trap - EXIT
       - name: Upload personal-test installer
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: PhotoSelect-${{ env.PHOTOSELECT_VERSION }}-arm64
+          name: J-S-${{ env.PHOTOSELECT_VERSION }}-arm64
           path: |
-            dist/PhotoSelect-*/PhotoSelect-*.dmg
-            dist/PhotoSelect-*/SHA256SUMS
+            dist/J-S-*/J-S-*.dmg
+            dist/J-S-*/SHA256SUMS
             ${{ runner.temp }}/PhotoSelect-build.log
             .build/browser-layout.png
             .build/browser-dark.png

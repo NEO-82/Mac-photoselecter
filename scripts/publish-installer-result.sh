@@ -30,11 +30,12 @@ done
 for evidence in .build/icon-validation.json .build/finder-icon.png; do
     if [[ -f "$evidence" ]]; then cp "$evidence" downloads/; fi
 done
-artifact="PhotoSelect-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
-filename="PhotoSelect-${PHOTOSELECT_VERSION}-arm64.dmg"
+artifact="J-S-${PHOTOSELECT_VERSION}-${PHOTOSELECT_BUILD_NUMBER}-arm64"
+filename="J-S-${PHOTOSELECT_VERSION}-arm64.dmg"
 if [[ "$PACKAGE_OUTCOME" == success ]]; then
     cp "dist/$artifact/$artifact.dmg" "downloads/$filename"
-    (cd downloads && shasum -a 256 "$filename" > SHA256SUMS)
+    (cd downloads && shasum -a 256 "$filename" > "SHA256SUMS-${PHOTOSELECT_VERSION}")
+    cp "downloads/SHA256SUMS-${PHOTOSELECT_VERSION}" downloads/SHA256SUMS
 else
     # Do not leave a previous installer looking like the result of a failed build.
     rm -f "downloads/$filename" downloads/SHA256SUMS

@@ -90,7 +90,7 @@ GitHub 직접 다운로드는 HTTP 200, 3,308,078바이트, 저장된 DMG와 SHA
 실제 데스크탑/iCloud Desktop은 설치 후 폴더 열기에서 다시 선택해 확인하세요.
 
 앱 이름·아이콘 변경본은 2026-11-08 [macOS 빌드 실행 #4](https://github.com/NEO-82/Mac-photoselecter/actions/runs/42478581841)에서
-XCTest 9개와 Release 빌드가 통과했습니다. 표시 이름 `정광이의 MAC 포토셀렉터`와 `AppIcon.icns` 포함 및 헤더를 검증했고,
+XCTest 9개와 Release 빌드가 통과했습니다. 표시 이름 `J♡S`와 `AppIcon.icns` 포함 및 헤더를 검증했고,
 DMG 무결성/앱 서명/다운로드 체크섬도 확인했습니다. Dock/Finder의 실제 표시 확인은 아래 실기기 항목과 함께 수행합니다.
 
 0.2.0은 2026-11-08 [macOS 빌드 실행 #6](https://github.com/NEO-82/Mac-photoselecter/actions/runs/42486268641)에서

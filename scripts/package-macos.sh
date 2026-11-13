@@ -4,14 +4,14 @@ set -euo pipefail
 
 repo_dir="$(cd "$(dirname "$0")/.." && pwd -P)"
 cd "$repo_dir"
-app_name='정광이의 MAC 포토셀렉터'
+app_name='J♡S'
 
 if [[ "$(uname -s)" != Darwin ]]; then
     echo '설치 파일 생성에는 macOS와 Xcode 15 이상이 필요합니다. Linux에서는 생성할 수 없습니다.' >&2
     exit 2
 fi
 
-version="${PHOTOSELECT_VERSION:-0.5.3}"
+version="${PHOTOSELECT_VERSION:-0.5.4}"
 build_number="${PHOTOSELECT_BUILD_NUMBER:-1}"
 if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || [[ ! "$build_number" =~ ^[1-9][0-9]*$ ]]; then
     echo '버전은 0.1.0 형태, 빌드 번호는 양의 정수를 사용하세요.' >&2
@@ -28,7 +28,7 @@ xcodebuild -version
 xcrun --find swift >/dev/null
 xcrun --find lipo >/dev/null
 
-artifact_name="PhotoSelect-${version}-${build_number}-arm64"
+artifact_name="J-S-${version}-${build_number}-arm64"
 output_dir="$repo_dir/dist/$artifact_name"
 if [[ -e "$output_dir" ]]; then
     echo "기존 결과물을 보존합니다: $output_dir" >&2
@@ -102,20 +102,26 @@ if [[ "$(plutil -extract CFBundleIconFile raw -o - "$app_path/Contents/Info.plis
     echo '앱 아이콘 누락 또는 잘못된 ICNS 파일입니다.' >&2
     exit 1
 fi
-echo "앱 이름 및 골든리트리버 아이콘 확인: $app_name"
+echo "앱 이름 및 공식 커플 사진 아이콘 확인: $app_name"
 
 echo '3/5 로컬 테스트용 앱 서명 및 검증'
 codesign --force --sign - --timestamp=none "$app_path"
 codesign --verify --strict --verbose=2 "$app_path"
 ln -s /Applications "$work_dir/image/Applications"
 cat > "$work_dir/image/설치 안내.txt" <<'INSTALL'
-정광이의 MAC 포토셀렉터 — Apple Silicon용 개인 테스트 빌드
+J♡S — Apple Silicon용 개인 테스트 빌드
 
 요구 사항: M1 이상 Mac, macOS 13 이상. 설치 후 실행에는 Xcode가 필요하지 않습니다.
 
-설치: 정광이의 MAC 포토셀렉터.app을 Applications 폴더로 끌어 넣은 뒤 디스크 이미지를 추출하세요.
-제거: 앱을 종료한 뒤 응용 프로그램 폴더의 정광이의 MAC 포토셀렉터.app을 휴지통으로 옮기세요.
-이전 PhotoSelect.app이 설치돼 있으면 종료한 뒤 이전 앱을 휴지통으로 옮기고 새 이름의 앱을 넣으세요.
+설치: J♡S.app을 Applications 폴더로 끌어 넣은 뒤 디스크 이미지를 추출하세요.
+제거: 앱을 종료한 뒤 응용 프로그램 폴더의 J♡S.app을 휴지통으로 옮기세요.
+교체: 기존 ‘정광이의 MAC 포토셀렉터.app’과 ‘PhotoSelect.app’, J♡S를 모두 종료하세요.
+Applications에 J♡S.app을 설치한 뒤 이전 이름의 앱 번들만 휴지통으로 옮기세요.
+Dock의 이전 앱 바로가기는 제거하고 Applications의 J♡S를 다시 등록하세요.
+앱 이름이 달라 이전 앱이 자동 교체되지 않을 수 있으므로 두 앱을 동시에 실행하지 마세요.
+태그와 설정은 같은 dev.photoselect.app 식별자를 계속 사용합니다.
+~/Library/Application Support/dev.photoselect.app/tags.json 및 사용자 설정은 삭제하지 마세요.
+앱 정리 도구로 관련 사용자 데이터를 함께 삭제하지 마세요.
 사진 파일은 앱 설치/제거 과정에서 변경하지 않습니다.
 
 이 빌드는 로컬 ad-hoc 서명이며 Apple Developer ID 서명 및 공증은 포함하지 않습니다.

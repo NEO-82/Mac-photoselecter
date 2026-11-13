@@ -8,6 +8,19 @@ final class PhotoActionsTests: XCTestCase {
         addTeardownBlock { try? FileManager.default.removeItem(at: url) }
         return url
     }
+    func testJSBrandingReadsUnchangedV053TagDocument() throws {
+        XCTAssertEqual(AppBranding.displayName, "J\u{2661}S")
+        let file = try folder().appendingPathComponent("tags.json")
+        let raw = URL(fileURLWithPath: "/photos/DSC.ARW")
+        let legacy = Data(#"{"version":1,"taggedPaths":["/photos/DSC.ARW"]}"#.utf8)
+        try legacy.write(to: file)
+        let loaded = expectation(description: "read v0.5.3 metadata")
+        TagStore(fileURL: file).load { result in
+            XCTAssertEqual(try? result.get(), Set([TagStore.key(raw)])); loaded.fulfill()
+        }
+        wait(for: [loaded], timeout: 5)
+        XCTAssertEqual(try Data(contentsOf: file), legacy)
+    }
     func testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor() {
         let photos = ["1.jpg", "2.arw", "3.jpg"].map { Photo(url: URL(fileURLWithPath: "/photos/" + $0)) }
         var list = PhotoList(); list.replace(with: photos); list.select(1)

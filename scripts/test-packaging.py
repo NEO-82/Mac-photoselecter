@@ -40,15 +40,15 @@ elif name == "xcodebuild":
     else:
         if failure == "xcodebuild": sys.exit(33)
         assert "ARCHS=arm64" in args and "CODE_SIGNING_ALLOWED=NO" in args
-        app = pathlib.Path(args[args.index("-derivedDataPath") + 1]) / "Build/Products/Release/정광이의 MAC 포토셀렉터.app"
+        app = pathlib.Path(args[args.index("-derivedDataPath") + 1]) / "Build/Products/Release/J♡S.app"
         (app / "Contents/MacOS").mkdir(parents=True)
         binary = app / "Contents/MacOS/PhotoSelect"
         binary.write_text("TEST FIXTURE: not a Mach-O binary\n")
         binary.chmod(0o755)
         with open(app / "Contents/Info.plist", "wb") as file:
             plistlib.dump({"CFBundleExecutable": "PhotoSelect",
-                          "CFBundleName": "정광이의 MAC 포토셀렉터",
-                          "CFBundleDisplayName": "정광이의 MAC 포토셀렉터",
+                          "CFBundleName": "J♡S",
+                          "CFBundleDisplayName": "J♡S",
                           "CFBundleIconFile": "AppIcon.icns"}, file)
         (app / "Contents/Resources").mkdir()
         (app / "Contents/Resources/AppIcon.icns").write_bytes(b"icnsTEST FIXTURE")
@@ -107,7 +107,7 @@ class PackagingTests(unittest.TestCase):
             path.write_text(f"#!{sys.executable}\n" + TOOL)
             path.chmod(0o755)
         self.trace = self.base / "trace.jsonl"
-        self.output = self.repo / "dist/PhotoSelect-0.1.0-1-arm64"
+        self.output = self.repo / "dist/J-S-0.1.0-1-arm64"
 
     def run_package(self, failure="", **overrides):
         env = dict(os.environ)
@@ -126,10 +126,10 @@ class PackagingTests(unittest.TestCase):
     def test_success_checks_mounted_app_and_checksum(self):
         result = self.run_package()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        dmg = self.output / "PhotoSelect-0.1.0-1-arm64.dmg"
+        dmg = self.output / "J-S-0.1.0-1-arm64.dmg"
         self.assertEqual((self.output / "SHA256SUMS").read_text().split()[0], hashlib.sha256(dmg.read_bytes()).hexdigest())
         events = self.events()
-        self.assertTrue(any(e[0] == "codesign" and "--verify" in e and "/mount/정광이의 MAC 포토셀렉터.app" in e[-1] for e in events))
+        self.assertTrue(any(e[0] == "codesign" and "--verify" in e and "/mount/J♡S.app" in e[-1] for e in events))
         self.assertEqual(len([e for e in events if e[:2] == ["hdiutil", "detach"]]), 1)
         self.assertFalse(list((self.repo / ".build").iterdir()))
 

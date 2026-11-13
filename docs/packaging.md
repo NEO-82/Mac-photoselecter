@@ -34,14 +34,14 @@ arm64 전용 Release 앱 빌드, 앱 이름·공식 아이콘, ad-hoc 서명, DM
 2. 소스 묶음을 압축 해제하고 `설치파일-만들기.command`를 더블클릭합니다.
    터미널에서 실행할 경우 저장소 디렉터리로 이동해 `bash scripts/package-macos.sh`를 실행합니다.
 3. XCTest 및 Release 빌드가 성공하면 `dist` 폴더가 열립니다.
-4. `PhotoSelect-0.5.3-1-arm64` 안의 `.dmg`를 열고 `정광이의 MAC 포토셀렉터.app`을 `Applications`로 끌어 넣습니다.
+4. `J-S-0.5.4-1-arm64` 안의 `.dmg`를 열고 `J♡S.app`을 `Applications`로 끌어 넣습니다.
 5. 디스크 이미지를 추출한 뒤 응용 프로그램 폴더에서 앱을 실행합니다.
 
 완성된 앱의 실행 요건은 M1 이상, macOS 13 이상입니다. 앱 실행에는 Xcode나 Swift 설치가 필요하지 않습니다.
-창·메뉴·Finder의 앱 이름은 `정광이의 MAC 포토셀렉터`이며, `Resources/AppIcon.png`의 사용자 제공 공식 사진 아이콘을 사용합니다.
+창·메뉴·Finder의 앱 이름은 `J♡S`이며, `Resources/AppIcon.png`의 사용자 제공 공식 사진 아이콘을 사용합니다.
 Xcode의 `Build App Icon` 단계가 macOS `sips`/`iconutil`로 모든 크기를 만들고, 패키징 시 표시 이름과 ICNS 포함을 검증합니다.
 기존 `PhotoSelect.app`을 사용 중이면 종료한 뒤 이전 앱을 휴지통으로 옮기고 새 이름의 앱을 설치하세요.
-앱 제거는 앱을 종료한 후 응용 프로그램 폴더의 `정광이의 MAC 포토셀렉터.app`을 휴지통으로 옮기면 됩니다.
+앱 제거는 앱을 종료한 후 응용 프로그램 폴더의 `J♡S.app`을 휴지통으로 옮기면 됩니다.
 앱 설치/제거는 사진 파일을 수정하지 않습니다. 관리자 권한으로 실행하는 설치 스크립트는 사용하지 않습니다.
 
 Xcode Command Line Tools만으로는 충분하지 않습니다. 여러 Xcode가 설치되어 있다면 Xcode Settings의
@@ -52,15 +52,15 @@ Locations → Command Line Tools에서 사용할 Xcode를 선택하세요.
 기본 결과물:
 
 ```text
-dist/PhotoSelect-0.5.3-1-arm64/
-  PhotoSelect-0.5.3-1-arm64.dmg
+dist/J-S-0.5.4-1-arm64/
+  J-S-0.5.4-1-arm64.dmg
   SHA256SUMS
 ```
 
 같은 버전/빌드 번호의 기존 결과물을 덮어쓰지 않습니다. 새로 빌드할 때 번호를 늘릴 수 있습니다.
 
 ```bash
-PHOTOSELECT_VERSION=0.5.3 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
+PHOTOSELECT_VERSION=0.5.4 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
 ```
 
 DMG가 들어 있는 디렉터리에서 `shasum -a 256 -c SHA256SUMS`로 파일 전송 후 무결성을 확인할 수 있습니다.
@@ -105,3 +105,7 @@ GitHub Actions 사용 가능 여부와 이용 한도는 해당 저장소 설정�
   임시 마운트를 정리하는지, 기존 결과물을 보존하는지 확인합니다.
 
 앱 기능과 실제 설치 후 동작 확인은 [검증 체크리스트](validation.md)를 따릅니다.
+
+## J♡S로 교체
+
+기존 정광이의 MAC 포토셀렉터.app, PhotoSelect.app 및 J♡S를 종료하고 J♡S.app을 Applications에 설치하세요. 이전 이름의 앱은 자동 교체되지 않을 수 있습니다. 이전 **앱 번들만** 휴지통으로 옮기고 Dock 항목을 새 앱으로 등록하세요. `dev.photoselect.app` 식별자, Application Support의 tags.json, 사용자 설정은 그대로 사용하므로 관련 데이터를 삭제하거나 앱 정리 도구로 제거하지 마세요.
