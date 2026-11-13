@@ -6,7 +6,9 @@
 
 ## 현재 상태
 
-현재 배포는 **J♡S v0.5.4 빌드 41**입니다. [최신 DMG·교체 안내·검증 기록](js-branding.md)을 참고하세요. 아래 0.5.3/0.5.2 기록과 설치 파일은 보존했습니다.
+현재 배포는 **J♡S v0.5.5 빌드 48**입니다. [전환·캐시 수정 및 실제 계측/설치 파일](navigation-performance.md)을 참고하세요.
+
+이전 배포 **J♡S v0.5.4 빌드 41**도 보존했습니다. [최신 DMG·교체 안내·검증 기록](js-branding.md)을 참고하세요. 아래 0.5.3/0.5.2 기록과 설치 파일은 보존했습니다.
 
 0.5.3 빌드 40의 태그 필터 설치 파일과 XCTest 88개·Release RAW 3개·서명·DMG·다운로드 검증은 [최종 0.5.3 검증 기록](tagged-filter.md#최종-검증과-설치-파일)을 참고하세요.
 
@@ -36,7 +38,7 @@ arm64 전용 Release 앱 빌드, 앱 이름·공식 아이콘, ad-hoc 서명, DM
 2. 소스 묶음을 압축 해제하고 `설치파일-만들기.command`를 더블클릭합니다.
    터미널에서 실행할 경우 저장소 디렉터리로 이동해 `bash scripts/package-macos.sh`를 실행합니다.
 3. XCTest 및 Release 빌드가 성공하면 `dist` 폴더가 열립니다.
-4. `J-S-0.5.4-1-arm64` 안의 `.dmg`를 열고 `J♡S.app`을 `Applications`로 끌어 넣습니다.
+4. `J-S-0.5.5-1-arm64` 안의 `.dmg`를 열고 `J♡S.app`을 `Applications`로 끌어 넣습니다.
 5. 디스크 이미지를 추출한 뒤 응용 프로그램 폴더에서 앱을 실행합니다.
 
 완성된 앱의 실행 요건은 M1 이상, macOS 13 이상입니다. 앱 실행에는 Xcode나 Swift 설치가 필요하지 않습니다.
@@ -54,15 +56,15 @@ Locations → Command Line Tools에서 사용할 Xcode를 선택하세요.
 기본 결과물:
 
 ```text
-dist/J-S-0.5.4-1-arm64/
-  J-S-0.5.4-1-arm64.dmg
+dist/J-S-0.5.5-1-arm64/
+  J-S-0.5.5-1-arm64.dmg
   SHA256SUMS
 ```
 
 같은 버전/빌드 번호의 기존 결과물을 덮어쓰지 않습니다. 새로 빌드할 때 번호를 늘릴 수 있습니다.
 
 ```bash
-PHOTOSELECT_VERSION=0.5.4 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
+PHOTOSELECT_VERSION=0.5.5 PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh
 ```
 
 DMG가 들어 있는 디렉터리에서 `shasum -a 256 -c SHA256SUMS`로 파일 전송 후 무결성을 확인할 수 있습니다.

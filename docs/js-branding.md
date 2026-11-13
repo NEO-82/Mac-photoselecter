@@ -44,6 +44,6 @@ Finder/Dock의 번들 이름은 `J♡S.app`, Info.plist의 CFBundleName/CFBundle
 0f3e7791054f2ba5717b0b4c07ce1e4d40e0430e83ffd7241ce6a5fa54896ce5  J-S-0.5.4-arm64.dmg
 ```
 
-[다운로드 검증 JSON](../downloads/download-verification-0.5.4.json), [번들 이름·아이콘 검사](../downloads/icon-validation.json), [XCTest](../downloads/xctest-results.xml), [Release RAW 검사](../downloads/release-preview-results.xml), [빌드 로그](../downloads/build.log).
+[다운로드 검증 JSON](../downloads/v0.5.4-build41/download-verification-0.5.4.json), [번들 이름·아이콘 검사](../downloads/v0.5.4-build41/icon-validation.json), [XCTest](../downloads/v0.5.4-build41/xctest-results.xml), [Release RAW 검사](../downloads/v0.5.4-build41/release-preview-results.xml), [빌드 로그](../downloads/v0.5.4-build41/build.log).
 
 About UI 테스트에서도 **J♡S**와 기존 `Made with Seoa ♡` 크레딧을 확인했습니다. 테스트 호스트의 About 캡처는 배포 앱의 버전·아이콘 증거로 사용하지 않으며, 설치 번들의 이름·버전·아이콘 검증은 위 `icon-validation.json`을 기준으로 합니다.
