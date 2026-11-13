@@ -1,7 +1,7 @@
 {
-  "outcome": "failure",
-  "source_commit": "c6dd65d37132f14126476d7e23408622e5787001",
+  "outcome": "success",
+  "source_commit": "3c4bbc0ed776f06d94ec18833a7144c7869abe3c",
   "version": "0.6.0",
-  "build_number": "52",
-  "run_url": "https://github.com/NEO-82/Mac-photoselecter/actions/runs/43435962154"
+  "build_number": "53",
+  "run_url": "https://github.com/NEO-82/Mac-photoselecter/actions/runs/43437051039"
 }

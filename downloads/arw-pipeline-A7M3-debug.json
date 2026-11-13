@@ -1,5 +1,5 @@
 {
-  "coldDecodeMs" : 3308.9186409999911,
+  "coldDecodeMs" : 156.84137099998452,
   "colorManagement" : "Adobe RGB → sRGB",
   "configuration" : "Debug",
   "displayAndZoomSameCGImage" : true,
@@ -8,7 +8,7 @@
     0.46913200827205881,
     0.36343539368872552
   ],
-  "extractionWarmFileMs" : 17.131493000022147,
+  "extractionWarmFileMs" : 15.456266999990476,
   "file" : "Sony-A7M3.arw",
   "maxMeanSRGBDifference" : 0.0014294194240196401,
   "nativeHeight" : 1616,
@@ -21,5 +21,5 @@
     0.4691195618872549,
     0.36438610600490196
   ],
-  "warmSynchronousLookupMs" : 0.11395400002811584
+  "warmSynchronousLookupMs" : 0.10519600004954555
 }
