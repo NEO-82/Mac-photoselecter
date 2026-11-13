@@ -164,6 +164,15 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let photoActions = NSStackView()
     private let showButton = NSButton(title: "크게 보기", target: nil, action: nil)
     private let tagButton = NSButton(title: "태그", target: nil, action: nil)
+    private let renameButton = NSButton(title: "일괄 이름 변경", target: nil, action: nil)
+    private let renameEngine: BatchRenameEngine
+    private var renameWindow: BatchRenameWindow?
+    private var preparingRename = false
+    private var renameBusy = false
+    private var renamePreparation: Operation?
+    private var pendingExit: (() -> Void)?
+    private var folderLoading = false
+    private var fileManagementActive: Bool { preparingRename || renameWindow != nil }
     private let trashButton = NSButton(title: "휴지통", target: nil, action: nil)
     private let taggedOnlyButton = NSButton(checkboxWithTitle: "태그된 사진만 보기", target: nil, action: nil)
     private var allEntries: [BrowserEntry] = []
@@ -204,8 +213,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let logger = Logger(subsystem: "dev.photoselect", category: "navigation")
 
     init(tagStore: TagStore = TagStore(), trashService: PhotoTrash = PhotoTrash(),
-         initialFolder: URL? = FileManager.default.homeDirectoryForCurrentUser, pipeline: ImagePipeline = ImagePipeline(foregroundConcurrency: 1)) {
-        self.pipeline = pipeline
+         initialFolder: URL? = FileManager.default.homeDirectoryForCurrentUser, pipeline: ImagePipeline = ImagePipeline(foregroundConcurrency: 1), renameEngine: BatchRenameEngine = BatchRenameEngine()) {
+        self.pipeline = pipeline; self.renameEngine = renameEngine
         self.tagStore = tagStore; self.trashService = trashService
         let available = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 800),
@@ -260,7 +269,11 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             photoActions.addArrangedSubview(button)
         }
         photoActions.spacing = 8
-        let bar = NSStackView(views: [open, up, refresh, NSView(), photoActions]); bar.spacing = 8
+        renameButton.target = self; renameButton.action = #selector(openBatchRename)
+        renameButton.identifier = NSUserInterfaceItemIdentifier("BatchRename")
+        renameButton.bezelStyle = .texturedRounded; renameButton.font = .systemFont(ofSize: 11)
+        renameButton.widthAnchor.constraint(equalToConstant: 120).isActive = true
+        let bar = NSStackView(views: [open, up, refresh, renameButton, NSView(), photoActions]); bar.spacing = 8
         bar.orientation = .horizontal; bar.alignment = .centerY; bar.distribution = .fill
         bar.identifier = NSUserInterfaceItemIdentifier("PhotoBrowserToolbar")
         let split = columns; split.isVertical = true; split.dividerStyle = .thin
@@ -338,7 +351,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         status.lineBreakMode = .byTruncatingMiddle; status.maximumNumberOfLines = 1; status.textColor = ProTheme.secondary
         status.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         tree.onSelect = { [weak self] node in
-            guard let self else { return }
+            guard let self, !self.fileManagementActive else { return }
             if node.isDirectory { self.loadFolder(node.url, lease: node.lease) }
             else if Photo.accepts(node.url), let index = self.list.photos.firstIndex(where: { $0.url == node.url }) {
                 self.showPhoto(index)
@@ -472,6 +485,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         NSApp.appearance = sender.tag == 1 ? NSAppearance(named: .aqua) : sender.tag == 2 ? NSAppearance(named: .darkAqua) : nil
     }
     @objc func openFolder() {
+        guard !fileManagementActive else { return }
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.directoryURL = currentFolder
@@ -480,11 +494,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         window?.makeFirstResponder(grid)
     }
     @objc func refreshFolder() {
+        guard !fileManagementActive else { return }
         tree.refresh()
         if let currentFolder, let lease { loadFolder(currentFolder, lease: lease) }
     }
     @objc func parentFolder() {
-        guard let currentFolder, let lease, currentFolder != lease.url else { return }
+        guard !fileManagementActive, let currentFolder, let lease, currentFolder != lease.url else { return }
         tree.select(currentFolder.deletingLastPathComponent(), lease: lease)
     }
     @objc func openSelectedPhoto() {
@@ -535,16 +550,21 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     func finishPendingTagWrites(completion: @escaping () -> Void) {
         finishingTagWrites = true
+        if renameBusy { pendingExit = completion; updateBadges(); return }
+        renamePreparation?.cancel()
         imageGeneration = UUID(); pipeline.clear(); thumbnails.clear()
         sortRequest?.cancel(); sortGeneration = UUID()
         request?.cancel()
         tagStore.finishPendingWrites(completion: completion)
     }
-    private func loadFolder(_ url: URL, lease: FolderLease) {
+    private func loadFolder(_ url: URL, lease: FolderLease, preserving: URL? = nil, preserveImages: Bool = false) {
         generation = UUID(); let token = generation
         previousPhotoIndex = nil; loading = false
         sortRequest?.cancel(); sortGeneration = UUID(); sorting = false
-        imageGeneration = UUID(); allEntries = []; entries = []; selectedURL = nil; list.replace(with: []); pipeline.clear(); thumbnails.clear()
+        folderLoading = true
+        imageGeneration = UUID(); allEntries = []; entries = []; selectedURL = nil; list.replace(with: [])
+        if preserveImages { pipeline.suspendForFileChanges(); thumbnails.suspendForFileChanges() }
+        else { pipeline.clear(); thumbnails.clear() }
         viewer?.close(); displayed = nil; previewError = nil; preview.clear()
         self.lease = lease; currentFolder = url; actionMessage = nil
         updateBadges()
@@ -558,15 +578,78 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 guard let self, self.generation == token else { return }
                 switch result {
                 case .success(let urls):
-                    self.allEntries = urls
+                    self.folderLoading = false; self.allEntries = urls
+                    self.selectedURL = urls.first { TagStore.key($0.url) == preserving.map(TagStore.key) }?.url
                     self.applyCurrentSort()
                 case .failure(let error):
+                    self.folderLoading = false; self.updateBadges()
                     let message = FolderReader.errorMessage(for: error)
                     self.setStatus("폴더 읽기 실패: \(message)", error: true)
                     self.preview.detail.stringValue = message
                 }
             }
         }
+    }
+    func windowShouldClose(_ sender: NSWindow) -> Bool { !fileManagementActive }
+    @objc func openBatchRename() {
+        guard !fileManagementActive, !sorting, !isTrashing, !finishingTagWrites, let folder = currentFolder, let lease else { return }
+        preparingRename = true; updateBadges(); let token = generation
+        let order = appliedSortOrder
+        setStatus("현재 폴더의 전체 사진 미리보기 준비 중…")
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            let result = Result { () -> (URL?, [BrowserEntry], Set<String>) in
+                let pending = try self.renameEngine.pending(in: folder).first
+                if let pending { return (pending, [], []) }
+                return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
+            }
+            DispatchQueue.main.async {
+                guard self.generation == token, !self.finishingTagWrites else { self.preparingRename = false; self.updateBadges(); return }
+                switch result {
+                case .failure(let error): self.preparingRename = false; self.updateBadges(); self.batchError(error.localizedDescription)
+                case .success(let value):
+                    if let journal = value.0 {
+                        self.preparingRename = false
+                        self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, recovery: journal)
+                    } else {
+                        self.renamePreparation = self.sortMetadata.prepare(value.1, order: order, lease: lease) { [weak self] sorted in
+                            guard let self, self.generation == token, !self.finishingTagWrites else { return }
+                            self.preparingRename = false
+                            let photos = sorted.filter(\.isPhoto)
+                            guard !photos.isEmpty else { self.updateBadges(); self.batchError("현재 폴더에 변경할 사진이 없습니다."); return }
+                            self.presentRename(folder: folder, photos: photos, names: value.2, orderTitle: order.title, lease: lease, recovery: nil)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private func batchError(_ message: String) {
+        setStatus(message, error: true)
+        let alert = NSAlert(); alert.messageText = "일괄 이름 변경"; alert.informativeText = message
+        alert.addButton(withTitle: "확인")
+        if let window { alert.beginSheetModal(for: window) }
+    }
+    private func presentRename(folder: URL, photos: [BrowserEntry], names: Set<String>, orderTitle: String, lease: FolderLease, recovery: URL?) {
+        let controller = BatchRenameWindow(folder: folder, photos: photos, existingNames: names, orderTitle: orderTitle, engine: renameEngine, tags: tagStore, lease: lease, recoveryURL: recovery)
+        renameWindow = controller; updateBadges()
+        controller.onBusy = { [weak self] in
+            guard let self else { return }
+            self.renameBusy = true; self.viewer?.close(); self.imageGeneration = UUID(); self.request?.cancel()
+            self.pipeline.suspendForFileChanges(); self.thumbnails.suspendForFileChanges(); self.updateBadges()
+        }
+        controller.onComplete = { [weak self] result in
+            guard let self else { return }
+            self.renameBusy = false
+            if let paths = result.taggedPaths { self.taggedPaths = paths }
+            if let pending = self.pendingExit { self.pendingExit = nil; self.finishPendingTagWrites(completion: pending); return }
+            let selected = self.selectedURL.flatMap { old in result.mapping.first { TagStore.key($0.key) == TagStore.key(old) }?.value ?? old }
+            self.pipeline.remapFiles(result.mapping); self.thumbnails.remapFiles(result.mapping)
+            self.tree.refresh(url: folder)
+            self.loadFolder(folder, lease: lease, preserving: selected, preserveImages: true)
+        }
+        controller.onClose = { [weak self] in self?.renameWindow = nil; self?.preparingRename = false; self?.updateBadges() }
+        if let window, let sheet = controller.window { window.beginSheet(sheet) }
     }
     private func updateSortButtons() {
         for (index, button) in sortButtons.enumerated() {
@@ -578,6 +661,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         }
     }
     @objc private func changeSort(_ sender: NSButton) {
+        guard !fileManagementActive else { return }
         sortOrder.choose(PhotoSortCriterion.allCases[sender.tag]); updateSortButtons()
         applyCurrentSort()
         window?.makeFirstResponder(grid)
@@ -585,7 +669,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private func applyCurrentSort() {
         sortRequest?.cancel(); sortGeneration = UUID(); let token = sortGeneration
         guard let lease else { appliedSortOrder = sortOrder; applyTagFilter(); return }
-        sorting = true
+        sorting = true; updateBadges()
         setStatus(sortOrder.criterion == .captured ? "촬영 시간 분석 중… 목록 순서는 분석 완료 후 한 번에 적용됩니다" : "사진 정렬 중…")
         sortRequest = sortMetadata.prepare(allEntries, order: sortOrder, lease: lease) { [weak self] prepared in
             guard let self, self.sortGeneration == token else { return }
@@ -730,7 +814,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         } else { showPhoto(index) }
     }
     private func showPhoto(_ index: Int) {
-        guard let lease, list.select(index), let photo = list.selectedPhoto else { return }
+        guard !renameBusy, let lease, list.select(index), let photo = list.selectedPhoto else { return }
         let start = ProcessInfo.processInfo.systemUptime
         selectedURL = photo.url
         // Keep useful neighboring work alive. Only this UI subscriber is canceled.
@@ -801,9 +885,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         viewer?.hud.stringValue = "\(index + 1)/\(list.photos.count)  \(photo.url.lastPathComponent)  \(quality)\n←/→ 탐색 · 누르는 동안 100% · \\ 태그 · Delete 휴지통 · Esc/더블클릭 복귀" + (actionMessage.map { "\n" + $0 } ?? "")
     }
     private func updateBadges() {
-        showButton.isEnabled = list.selectedPhoto != nil
-        tagButton.isEnabled = list.selectedPhoto != nil && !finishingTagWrites
-        trashButton.isEnabled = list.selectedPhoto != nil && !isTrashing
+        showButton.isEnabled = list.selectedPhoto != nil && !fileManagementActive
+        tagButton.isEnabled = list.selectedPhoto != nil && !finishingTagWrites && !fileManagementActive
+        trashButton.isEnabled = list.selectedPhoto != nil && !isTrashing && !fileManagementActive
+        renameButton.isEnabled = currentFolder != nil && !fileManagementActive && !sorting && !folderLoading && !finishingTagWrites && !isTrashing
+        for button in sortButtons { button.isEnabled = !fileManagementActive && !folderLoading && !finishingTagWrites }
+        taggedOnlyButton.isEnabled = !fileManagementActive
         let tagged = list.selectedPhoto.map { taggedPaths.contains(TagStore.key($0.url)) } ?? false
         tagButton.contentTintColor = tagged ? ProTheme.accent : nil
         tagButton.state = tagged ? .on : .off
@@ -813,7 +900,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         }
     }
     private func toggleCurrentTag() {
-        guard !finishingTagWrites, let photo = list.selectedPhoto else { return }
+        guard !finishingTagWrites, !fileManagementActive, let photo = list.selectedPhoto else { return }
         tagStore.toggle(photo.url) { [weak self] result in
             guard let self else { return }
             switch result {
@@ -828,7 +915,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         }
     }
     private func trashCurrentPhoto() {
-        guard !isTrashing, let photo = list.selectedPhoto, let lease else { return }
+        guard !isTrashing, !fileManagementActive, let photo = list.selectedPhoto, let lease else { return }
         isTrashing = true; updateBadges(); let token = generation
         actionMessage = "휴지통으로 옮기는 중…"; updateHUD()
         trashService.trash(photo, lease: lease) { [weak self] result in

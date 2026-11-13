@@ -310,6 +310,40 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    func testBatchRenamePreviewWhileTaggedFilterIncludesEveryPhotoAndKeepsTags() throws {
+        _ = NSApplication.shared
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        for name in ["1.jpg", "2.jpg", "3.jpg"] { try jpegData().write(to: root.appendingPathComponent(name)) }
+        let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json"))
+        let browser = BrowserController(tagStore: store, initialFolder: root, renameEngine: BatchRenameEngine(journalDirectory: journals))
+        defer { browser.close() }
+        browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("batch folder ready") { preview.imageView.image != nil && !browser.sorting }
+        grid.toggleTag?(); waitUntil("batch initial tag") { !preview.tagMarker.isHidden }
+        let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoBrowserTagFilter" })
+        filter.performClick(nil); XCTAssertEqual(grid.numberOfItems(inSection: 0), 1)
+        browser.openBatchRename()
+        waitUntil("rename sheet") { browser.window?.attachedSheet != nil }
+        let sheet = try XCTUnwrap(browser.window?.attachedSheet)
+        let contents = descendants(try XCTUnwrap(sheet.contentView))
+        let table = try XCTUnwrap(contents.compactMap { $0 as? NSTableView }.first)
+        XCTAssertEqual(table.numberOfRows, 3)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("1.jpg").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Photo_0001.jpg").path))
+        let run = try XCTUnwrap(contents.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "RenameExecute" })
+        run.performClick(nil)
+        waitUntil("all names committed", timeout: 15) { FileManager.default.fileExists(atPath: root.appendingPathComponent("Photo_0003.jpg").path) && preview.filename.stringValue == "Photo_0001.jpg" && !browser.sorting }
+        XCTAssertEqual(filter.state, .on); XCTAssertEqual(grid.numberOfItems(inSection: 0), 1)
+        XCTAssertFalse(preview.tagMarker.isHidden)
+        let close = try XCTUnwrap(contents.compactMap { $0 as? NSButton }.first { $0.title == "닫기" })
+        close.performClick(nil)
+        XCTAssertNil(browser.window?.attachedSheet)
+    }
+
+    @MainActor
     func testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths() throws {
         _ = NSApplication.shared
         let root = try folder(), metadata = try folder()
@@ -507,7 +541,7 @@ final class BrowserUITests: XCTestCase {
             XCTAssertLessThanOrEqual(toolbar.frame.height, 44)
             XCTAssertGreaterThanOrEqual(toolbar.frame.height, 24)
             let buttons = toolbar.arrangedSubviews.compactMap { $0 as? NSButton }
-            XCTAssertEqual(buttons.count, 3)
+            XCTAssertEqual(buttons.count, 4)
             for button in buttons {
                 let rect = button.convert(button.bounds, to: toolbar)
                 XCTAssertGreaterThan(rect.width, 40)

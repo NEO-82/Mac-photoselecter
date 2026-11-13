@@ -82,6 +82,17 @@ final class BitmapCache {
         if let bytes { limit = max(0, bytes) }
         entries.removeAll(); total = 0
     }
+    func remap(_ mapping: [String: String]) {
+        lock.lock(); defer { lock.unlock() }
+        let old = entries, oldPin = pinnedKey, oldValue = pinnedValue
+        let destinations = Set(mapping.values)
+        entries = entries.filter { mapping[$0.key] == nil && !destinations.contains($0.key) }
+        for (from, to) in mapping { if let value = old[from] { entries[to] = value } }
+        if let oldPin, let newPin = mapping[oldPin] { pinnedKey = newPin; pinnedValue = oldValue }
+        else if let oldPin, destinations.contains(oldPin) { pinnedKey = nil; pinnedValue = nil }
+        if let pinnedKey { entries.removeValue(forKey: pinnedKey) }
+        total = entries.values.reduce(0) { $0 + $1.cost }
+    }
     func clear() {
         lock.lock(); defer { lock.unlock() }
         entries.removeAll(); total = 0; pinnedKey = nil; pinnedValue = nil
@@ -111,6 +122,15 @@ private final class EmbeddedSourceCache {
             bytes -= old.value.data.count
         }
         clock &+= 1; entries[url] = (value, clock); bytes += value.data.count
+    }
+    func remap(_ mapping: [URL: URL]) {
+        lock.lock(); defer { lock.unlock() }
+        let old = entries
+        let paths = Dictionary(uniqueKeysWithValues: mapping.map { (TagStore.key($0.key), $0.value) })
+        let destinations = Set(mapping.values.map(TagStore.key))
+        entries = old.filter { paths[TagStore.key($0.key)] == nil && !destinations.contains(TagStore.key($0.key)) }
+        for (url, value) in old { if let target = paths[TagStore.key(url)] { entries[target] = value } }
+        bytes = entries.values.reduce(0) { $0 + $1.value.data.count }
     }
     func clear() {
         lock.lock(); defer { lock.unlock() }
@@ -210,6 +230,21 @@ final class ImagePipeline {
         }
         cache.pin(photos.first.map { key($0, .preview) })
         lock.unlock()
+    }
+    func suspendForFileChanges() {
+        lock.lock(); defer { lock.unlock() }
+        epoch &+= 1
+        works.values.forEach { work in work.operation.cancel(); work.subscribers.forEach { $0.ticket.cancel() } }
+        works.removeAll()
+    }
+    func remapFiles(_ mapping: [URL: URL]) {
+        suspendForFileChanges()
+        lock.lock(); defer { lock.unlock() }
+        var keys: [String: String] = [:]
+        for (from, to) in mapping {
+            for quality in [Quality.thumbnail, .preview] { keys[key(Photo(url: from), quality)] = key(Photo(url: to), quality) }
+        }
+        cache.remap(keys); embedded.remap(mapping)
     }
     func cancelAll() {
         lock.lock(); defer { lock.unlock() }

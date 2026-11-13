@@ -65,6 +65,23 @@ final class TagStore {
             DispatchQueue.main.async { completion(result) }
         }
     }
+    // Rename commits use one atomic set update so swaps/cycles are safe and replay is idempotent.
+    func updatePaths(removing: Set<String>, adding: Set<String>, completion: @escaping (Result<Set<String>, Error>) -> Void) {
+        queue.async {
+            let result = Result { () -> Set<String> in
+                try self.ensureLoaded()
+                let updated = self.paths.subtracting(removing).union(adding)
+                if updated != self.paths {
+                    let data = try JSONEncoder().encode(Document(version: 1, taggedPaths: updated.sorted()))
+                    try FileManager.default.createDirectory(at: self.fileURL.deletingLastPathComponent(), withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+                    try data.write(to: self.fileURL, options: .atomic)
+                    self.paths = updated
+                }
+                return self.paths
+            }
+            DispatchQueue.main.async { completion(result) }
+        }
+    }
     // Complete after already queued writes and their main-queue callbacks.
     // The caller stops accepting new tags before requesting normal app exit.
     func finishPendingWrites(completion: @escaping () -> Void) {
