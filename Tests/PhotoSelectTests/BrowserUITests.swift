@@ -60,7 +60,7 @@ final class BrowserUITests: XCTestCase {
             preview.filename.stringValue == "A.ARW" && !browser.sorting && grid.numberOfItems(inSection: 0) >= 3
         }
         XCTAssertEqual(filter.state, .off)
-        XCTAssertEqual(preview.filename.toolTip, first.path)
+        XCTAssertEqual(URL(fileURLWithPath: try XCTUnwrap(preview.filename.toolTip)).resolvingSymlinksInPath(), first.resolvingSymlinksInPath())
         browser.openFinderFile(second)
         waitUntil("running browser selects second ARW") { preview.filename.stringValue == "B.arw" }
         XCTAssertTrue(browser.window === window)
@@ -103,7 +103,7 @@ final class BrowserUITests: XCTestCase {
         let preview = try XCTUnwrap(descendants(try XCTUnwrap(browser.window?.contentView)).compactMap { $0 as? PreviewPane }.first)
         browser.openFinderFile(first); browser.openFinderFile(second)
         waitUntil("latest Finder request wins") { preview.filename.stringValue == "second.ARW" && !browser.sorting }
-        XCTAssertEqual(preview.filename.toolTip, second.path)
+        XCTAssertEqual(URL(fileURLWithPath: try XCTUnwrap(preview.filename.toolTip)).resolvingSymlinksInPath(), second.resolvingSymlinksInPath())
     }
 
     @MainActor
