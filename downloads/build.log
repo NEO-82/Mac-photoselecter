@@ -1,24 +1,24 @@
 /dev/disk2          	GUID_partition_scheme          	
 /dev/disk2s1        	Apple_APFS                     	
 /dev/disk3          	EF57347C-0000-11AA-AA11-0030654	
-/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.bh3hg0/mount-APFS
+/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.wIQ9g4/mount-APFS
    File System Personality:   APFS
    Type (Bundle):             apfs
-["move": "success", "bytesPreserved": true, "collisionPreserved": true, "identityStable": true, "api": "renamex-RENAME_EXCL", "volume": "mount-APFS", "collision": "NSPOSIXErrorDomain:17"]
-["move": "success", "api": "FSRenameUnicode", "collision": "NSOSStatusErrorDomain:-48", "collisionPreserved": true, "identityStable": true, "bytesPreserved": true, "volume": "mount-APFS"]
-["collisionPreserved": true, "identityStable": true, "volume": "mount-APFS", "api": "FSPathMoveObjectSync-no-overwrite", "bytesPreserved": true, "collision": "NSOSStatusErrorDomain:-48", "move": "success"]
+["volume": "mount-APFS", "api": "renamex-RENAME_EXCL", "identityStable": true, "collision": "NSPOSIXErrorDomain:17", "bytesPreserved": true, "collisionPreserved": true, "move": "success"]
+["bytesPreserved": true, "identityStable": true, "move": "success", "api": "FSRenameUnicode", "collision": "NSOSStatusErrorDomain:-48", "collisionPreserved": true, "volume": "mount-APFS"]
+["collision": "NSOSStatusErrorDomain:-48", "api": "FSPathMoveObjectSync-no-overwrite", "bytesPreserved": true, "move": "success", "volume": "mount-APFS", "identityStable": true, "collisionPreserved": true]
 Building for debugging...
 [0/11] /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/x86_64-apple-macosx/debug/PhotoSelectPackageTests.derived/runner.swift
 [1/11] Write sources
 [4/11] Write PhotoSelect-entitlement.plist
 [5/11] Write swift-version--79AA4F9932D1E87A.txt
-[7/18] Compiling PhotoSelect App.swift
-[8/18] Compiling PhotoSelect BatchRename.swift
-[9/18] Compiling PhotoSelect BatchRenameWindow.swift
-[10/18] Compiling PhotoSelect Browser.swift
-[11/18] Compiling PhotoSelect EmbeddedPreview.swift
-[12/18] Compiling PhotoSelect FolderTree.swift
-[13/18] Emitting module PhotoSelect
+[7/18] Emitting module PhotoSelect
+[8/18] Compiling PhotoSelect App.swift
+[9/18] Compiling PhotoSelect BatchRename.swift
+[10/18] Compiling PhotoSelect BatchRenameWindow.swift
+[11/18] Compiling PhotoSelect Browser.swift
+[12/18] Compiling PhotoSelect EmbeddedPreview.swift
+[13/18] Compiling PhotoSelect FolderTree.swift
 [14/23] Compiling PhotoSelect ImagePipeline.swift
 [15/23] Compiling PhotoSelect PhotoActions.swift
 [16/23] Compiling PhotoSelect PhotoModel.swift
@@ -39,49 +39,42 @@ Building for debugging...
 [31/35] Compiling PhotoSelectTests PhotoSortingTests.swift
 [32/35] Compiling PhotoSelectTests ViewerInteractionTests.swift
 [33/35] Compiling PhotoSelectTests WindowLayoutTests.swift
-[34/37] Emitting module PhotoSelectPackageTests
-[35/37] Compiling PhotoSelectPackageTests runner.swift
+[34/37] Compiling PhotoSelectPackageTests runner.swift
+[35/37] Emitting module PhotoSelectPackageTests
 [35/37] Write Objects.LinkFileList
 [36/37] Linking PhotoSelectPackageTests
-Build complete! (61.22s)
-Test Suite 'Selected tests' started at 2026-11-14 14:42:57.234.
-Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-14 14:42:57.236.
-Test Suite 'FilesystemRenameTests' started at 2026-11-14 14:42:57.236.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags]' started.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags]' passed (0.767 seconds).
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess]' started.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess]' passed (0.018 seconds).
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner]' started.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner]' passed (0.150 seconds).
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount]' started.
-"disk2" ejected.
-/dev/disk2          	GUID_partition_scheme          	
-/dev/disk2s1        	Apple_APFS                     	
-/dev/disk3          	EF57347C-0000-11AA-AA11-0030654	
-/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.bh3hg0/mount-APFS
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount]' passed (2.126 seconds).
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite]' started.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite]' passed (0.025 seconds).
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange]' started.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange]' passed (0.005 seconds).
-Test Suite 'FilesystemRenameTests' passed at 2026-11-14 14:43:00.327.
-	 Executed 6 tests, with 0 failures (0 unexpected) in 3.091 (3.091) seconds
-Test Suite 'PhotoSelectPackageTests.xctest' passed at 2026-11-14 14:43:00.328.
-	 Executed 6 tests, with 0 failures (0 unexpected) in 3.091 (3.092) seconds
-Test Suite 'Selected tests' passed at 2026-11-14 14:43:00.328.
-	 Executed 6 tests, with 0 failures (0 unexpected) in 3.091 (3.093) seconds
-Verified volume: 파일 시스템 apfs · renamex_np(RENAME_EXCL)
-Verified disposable-image detach/reattach: mount-APFS
+Build complete! (81.30s)
+[1/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
+[2/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
+[3/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
+[4/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
+[5/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
+[6/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
 ◇ Test run started.
 ↳ Testing Library Version: 124.4
 ↳ Target Platform: x86_64-apple-macos14.0
 ✔ Test run with 0 tests passed after 0.001 seconds.
-Traceback (most recent call last):
-  File "<stdin>", line 2, in <module>
-  File "/usr/local/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xml/etree/ElementTree.py", line 1227, in parse
-    tree.parse(source, parser)
-    ~~~~~~~~~~^^^^^^^^^^^^^^^^
-  File "/usr/local/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/xml/etree/ElementTree.py", line 570, in parse
-    source = open(source, "rb")
-FileNotFoundError: [Errno 2] No such file or directory: '.build/filesystem-APFS-results.xml'
 "disk2" ejected.
+/dev/disk2          	GUID_partition_scheme          	
+/dev/disk2s1        	Apple_HFS                      	/Users/runner/work/_temp/js-filesystem-probe.wIQ9g4/mount-HFSplus
+   File System Personality:   HFS+
+   Type (Bundle):             hfs
+["move": "success", "collision": "NSPOSIXErrorDomain:17", "bytesPreserved": true, "identityStable": true, "api": "renamex-RENAME_EXCL", "collisionPreserved": true, "volume": "mount-HFSplus"]
+["move": "success", "identityStable": true, "api": "FSRenameUnicode", "collision": "NSOSStatusErrorDomain:-48", "bytesPreserved": true, "collisionPreserved": true, "volume": "mount-HFSplus"]
+["identityStable": true, "api": "FSPathMoveObjectSync-no-overwrite", "collisionPreserved": true, "collision": "NSOSStatusErrorDomain:-48", "move": "success", "bytesPreserved": true, "volume": "mount-HFSplus"]
+[0/1] Planning build
+Building for debugging...
+[0/4] Write swift-version--79AA4F9932D1E87A.txt
+Build complete! (0.32s)
+[1/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
+[2/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
+[3/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
+[4/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
+[5/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
+[6/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: x86_64-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.
+"disk2" ejected.
+hdiutil: detach failed - No such file or directory
