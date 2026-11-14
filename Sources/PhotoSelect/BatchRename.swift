@@ -101,21 +101,29 @@ struct RenameSourceSnapshot: Hashable {
     }
 }
 
-// FS-level rename only: no copy/delete fallback and no check-then-POSIX-rename.
-// Public CarbonCore ABI (Files.h): FSRef is an opaque 80-byte reference.
-// Swift hides these deprecated APIs, so require their public runtime exports.
-// If an OS no longer provides them, preparation fails before touching photos.
+// Only kernel-enforced no-replace primitives are allowed. Legacy catalog
+// renames and existence-check/plain-rename fallbacks failed concurrent-writer
+// testing on exFAT and are intentionally excluded from production.
 enum RenameFilesystem {
-    enum Method: String { case native = "renamex_np(RENAME_EXCL)", catalog = "FSRenameUnicode(no-replace)" }
+    enum Method: String { case native = "renamex_np(RENAME_EXCL)", directory = "renameatx_np(RENAME_EXCL)" }
     struct Volume {
         let format: String, mountID: String, readOnly: Bool
-        static func read(_ folder: URL) throws -> Volume {
+        var persistentIDs: Bool? = nil
+        static func read(_ folder: URL, capabilities: Bool = true) throws -> Volume {
             var info = statfs()
             guard statfs(folder.path, &info) == 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
             let format = withUnsafePointer(to: &info.f_fstypename) {
                 $0.withMemoryRebound(to: CChar.self, capacity: 16) { String(cString: $0) }
             }
-            return Volume(format: format, mountID: "\(info.f_fsid.val.0):\(info.f_fsid.val.1)", readOnly: info.f_flags & UInt32(MNT_RDONLY) != 0)
+            var volume = Volume(format: format, mountID: "\(info.f_fsid.val.0):\(info.f_fsid.val.1)", readOnly: info.f_flags & UInt32(MNT_RDONLY) != 0)
+            if capabilities {
+                var attributes = attrlist(); attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT); attributes.volattr = UInt32(ATTR_VOL_CAPABILITIES)
+                var words = [UInt32](repeating: 0, count: 9)
+                let status = words.withUnsafeMutableBytes { getattrlist(folder.path, &attributes, $0.baseAddress!, $0.count, 0) }
+                let mask = UInt32(VOL_CAP_FMT_PERSISTENTOBJECTIDS)
+                if status == 0, words[0] >= 36, words[5] & mask != 0 { volume.persistentIDs = words[1] & mask != 0 }
+            }
+            return volume
         }
     }
     struct Prepared {
@@ -144,67 +152,24 @@ enum RenameFilesystem {
         }
         if result != 0 { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
     }
-    private final class CatalogAPI {
-        typealias MakeRef = @convention(c) (UnsafePointer<UInt8>?, UInt32, UnsafeMutableRawPointer?, UnsafeMutablePointer<UInt8>?) -> Int32
-        typealias RenameRef = @convention(c) (UnsafeRawPointer?, UInt32, UnsafePointer<UInt16>?, UInt32, UnsafeMutableRawPointer?) -> Int16
-        typealias RefPath = @convention(c) (UnsafeRawPointer?, UnsafeMutablePointer<UInt8>?, UInt32) -> Int32
-        let handle: UnsafeMutableRawPointer, make: MakeRef, rename: RenameRef, path: RefPath
-        static let cached: Result<CatalogAPI, Error> = Result { try CatalogAPI() }
-        init() throws {
-            guard let handle = dlopen("/System/Library/Frameworks/CoreServices.framework/CoreServices", RTLD_LAZY),
-                  let make = dlsym(handle, "FSPathMakeRefWithOptions"), let rename = dlsym(handle, "FSRenameUnicode"),
-                  let path = dlsym(handle, "FSRefMakePath") else {
-                throw RenameProblem(message: "이 macOS에서 덮어쓰기 없는 대체 이름 변경 API를 사용할 수 없습니다. 파일은 변경하지 않았습니다.")
-            }
-            self.handle = handle
-            self.make = unsafeBitCast(make, to: MakeRef.self); self.rename = unsafeBitCast(rename, to: RenameRef.self)
-            self.path = unsafeBitCast(path, to: RefPath.self)
+    static func directory(_ source: URL, _ destination: URL) throws {
+        try checkParent(source, destination)
+        let fd = Darwin.open(source.deletingLastPathComponent().path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard fd >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        defer { Darwin.close(fd) }
+        if renameatx_np(fd, source.lastPathComponent, fd, destination.lastPathComponent, UInt32(RENAME_EXCL)) != 0 {
+            throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
         }
-        func move(_ source: URL, _ destination: URL) throws {
-            try RenameFilesystem.checkParent(source, destination)
-            let expected = try RenameIdentity.read(source)
-            var ref = [UInt8](repeating: 0, count: 80), output = ref
-            let made = source.withUnsafeFileSystemRepresentation { file in
-                ref.withUnsafeMutableBytes { make(UnsafeRawPointer(file!).assumingMemoryBound(to: UInt8.self), 1, $0.baseAddress, nil) }
-            } // kFSPathMakeRefDoNotFollowLeafSymlink = 1
-            try check(made)
-            var pathBytes = [UInt8](repeating: 0, count: Int(MAXPATHLEN) * 4)
-            let resolved = ref.withUnsafeBytes { reference in
-                pathBytes.withUnsafeMutableBufferPointer { path(reference.baseAddress, $0.baseAddress, UInt32($0.count)) }
-            }
-            try check(resolved)
-            let actual = pathBytes.withUnsafeBufferPointer { URL(fileURLWithFileSystemRepresentation: UnsafeRawPointer($0.baseAddress!).assumingMemoryBound(to: CChar.self), isDirectory: false, relativeTo: nil) }
-            guard TagStore.key(actual) == TagStore.key(source), try RenameIdentity.read(actual) == expected else {
-                throw RenameProblem(message: "이름 변경 직전에 원본 파일의 위치나 식별자가 바뀌었습니다.")
-            }
-            let name = Array(destination.lastPathComponent.utf16)
-            let status = ref.withUnsafeBytes { original in
-                output.withUnsafeMutableBytes { result in
-                    name.withUnsafeBufferPointer { rename(original.baseAddress, UInt32($0.count), $0.baseAddress, 0xffff, result.baseAddress) }
-                }
-            }
-            try check(Int32(status))
-            guard try RenameIdentity.read(destination) == expected else {
-                throw RenameProblem(message: "변경 후 파일 식별자를 확인할 수 없습니다. 복구 기록을 보존합니다.")
-            }
-        }
-        private func check(_ status: Int32) throws {
-            if status == -48 { throw POSIXError(.EEXIST) } // dupFNErr: never overwrite an occupied name.
-            if status != 0 { throw NSError(domain: NSOSStatusErrorDomain, code: Int(status)) }
-        }
-    }
-    static func catalog(_ source: URL, _ destination: URL) throws {
-        try CatalogAPI.cached.get().move(source, destination)
     }
     static func move(_ source: URL, _ destination: URL) throws {
         do { try native(source, destination) }
-        catch { guard unsupported(error) else { throw error }; try catalog(source, destination) }
+        catch { guard unsupported(error) else { throw error }; try directory(source, destination) }
     }
     // Probe only freshly-created disposable entries, never the user's photos.
     // A collision-only probe is insufficient: exFAT returns EEXIST for an
     // occupied destination while rejecting an absent destination with ENOTSUP.
     static func prepare(in folder: URL, nativeMove: @escaping BatchRenameEngine.Move = native,
-                        catalogMove: @escaping BatchRenameEngine.Move = catalog) throws -> Prepared {
+                        relativeMove: @escaping BatchRenameEngine.Move = directory) throws -> Prepared {
         let volume = try Volume.read(folder)
         guard !volume.readOnly else { throw RenameProblem(message: "\(volume.format): 읽기 전용 저장장치입니다. 파일은 변경하지 않았습니다.") }
         let scratch = folder.appendingPathComponent(".J-S-rename-probe-" + UUID().uuidString)
@@ -226,7 +191,7 @@ enum RenameFilesystem {
                       !FileManager.default.fileExists(atPath: free.path), try Data(contentsOf: source) == a else {
                     throw RenameProblem(message: "미지원 이름 변경 호출 뒤 상태가 달라져 대체 처리를 중단했습니다.")
                 }
-                method = .catalog; operation = catalogMove
+                method = .directory; operation = relativeMove
                 try operation(source, free)
             }
             guard try RenameIdentity.read(free) == originalID, try Data(contentsOf: free) == a else {
@@ -247,13 +212,16 @@ enum RenameFilesystem {
             guard try RenameIdentity.read(source) == originalID, try Data(contentsOf: source) == a else {
                 throw RenameProblem(message: "이 볼륨에서 원래 이름 복원을 확인하지 못했습니다.")
             }
+            guard volume.persistentIDs != false else {
+                throw RenameProblem(message: "이 볼륨은 재연결 후 복구에 필요한 영구 파일 식별자를 지원하지 않습니다.")
+            }
         } catch {
             let e = error as NSError
-            throw RenameProblem(message: "파일 시스템 \(volume.format) · \(method.rawValue) · \(e.domain) \(e.code): \(error.localizedDescription)\n안전한 이름 변경을 확인하지 못해 사진 파일을 변경하지 않았습니다.")
+            throw RenameProblem(message: "파일 시스템 \(volume.format) · \(method.rawValue) · \(e.domain) \(e.code): \(error.localizedDescription)\n이 볼륨에서 원자적 덮어쓰기 방지 이름 변경을 지원하지 않거나 안전성을 확인하지 못했습니다. 사진 파일은 변경하지 않았습니다. 일반 rename·파일 복사 방식으로 우회하지 않습니다.")
         }
         let selected = operation
         return Prepared(volume: volume, method: method, operation: { source, destination in
-            let current = try Volume.read(source.deletingLastPathComponent())
+            let current = try Volume.read(source.deletingLastPathComponent(), capabilities: false)
             guard current.mountID == volume.mountID, current.format == volume.format, !current.readOnly else {
                 throw RenameProblem(message: "저장장치 연결 또는 쓰기 상태가 변경됐습니다. 작업을 중단합니다.")
             }
