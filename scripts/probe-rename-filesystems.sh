@@ -19,10 +19,16 @@ for fs in APFS HFS+ ExFAT; do
     hdiutil attach -nobrowse -mountpoint "$mount_path" "$image"
     diskutil info "$mount_path" | sed -n '/File System Personality/p;/Type (Bundle)/p;/Read-Only Volume/p'
     xcrun swift scripts/probe-rename-filesystems.swift "$mount_path" ".build/filesystem-probe-$label.json"
+    PHOTOSELECT_RENAME_TEST_VOLUME="$mount_path" PHOTOSELECT_RENAME_TEST_IMAGE="$image" \
+        PHOTOSELECT_RENAME_TEST_REPORT="$PWD/.build/filesystem-integration-$label.json" \
+        xcrun swift test --jobs 2 --filter FilesystemRenameTests \
+        --xunit-output ".build/filesystem-$label-results.xml"
+    python3 - ".build/filesystem-$label-results.xml" <<'PYTEST'
+import sys, xml.etree.ElementTree as ET
+cases = list(ET.parse(sys.argv[1]).getroot().iter('testcase'))
+assert len(cases) == 6, len(cases)
+assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
+PYTEST
     hdiutil detach "$mount_path"
     mount_path=""
 done
-
-# Diagnostic-only gate: do not publish a patch installer before a safe strategy is implemented.
-echo 'Filesystem probes finished; compatibility implementation is pending.' >&2
-exit 3

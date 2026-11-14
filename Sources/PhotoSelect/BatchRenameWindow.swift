@@ -168,14 +168,32 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
             guard let self else { return }
             self.busy = false; self.closeButton.isEnabled = true
             self.progress.maxValue = 1; self.progress.doubleValue = result.completed || result.restored ? 1 : 0
-            let changed = self.plan?.changedCount ?? 0
-            self.outcome.stringValue = "정상 완료 \(result.completed ? changed : 0)개 · 실패/취소 \(result.completed ? 0 : changed)개\n" + result.message
+            if result.files.isEmpty && !result.completed {
+                self.outcome.stringValue = "실행 전 중단 · 파일 변경 0개\n" + result.message
+            } else {
+                let renamed = result.files.filter { $0.state == .renamed }.count
+                let original = result.files.filter { $0.state == .original }.count
+                let temporary = result.files.filter { $0.state == .temporary }.count
+                let unknown = result.files.filter { $0.state == .unknown }.count
+                self.outcome.stringValue = "\(result.completed ? "정상 완료" : "미완료") · 현재 새 이름 \(renamed)개 · 원래 이름 \(original)개 · 임시 이름 \(temporary)개 · 확인 불가 \(unknown)개\n" + result.message
+            }
+            self.outcome.toolTip = self.outcome.stringValue
             if let plan = self.plan {
+                let reports = Dictionary(uniqueKeysWithValues: result.files.map { ($0.original, $0) })
                 let currentNames = Dictionary(uniqueKeysWithValues: result.mapping.map { (TagStore.key($0.key), $0.value.lastPathComponent) })
                 self.plan?.rows = plan.rows.map { row in
                     var updated = row
-                    if result.completed { updated.issue = "완료" }
-                    else if result.restored { updated.issue = "원래 이름 복구" }
+                    if row.original == row.proposed { updated.issue = "변경 없음" }
+                    else if result.completed { updated.issue = "완료" }
+                    else if let report = reports[row.original] {
+                        switch report.state {
+                        case .renamed: updated.issue = "새 이름 적용 · 완료/태그 확인 필요"
+                        case .original: updated.issue = result.hadMoves ? "원래 이름 복구/유지" : "변경 없음 · 원래 이름 유지"
+                        case .temporary: updated.issue = "복구 확인 필요 · " + (report.actual ?? "")
+                        case .unknown: updated.issue = "위치 확인 불가 · 복구 기록 보존"
+                        }
+                    }
+                    else if result.restored { updated.issue = result.hadMoves ? "원래 이름 복구" : "원래 이름 유지" }
                     else if result.mapping.isEmpty && result.journalURL == nil { updated.issue = "실행 전 확인 실패 · 변경 안 함" }
                     else {
                         let old = TagStore.key(self.folder.appendingPathComponent(row.original))
