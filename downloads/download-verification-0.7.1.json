@@ -1,0 +1,14 @@
+{
+  "version": "0.7.1",
+  "build_number": "80",
+  "artifact_commit": "e478343efe85dcc2c74eff9590881e740aacf528",
+  "source_commit": "e0ff31e35b3b50aaed584edd4a3fffd8da389e5f",
+  "url": "https://github.com/NEO-82/Mac-photoselecter/raw/e478343efe85dcc2c74eff9590881e740aacf528/downloads/J-S-0.7.1-arm64.dmg",
+  "http_status": 200,
+  "bytes": 3486881,
+  "sha256": "25fd5f2afd50c6f842b113b8afe378af6073c0790204898a3800bb1927eff323",
+  "checksum_match": true,
+  "exfat_automatic_rename_support": "not_completed; safely blocked on tested driver",
+  "physical_storage_tested": false,
+  "verified_at_utc": "2026-11-14T15:38:10.371669+00:00"
+}

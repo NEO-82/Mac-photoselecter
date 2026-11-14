@@ -4,9 +4,11 @@ Jeonggwang ♡ Seoa.
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[J♡S v0.7.0 빌드71 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/5e01002bca2f55da4de9f7e7373a35217b124d3e/downloads/J-S-0.7.0-arm64.dmg)
+[J♡S v0.7.1 빌드80 안전 보완판 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/e478343efe85dcc2c74eff9590881e740aacf528/downloads/J-S-0.7.1-arm64.dmg)
 
-현재 버전은 Finder 방식 다중 선택·선택 파일 이름 변경·다중 휴지통 이동을 추가한 **v0.7.0 빌드71**입니다. [사용법·파일 안전성·130개 XCTest 및 성능/DMG 검증](docs/multi-selection.md). [Finder ARW 열기·기본 앱 설정](docs/finder-open.md)과 기존 정렬·태그·사진 탐색은 유지합니다.
+현재 배포는 저장장치 기능 검사와 실패·복구 보고를 보완한 **v0.7.1 빌드80**입니다. **테스트한 macOS exFAT에서는 자동 이름 변경 지원이 미완료이며 원본 변경 전에 중단합니다.** [원인·안전 한계·파일 시스템별 검증](docs/filesystem-rename.md).
+
+v0.7.0의 [다중 선택·선택 파일 이름 변경·다중 휴지통 이동](docs/multi-selection.md), [Finder ARW 열기·기본 앱 설정](docs/finder-open.md), 기존 정렬·태그·사진 탐색은 유지합니다.
 
 DMG를 열고 **J♡S.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 `정광이의 MAC 포토셀렉터.app`, `PhotoSelect.app`, J♡S를 모두 종료하세요. J♡S.app을 Applications에 넣은 뒤 이전 이름의 **앱 번들만** 휴지통으로 옮기세요. 이름이 달라 자동 교체되지 않을 수 있습니다. Dock의 이전 바로가기도 J♡S로 다시 등록하세요. `~/Library/Application Support/dev.photoselect.app/tags.json`과 사용자 설정은 삭제하지 말고, 앱 정리 도구의 관련 데이터 삭제 기능은 사용하지 마세요.
@@ -48,7 +50,7 @@ macOS 13+, Xcode 15+가 필요합니다. 외부 패키지, 서버, API 키는 �
 2. `bash scripts/validate-macos.sh`로 앱 빌드와 Swift Package XCTest 실행.
 3. `설치파일-만들기.command`를 더블클릭하거나 `bash scripts/package-macos.sh`로 테스트·Release 빌드·DMG 검증 실행.
 
-기본 결과물은 `dist/J-S-0.7.0-1-arm64/J-S-0.7.0-1-arm64.dmg`와 `SHA256SUMS`입니다.
+기본 결과물은 `dist/J-S-0.7.1-1-arm64/J-S-0.7.1-1-arm64.dmg`와 `SHA256SUMS`입니다.
 다시 만들 때는 `PHOTOSELECT_BUILD_NUMBER=2 bash scripts/package-macos.sh`처럼 빌드 번호를 늘리세요.
 Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배포용 앱과 아이콘은 Xcode 프로젝트로 만듭니다.
 각 작업은 격리된 체크아웃을 사용하므로 별도 worktree는 필요하지 않습니다.
@@ -96,3 +98,5 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 0.6.0은 2,000/3,000장 목록 검사, 이름·EXIF 촬영 시간·크기 정렬, 전체 사진 일괄 이름 변경과 태그 연결·중단 복구를 추가합니다. [macOS 빌드 #61](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43451626978)에서 XCTest **116개**, Release RAW/탐색 **4개**, arm64 앱·서명·아이콘·DMG 검증이 통과했습니다. 실제 다운로드 SHA-256도 일치합니다. CI Release 캐시 적중 적용 최대 **12.03ms**, 빈 draw **0회**이며 새 버전의 M1 Pro·3,000장 실제 RAW 폴더·장시간 메모리 검증은 남아 있습니다. [검증 범위와 상세 결과](docs/file-management.md).
 
 0.7.0 빌드71은 다중 선택과 선택 파일 이름 변경을 통합합니다. macOS XCTest **130개**, Release RAW/탐색 **4개**, Release 3,005장 선택 검사 **1개**, arm64 앱·서명·아이콘·DMG 및 실제 다운로드 SHA-256 검증을 통과했습니다. 선택 95백분위 **6.93ms**, RAW 캐시 적중 적용 최대 **18.34ms**, 빈 draw **0회**입니다. [상세 변경·검증 범위·실기기 절차](docs/multi-selection.md).
+
+0.7.1 빌드80은 APFS/HFS+의 기존 안전한 이름 변경을 유지하고 미지원 exFAT에서는 실행 전에 중단합니다. 원자적 독점 변경 API 2종과 볼륨 정보 검사, 부분 결과·위치 불명·태그 보류·저널 보존 보고를 보완했습니다. 전체 XCTest **136개**, 볼륨별 **6개씩**(exFAT은 안전 중단 검사), Release RAW **4개** 및 선택 성능 **1개**, arm64 DMG와 실제 다운로드 SHA-256 검증을 통과했습니다. exFAT 자동 변경 및 실물 SSD/HDD 검증은 완료하지 않았습니다. [검증 근거와 안전 한계](docs/filesystem-rename.md).
