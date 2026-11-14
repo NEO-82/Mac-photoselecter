@@ -90,7 +90,7 @@ final class PhotoCollectionView: NSCollectionView {
         // or decode images to decide whether an item intersects the marquee.
         let hits = Set((collectionViewLayout?.layoutAttributesForElements(in: rect) ?? [])
             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-            .map(\.indexPath)).intersection(photoPaths)
+            .compactMap(\.indexPath)).intersection(photoPaths)
         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
