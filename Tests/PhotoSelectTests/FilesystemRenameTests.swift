@@ -194,6 +194,17 @@ final class FilesystemRenameTests: XCTestCase {
     private func runHdiutil(_ args: [String]) throws {
         let process = Process(); process.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil"); process.arguments = args
         try process.run(); process.waitUntilExit()
+        if process.terminationStatus != 0, args.first == "detach", args.count == 2,
+           args[1] == ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_VOLUME"],
+           ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"]?.hasSuffix(".sparseimage") == true {
+            // Provenance is checked by remountDisposableImageIfRequested. Only
+            // the disposable test image may be forced; never a physical disk.
+            let force = Process(); force.executableURL = process.executableURL
+            force.arguments = ["detach", "-force", args[1]]
+            try force.run(); force.waitUntilExit()
+            guard force.terminationStatus == 0 else { throw RenameProblem(message: "Disposable image forced detach failed") }
+            return
+        }
         guard process.terminationStatus == 0 else { throw RenameProblem(message: "Disposable image test hdiutil failed: \(args[0])") }
     }
     func testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess() throws {
