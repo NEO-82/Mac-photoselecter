@@ -1,8 +1,8 @@
 # Finder에서 Sony ARW 열기
 
-v0.6.0 빌드61에서 이어서 구현한 **v0.6.0 빌드65**입니다.
+Finder 연결을 최초 구현한 **v0.6.0 빌드65**의 기록입니다. 최신 버전은 [다중 선택 v0.7.0 빌드71](multi-selection.md)이며 아래 파일은 이전 완료본입니다.
 
-[Apple Silicon용 최신 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/070b36c4980e8ff4bb3a7c5e2ee295264c70ee3b/downloads/J-S-0.6.0-arm64.dmg)
+[v0.6.0 빌드65 보존본 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/070b36c4980e8ff4bb3a7c5e2ee295264c70ee3b/downloads/J-S-0.6.0-arm64.dmg)
 
 [macOS 빌드65](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43574908345)에서 XCTest **119개**(Finder 검사3개 포함)와 Release RAW/탐색 검사 **4개**가 실패·건너뜀 없이 통과했습니다. 같은 폴더의 실제 Sony ARW 재열기 캐시 적중도 확인했습니다. arm64 Release 앱, ad-hoc 서명, 아이콘, DMG 무결성 및 마운트 후 앱 서명 검증이 통과했습니다. 실제 다운로드 HTTP **200**, **3,402,128바이트**, SHA-256 일치를 확인했습니다.
 
