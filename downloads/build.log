@@ -1,12 +1,14 @@
+Creating disposable filesystem image: APFS
+created: /Users/runner/work/_temp/js-filesystem-probe.JrbpIS/APFS.sparseimage
 /dev/disk2          	GUID_partition_scheme          	
 /dev/disk2s1        	Apple_APFS                     	
 /dev/disk3          	EF57347C-0000-11AA-AA11-0030654	
-/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.wIQ9g4/mount-APFS
+/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.JrbpIS/mount-APFS
    File System Personality:   APFS
    Type (Bundle):             apfs
-["volume": "mount-APFS", "api": "renamex-RENAME_EXCL", "identityStable": true, "collision": "NSPOSIXErrorDomain:17", "bytesPreserved": true, "collisionPreserved": true, "move": "success"]
-["bytesPreserved": true, "identityStable": true, "move": "success", "api": "FSRenameUnicode", "collision": "NSOSStatusErrorDomain:-48", "collisionPreserved": true, "volume": "mount-APFS"]
-["collision": "NSOSStatusErrorDomain:-48", "api": "FSPathMoveObjectSync-no-overwrite", "bytesPreserved": true, "move": "success", "volume": "mount-APFS", "identityStable": true, "collisionPreserved": true]
+["collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17", "identityStable": true, "volume": "mount-APFS", "move": "success", "api": "renamex-RENAME_EXCL", "bytesPreserved": true]
+["collision": "NSOSStatusErrorDomain:-48", "collisionPreserved": true, "volume": "mount-APFS", "move": "success", "identityStable": true, "api": "FSRenameUnicode", "bytesPreserved": true]
+["move": "success", "collision": "NSOSStatusErrorDomain:-48", "collisionPreserved": true, "volume": "mount-APFS", "api": "FSPathMoveObjectSync-no-overwrite", "identityStable": true, "bytesPreserved": true]
 Building for debugging...
 [0/11] /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/x86_64-apple-macosx/debug/PhotoSelectPackageTests.derived/runner.swift
 [1/11] Write sources
@@ -28,22 +30,22 @@ Building for debugging...
 [19/23] Linking PhotoSelect
 [20/23] Applying PhotoSelect
 [22/30] Emitting module PhotoSelectTests
-[23/30] Compiling PhotoSelectTests BatchRenameTests.swift
-[24/30] Compiling PhotoSelectTests BrowserUITests.swift
-[25/30] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
-[26/30] Compiling PhotoSelectTests FilesystemRenameTests.swift
-[27/30] Compiling PhotoSelectTests FolderTreeTests.swift
-[28/30] Compiling PhotoSelectTests ImagePipelineTests.swift
-[29/35] Compiling PhotoSelectTests PhotoActionsTests.swift
-[30/35] Compiling PhotoSelectTests PhotoSelectTests.swift
-[31/35] Compiling PhotoSelectTests PhotoSortingTests.swift
-[32/35] Compiling PhotoSelectTests ViewerInteractionTests.swift
-[33/35] Compiling PhotoSelectTests WindowLayoutTests.swift
+[23/35] Compiling PhotoSelectTests PhotoActionsTests.swift
+[24/35] Compiling PhotoSelectTests PhotoSelectTests.swift
+[25/35] Compiling PhotoSelectTests PhotoSortingTests.swift
+[26/35] Compiling PhotoSelectTests ViewerInteractionTests.swift
+[27/35] Compiling PhotoSelectTests WindowLayoutTests.swift
+[28/35] Compiling PhotoSelectTests BatchRenameTests.swift
+[29/35] Compiling PhotoSelectTests BrowserUITests.swift
+[30/35] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
+[31/35] Compiling PhotoSelectTests FilesystemRenameTests.swift
+[32/35] Compiling PhotoSelectTests FolderTreeTests.swift
+[33/35] Compiling PhotoSelectTests ImagePipelineTests.swift
 [34/37] Compiling PhotoSelectPackageTests runner.swift
 [35/37] Emitting module PhotoSelectPackageTests
 [35/37] Write Objects.LinkFileList
 [36/37] Linking PhotoSelectPackageTests
-Build complete! (81.30s)
+Build complete! (91.48s)
 [1/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
 [2/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
 [3/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
@@ -54,27 +56,21 @@ Build complete! (81.30s)
 ↳ Testing Library Version: 124.4
 ↳ Target Platform: x86_64-apple-macos14.0
 ✔ Test run with 0 tests passed after 0.001 seconds.
-"disk2" ejected.
-/dev/disk2          	GUID_partition_scheme          	
-/dev/disk2s1        	Apple_HFS                      	/Users/runner/work/_temp/js-filesystem-probe.wIQ9g4/mount-HFSplus
-   File System Personality:   HFS+
-   Type (Bundle):             hfs
-["move": "success", "collision": "NSPOSIXErrorDomain:17", "bytesPreserved": true, "identityStable": true, "api": "renamex-RENAME_EXCL", "collisionPreserved": true, "volume": "mount-HFSplus"]
-["move": "success", "identityStable": true, "api": "FSRenameUnicode", "collision": "NSOSStatusErrorDomain:-48", "bytesPreserved": true, "collisionPreserved": true, "volume": "mount-HFSplus"]
-["identityStable": true, "api": "FSPathMoveObjectSync-no-overwrite", "collisionPreserved": true, "collision": "NSOSStatusErrorDomain:-48", "move": "success", "bytesPreserved": true, "volume": "mount-HFSplus"]
-[0/1] Planning build
-Building for debugging...
-[0/4] Write swift-version--79AA4F9932D1E87A.txt
-Build complete! (0.32s)
-[1/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
-[2/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
-[3/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
-[4/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
-[5/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
-[6/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
-◇ Test run started.
-↳ Testing Library Version: 124.4
-↳ Target Platform: x86_64-apple-macos14.0
-✔ Test run with 0 tests passed after 0.001 seconds.
-"disk2" ejected.
-hdiutil: detach failed - No such file or directory
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+    images = plistlib.load(sys.stdin).get("images", [])
+             ~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/plistlib.py", line 899, in load
+    fp.seek(0)
+    ~~~~~~~^^^
+io.UnsupportedOperation: underlying stream is not seekable
+Traceback (most recent call last):
+  File "<string>", line 3, in <module>
+    images = plistlib.load(sys.stdin).get("images", [])
+             ~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/plistlib.py", line 899, in load
+    fp.seek(0)
+    ~~~~~~~^^^
+io.UnsupportedOperation: underlying stream is not seekable
+rm: /Users/runner/work/_temp/js-filesystem-probe.JrbpIS/mount-APFS: Resource busy
+rm: /Users/runner/work/_temp/js-filesystem-probe.JrbpIS: Directory not empty
