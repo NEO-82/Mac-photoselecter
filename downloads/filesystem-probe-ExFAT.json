@@ -1,27 +1,53 @@
 [
   {
     "api" : "renamex-RENAME_EXCL",
+    "capabilities" : {
+      "capabilitiesAvailable" : true,
+      "exclusiveRename" : false,
+      "formatFlags" : 4206114,
+      "hardLinks" : false,
+      "interfaceFlags" : 1051584,
+      "persistentFileIDs" : false,
+      "validFormatFlags" : 16777215,
+      "validInterfaceFlags" : 2097151
+    },
     "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
     "move" : "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported",
     "volume" : "mount-ExFAT"
   },
   {
-    "api" : "FSRenameUnicode",
-    "bytesPreserved" : true,
-    "collision" : "NSOSStatusErrorDomain:-48",
+    "api" : "renameatx-RENAME_EXCL",
+    "capabilities" : {
+      "capabilitiesAvailable" : true,
+      "exclusiveRename" : false,
+      "formatFlags" : 4206114,
+      "hardLinks" : false,
+      "interfaceFlags" : 1051584,
+      "persistentFileIDs" : false,
+      "validFormatFlags" : 16777215,
+      "validInterfaceFlags" : 2097151
+    },
+    "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
-    "identityStable" : true,
-    "move" : "success",
+    "move" : "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported",
     "volume" : "mount-ExFAT"
   },
   {
-    "api" : "FSPathMoveObjectSync-no-overwrite",
-    "bytesPreserved" : true,
-    "collision" : "NSOSStatusErrorDomain:-48",
+    "api" : "link-unlink-diagnostic-only",
+    "capabilities" : {
+      "capabilitiesAvailable" : true,
+      "exclusiveRename" : false,
+      "formatFlags" : 4206114,
+      "hardLinks" : false,
+      "interfaceFlags" : 1051584,
+      "persistentFileIDs" : false,
+      "validFormatFlags" : 16777215,
+      "validInterfaceFlags" : 2097151
+    },
+    "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
-    "identityStable" : true,
-    "move" : "success",
+    "move" : "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported",
     "volume" : "mount-ExFAT"
   }
 ]

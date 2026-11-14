@@ -2,6 +2,16 @@
   {
     "api" : "renamex-RENAME_EXCL",
     "bytesPreserved" : true,
+    "capabilities" : {
+      "capabilitiesAvailable" : true,
+      "exclusiveRename" : true,
+      "formatFlags" : 1928847,
+      "hardLinks" : true,
+      "interfaceFlags" : 2650079,
+      "persistentFileIDs" : true,
+      "validFormatFlags" : 8224767,
+      "validInterfaceFlags" : 2654207
+    },
     "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
     "identityStable" : true,
@@ -9,18 +19,38 @@
     "volume" : "mount-HFSplus"
   },
   {
-    "api" : "FSRenameUnicode",
+    "api" : "renameatx-RENAME_EXCL",
     "bytesPreserved" : true,
-    "collision" : "NSOSStatusErrorDomain:-48",
+    "capabilities" : {
+      "capabilitiesAvailable" : true,
+      "exclusiveRename" : true,
+      "formatFlags" : 1928847,
+      "hardLinks" : true,
+      "interfaceFlags" : 2650079,
+      "persistentFileIDs" : true,
+      "validFormatFlags" : 8224767,
+      "validInterfaceFlags" : 2654207
+    },
+    "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
     "identityStable" : true,
     "move" : "success",
     "volume" : "mount-HFSplus"
   },
   {
-    "api" : "FSPathMoveObjectSync-no-overwrite",
+    "api" : "link-unlink-diagnostic-only",
     "bytesPreserved" : true,
-    "collision" : "NSOSStatusErrorDomain:-48",
+    "capabilities" : {
+      "capabilitiesAvailable" : true,
+      "exclusiveRename" : true,
+      "formatFlags" : 1928847,
+      "hardLinks" : true,
+      "interfaceFlags" : 2650079,
+      "persistentFileIDs" : true,
+      "validFormatFlags" : 8224767,
+      "validInterfaceFlags" : 2654207
+    },
+    "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
     "identityStable" : true,
     "move" : "success",

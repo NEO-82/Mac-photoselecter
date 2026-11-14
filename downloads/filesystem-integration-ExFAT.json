@@ -1,9 +1,9 @@
 {
-  "allRenamed" : true,
-  "bytesAndTagsPreserved" : true,
+  "allRenamed" : false,
   "files" : 368,
   "format" : "exfat",
-  "method" : "FSRenameUnicode(no-replace)",
+  "originalNamesBytesAndTagsUnchanged" : true,
   "physicalDevice" : false,
-  "realSonySamplePreserved" : true
+  "realSonySourceChecked" : true,
+  "status" : "blocked-no-safe-atomic-rename"
 }
