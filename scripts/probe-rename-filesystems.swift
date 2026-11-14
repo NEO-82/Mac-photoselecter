@@ -21,7 +21,7 @@ func linkProbe(_ source: URL, _ destination: URL) throws {
     if unlink(source.path) != 0 { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
 }
 func capabilities(_ folder: URL) -> [String: Any] {
-    var list = attrlist(); list.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT); list.volattr = UInt32(ATTR_VOL_CAPABILITIES)
+    var list = attrlist(); list.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT); list.volattr = (UInt32(ATTR_VOL_CAPABILITIES) | UInt32(ATTR_VOL_INFO))
     var words = [UInt32](repeating: 0, count: 9)
     let result = words.withUnsafeMutableBytes { getattrlist(folder.path, &list, $0.baseAddress!, $0.count, 0) }
     guard result == 0, words[0] >= 36 else { return ["capabilitiesAvailable": false] }

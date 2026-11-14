@@ -254,6 +254,10 @@ final class FilesystemRenameTests: XCTestCase {
         var fallbackCalls = 0
         XCTAssertThrowsError(try RenameFilesystem.prepare(in: root, nativeMove: { _, _ in throw POSIXError(.EPERM) }, relativeMove: { _, _ in fallbackCalls += 1 }))
         XCTAssertEqual(fallbackCalls, 0, "Permission errors must not switch backends")
+        if try RenameFilesystem.Volume.read(root).format != "exfat" {
+            let alternate = try RenameFilesystem.prepare(in: root, nativeMove: { _, _ in throw POSIXError(.ENOTSUP) })
+            XCTAssertEqual(alternate.method.rawValue, "renameatx_np(RENAME_EXCL)")
+        }
         XCTAssertThrowsError(try RenameFilesystem.prepare(in: root, nativeMove: { _, _ in throw POSIXError(.ENOTSUP) }, relativeMove: { _, _ in throw POSIXError(.ENOTSUP) }))
         XCTAssertThrowsError(try RenameFilesystem.prepare(in: root, nativeMove: { _, _ in throw POSIXError(.ENOTSUP) }, relativeMove: { source, target in
             // Simulate a broken backend that silently overwrites the disposable probe.

@@ -117,7 +117,7 @@ enum RenameFilesystem {
             }
             var volume = Volume(format: format, mountID: "\(info.f_fsid.val.0):\(info.f_fsid.val.1)", readOnly: info.f_flags & UInt32(MNT_RDONLY) != 0)
             if capabilities {
-                var attributes = attrlist(); attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT); attributes.volattr = UInt32(ATTR_VOL_CAPABILITIES)
+                var attributes = attrlist(); attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT); attributes.volattr = (UInt32(ATTR_VOL_CAPABILITIES) | UInt32(ATTR_VOL_INFO))
                 var words = [UInt32](repeating: 0, count: 9)
                 let status = words.withUnsafeMutableBytes { getattrlist(folder.path, &attributes, $0.baseAddress!, $0.count, 0) }
                 let mask = UInt32(VOL_CAP_FMT_PERSISTENTOBJECTIDS)
