@@ -148,9 +148,11 @@ final class BrowserUITests: XCTestCase {
         try nativeGridClick(grid, item: 6, flags: .command)
         XCTAssertEqual(browser.selectedPhotoIDs.count, 4)
         let selected = browser.selectedPhotoIDs
-        let size = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-size" })
+        let size = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-name" })
         size.performClick(nil)
         waitUntil("sort preserves file selection") { !browser.sorting && browser.selectedPhotoIDs == selected }
+        try nativeGridClick(grid, item: 5, flags: .shift)
+        XCTAssertEqual(grid.selectionIndexPaths, Set((1...5).map { IndexPath(item: $0, section: 0) }), "Shift anchor must follow its file identity across descending sort")
         try nativeGridClick(grid, item: 3)
         XCTAssertEqual(browser.selectedPhotoIDs.count, 1)
         let commandA = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .command,

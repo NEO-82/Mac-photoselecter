@@ -8,6 +8,7 @@ final class PhotoCollectionView: NSCollectionView {
     var clearSelection: (() -> Void)?
     var photoPaths: Set<IndexPath> = []
     private(set) var interactionPath: IndexPath?
+    var rangeSelection: ((IndexPath, Bool) -> Set<IndexPath>)?
     var marqueeChanged: ((Set<IndexPath>, Bool) -> Void)?
     private(set) var isMarqueeTracking = false
     private(set) var marqueeRect: NSRect?
@@ -34,6 +35,11 @@ final class PhotoCollectionView: NSCollectionView {
     override func mouseDown(with event: NSEvent) {
         let origin = convert(event.locationInWindow, from: nil)
         interactionPath = indexPathForItem(at: origin)
+        if event.clickCount == 1, event.modifierFlags.contains(.shift), let path = interactionPath,
+           photoPaths.contains(path), let rangeSelection {
+            selectionIndexPaths = rangeSelection(path, event.modifierFlags.contains(.command))
+            marqueeChanged?(selectionIndexPaths, true); return
+        }
         guard indexPathForItem(at: origin) == nil, event.clickCount == 1, let window else {
             super.mouseDown(with: event); return
         }
@@ -49,8 +55,12 @@ final class PhotoCollectionView: NSCollectionView {
             NSEvent.stopPeriodicEvents(); isMarqueeTracking = false; marqueeRect = nil; needsDisplay = true
             marqueeChanged?(selectionIndexPaths, true)
         }
-        while let next = window.nextEvent(matching: [.leftMouseDragged, .leftMouseUp, .periodic]) {
+        while let next = window.nextEvent(matching: [.leftMouseDragged, .leftMouseUp, .periodic, .keyDown]) {
             if next.type == .leftMouseUp { break }
+            if next.type == .keyDown {
+                if next.keyCode == 53 { selectionIndexPaths = []; marqueeChanged?([], false); break }
+                continue
+            }
             if next.type != .periodic { last = next }
             let point = convert(last.locationInWindow, from: nil)
             _ = scrollMarquee(toward: point)
@@ -279,6 +289,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var entries: [BrowserEntry] = []
     private var selectedURL: URL?
     private(set) var selectedPhotoIDs: Set<String> = []
+    private var selectionAnchorID: String?
     private var selectionPaths: Set<IndexPath> = []
     private var photoIndexByID: [String: IndexPath] = [:]
     private var pendingGridFocus = false
@@ -385,7 +396,19 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         grid.openCurrent = { [weak self] in self?.openSelectedPhoto() }
         grid.trashCurrent = { [weak self] in self?.trashBrowserSelection() }
         grid.clearSelection = { [weak self] in self?.setGridSelection([], updatePreview: false) }
-        grid.marqueeChanged = { [weak self] paths, finished in self?.setGridSelection(paths, updatePreview: finished) }
+        grid.marqueeChanged = { [weak self] paths, finished in
+            guard let self else { return }
+            self.setGridSelection(paths, updatePreview: finished, focus: self.grid.isMarqueeTracking ? nil : self.grid.interactionPath)
+        }
+        grid.rangeSelection = { [weak self] clicked, additive in
+            guard let self, !self.fileManagementActive else { return [] }
+            let anchor = self.selectionAnchorID.flatMap { self.photoIndexByID[$0] } ?? clicked
+            if self.selectionAnchorID == nil { self.selectionAnchorID = self.entries[clicked.item].selectionID }
+            let range = Set((min(anchor.item, clicked.item)...max(anchor.item, clicked.item)).compactMap { index -> IndexPath? in
+                self.entries[index].isPhoto ? IndexPath(item: index, section: 0) : nil
+            })
+            return additive ? self.selectionPaths.union(range) : range
+        }
         grid.toggleTag = { [weak self] in self?.toggleCurrentTag() }
         let photoScroll = NSScrollView(); photoScroll.hasVerticalScroller = true; photoScroll.documentView = grid
         photoScroll.backgroundColor = ProTheme.canvas
@@ -700,7 +723,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         tagStore.finishPendingWrites(completion: completion)
     }
     private func loadFolder(_ url: URL, lease: FolderLease, preserving: URL? = nil, preserveImages: Bool = false) {
-        if currentFolder.map(TagStore.key) != TagStore.key(url) { selectedPhotoIDs = [] }
+        if currentFolder.map(TagStore.key) != TagStore.key(url) { selectedPhotoIDs = []; selectionAnchorID = nil }
         let requestedFile = finderSelection
         finderSelection = nil
         let preserving = requestedFile ?? preserving
@@ -800,8 +823,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             if let paths = result.taggedPaths { self.taggedPaths = paths }
             if let pending = self.pendingExit { self.pendingExit = nil; self.finishPendingTagWrites(completion: pending); return }
             let selected = self.selectedURL.flatMap { old in result.mapping.first { TagStore.key($0.key) == TagStore.key(old) }?.value ?? old }
+            let renamedURLs = Dictionary(uniqueKeysWithValues: result.mapping.map { (TagStore.key($0.key), $0.value) })
             self.selectedPhotoIDs = Set(self.allEntries.filter { self.selectedPhotoIDs.contains($0.selectionID) }.map { entry in
-                let newURL = result.mapping.first { TagStore.key($0.key) == TagStore.key(entry.url) }?.value ?? entry.url
+                let newURL = renamedURLs[TagStore.key(entry.url)] ?? entry.url
                 return BrowserEntry(url: newURL, isDirectory: entry.isDirectory, snapshot: entry.snapshot).selectionID
             })
             self.pipeline.remapFiles(result.mapping); self.thumbnails.remapFiles(result.mapping)
@@ -854,6 +878,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             photoIndexByID[entry.selectionID] = path; grid.photoPaths.insert(path)
         }
         selectedPhotoIDs.formIntersection(Set(photoIndexByID.keys))
+        if let anchor = selectionAnchorID, photoIndexByID[anchor] == nil { selectionAnchorID = nil }
         selectionPaths = Set(selectedPhotoIDs.compactMap { photoIndexByID[$0] })
         list.replace(with: entries.filter(\.isPhoto).map { Photo(url: $0.url) })
         if list.photos.isEmpty { viewer?.close() }
@@ -895,6 +920,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         guard !syncingSelection else { return }
         if let path = indexPaths.sorted().last, entries.indices.contains(path.item), !entries[path.item].isPhoto {
             applyingGridInput = true; selectEntry(at: path.item); applyingGridInput = false
+        }
+        if let clicked = grid.interactionPath ?? indexPaths.sorted().last,
+           entries.indices.contains(clicked.item), entries[clicked.item].isPhoto {
+            selectionAnchorID = entries[clicked.item].selectionID
         }
         let paths = grid.selectionIndexPaths.union(indexPaths)
         if paths != grid.selectionIndexPaths {
@@ -1145,6 +1174,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             self.confirmingTrash = false; self.updateBadges()
             guard response == .alertSecondButtonReturn else { return }
             self.bulkTrashActive = true; self.isTrashing = true; self.updateBadges()
+            self.setStatus("\(targets.count)장 휴지통으로 이동 중…")
             let token = self.generation
             self.trashService.trashSelection(targets, lease: lease) { [weak self] results in
                 guard let self else { return }
