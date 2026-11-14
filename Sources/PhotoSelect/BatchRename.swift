@@ -209,6 +209,7 @@ final class BatchRenameEngine {
         let url: URL, folder: URL, lease: FolderLease
         let lock: RenameLock
         let move: Move
+        var originalSnapshots: [String: RenameSourceSnapshot] = [:]
         var locations: [String: String] = [:]
         var locationErrors: [String] = []
         var locationsVerified = false
@@ -248,6 +249,11 @@ final class BatchRenameEngine {
             if current == name { return }
             let source = folder.appendingPathComponent(current), destination = folder.appendingPathComponent(name)
             guard identityMatches(try RenameIdentity.read(source), item.identity) else { throw RenameProblem(message: item.original + ": 다른 파일로 변경됐습니다.") }
+            if journal.phase == "prepared", current == item.original, let expected = originalSnapshots[item.original] {
+                guard try RenameSourceSnapshot.read(source) == expected else {
+                    throw RenameProblem(message: item.original + ": 실행 도중 파일 상태가 변경됐습니다. 원래 이름 복구를 시도합니다.")
+                }
+            }
             do { try move(source, destination); locations[item.original] = name }
             catch { throw RenameProblem(message: item.original + " → " + item.destination + ": " + error.localizedDescription) }
         }
@@ -334,6 +340,7 @@ final class BatchRenameEngine {
         let journal = RenameJournal(version: 1, id: id, folderPath: plan.folder.standardizedFileURL.path, volumeUUID: volume.0,
             relativeFolder: volume.1, orderTitle: plan.orderTitle, items: items, tagSnapshot: tags.intersection(keys).sorted(), phase: "prepared")
         let transaction = Transaction(journal: journal, url: journalDirectory.appendingPathComponent(id.uuidString + ".json"), folder: plan.folder, lease: lease, lock: lock, move: move)
+        transaction.originalSnapshots = plan.snapshots
         try transaction.refresh(); try transaction.save("prepared"); return transaction
     }
     private func progressHandler(_ callback: @escaping Progress) -> Progress {

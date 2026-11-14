@@ -14,10 +14,12 @@ final class PhotoCollectionView: NSCollectionView {
     private(set) var marqueeRect: NSRect?
     private(set) var marqueeFrameTimes: [Double] = []
     override func selectAll(_ sender: Any?) {
+        interactionPath = nil
         selectionIndexPaths = photoPaths
         marqueeChanged?(selectionIndexPaths, true)
     }
     override func keyDown(with event: NSEvent) {
+        interactionPath = nil
         if event.keyCode == 53 { selectionIndexPaths = []; clearSelection?(); return }
         if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers?.lowercased() == "a" { selectAll(nil); return }
         if event.keyCode == 36 || event.keyCode == 76 {
@@ -293,6 +295,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var selectionPaths: Set<IndexPath> = []
     private var photoIndexByID: [String: IndexPath] = [:]
     private var pendingGridFocus = false
+    private var requestedGridFocus: IndexPath?
     private var applyingGridInput = false
     private var confirmingTrash = false
     private var bulkTrashActive = false
@@ -929,7 +932,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         if paths != grid.selectionIndexPaths {
             syncingSelection = true; grid.selectionIndexPaths = paths; syncingSelection = false
         }
-        setGridSelection(paths, updatePreview: true, focus: grid.interactionPath ?? indexPaths.sorted().last)
+        let focus = grid.interactionPath ?? indexPaths.sorted().last
+        let previewPhoto = focus.map { entries.indices.contains($0.item) && entries[$0.item].isPhoto } ?? false
+        setGridSelection(paths, updatePreview: previewPhoto, focus: focus)
     }
     func collectionView(_ collectionView: NSCollectionView, didDeselectItemsAt indexPaths: Set<IndexPath>) {
         guard !syncingSelection else { return }
@@ -940,13 +945,14 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         selectionPaths = paths.intersection(grid.photoPaths)
         selectedPhotoIDs = Set(selectionPaths.compactMap { entries.indices.contains($0.item) ? entries[$0.item].selectionID : nil })
         updateBadges(); updateSelectionStatus()
+        if updatePreview { requestedGridFocus = focus }
         guard updatePreview, !grid.isMarqueeTracking, !pendingGridFocus else { return }
         pendingGridFocus = true; let token = generation
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }; self.pendingGridFocus = false
             guard self.generation == token, !self.fileManagementActive else { return }
             let current = self.entries.firstIndex { $0.url == self.selectedURL }.map { IndexPath(item: $0, section: 0) }
-            let path = focus.flatMap { self.selectionPaths.contains($0) ? $0 : nil } ?? current.flatMap { self.selectionPaths.contains($0) ? $0 : nil } ?? self.selectionPaths.sorted().first
+            let path = self.requestedGridFocus.flatMap { self.selectionPaths.contains($0) ? $0 : nil } ?? current.flatMap { self.selectionPaths.contains($0) ? $0 : nil } ?? self.selectionPaths.sorted().first
             guard let path, self.entries.indices.contains(path.item), self.entries[path.item].url != self.selectedURL else { return }
             self.applyingGridInput = true
             self.selectEntry(at: path.item)
@@ -1196,6 +1202,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                     let report = NSAlert(); report.messageText = message
                     report.informativeText = "실패한 파일은 선택을 유지합니다. 파일별 결과를 확인하세요."
                     let text = NSTextView(frame: NSRect(x: 0, y: 0, width: 540, height: 200)); text.isEditable = false
+                    text.isVerticallyResizable = true; text.isHorizontallyResizable = false
+                    text.autoresizingMask = .width
+                    text.textContainer?.widthTracksTextView = true
+                    text.textContainer?.containerSize = NSSize(width: 540, height: CGFloat.greatestFiniteMagnitude)
                     text.string = results.map { url, result in
                         switch result {
                         case .success: return "완료 · " + url.lastPathComponent

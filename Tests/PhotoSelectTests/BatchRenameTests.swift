@@ -348,4 +348,23 @@ final class BatchRenameTests: XCTestCase {
         XCTAssertTrue(try engine.pending(in: root).isEmpty)
     }
 
+    func testSelectedRenameDetectsExternalChangeBetweenStagingMoves() throws {
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        for name in ["a.JPG", "b.JPG"] { try Data([1]).write(to: root.appendingPathComponent(name)) }
+        let plan = try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(), existingNames: ["a.JPG", "b.JPG"], selectedOnly: true)
+        var staged = false
+        let engine = BatchRenameEngine(journalDirectory: journals, move: { source, destination in
+            try BatchRenameEngine.exclusiveMove(source, destination)
+            if !staged {
+                staged = true
+                try Data([7, 8, 9]).write(to: root.appendingPathComponent("b.JPG"))
+            }
+        })
+        let result = try execute(engine, plan, TagStore(fileURL: metadata.appendingPathComponent("tags.json")))
+        XCTAssertFalse(result.completed); XCTAssertTrue(result.restored, result.message)
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("a.JPG")), Data([1]))
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("b.JPG")), Data([7, 8, 9]))
+        XCTAssertTrue(result.message.contains("상태가 변경"))
+    }
+
 }
