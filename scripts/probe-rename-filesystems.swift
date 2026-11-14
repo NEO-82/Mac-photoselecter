@@ -41,6 +41,7 @@ for (label, operation) in [("renamex-RENAME_EXCL", native), ("FSRenameUnicode", 
     catch { row["collision"] = "\((error as NSError).domain):\((error as NSError).code)" }
     row["collisionPreserved"] = (try? Data(contentsOf: source)) == a && (try? Data(contentsOf: target)) == b
     try FileManager.default.removeItem(at: target)
+    if (try? Data(contentsOf: source)) != a { try a.write(to: source) }
     let before = try identity(source)
     do {
         try operation(source, target)

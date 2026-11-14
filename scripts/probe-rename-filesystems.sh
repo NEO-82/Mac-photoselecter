@@ -22,3 +22,7 @@ for fs in APFS HFS+ ExFAT; do
     hdiutil detach "$mount_path"
     mount_path=""
 done
+
+# Diagnostic-only gate: do not publish a patch installer before a safe strategy is implemented.
+echo 'Filesystem probes finished; compatibility implementation is pending.' >&2
+exit 3
