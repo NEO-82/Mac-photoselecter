@@ -8,7 +8,7 @@ final class PhotoCollectionView: NSCollectionView {
     var clearSelection: (() -> Void)?
     var photoPaths: Set<IndexPath> = []
     private(set) var interactionPath: IndexPath?
-    var rangeSelection: ((IndexPath, Bool) -> Set<IndexPath>)?
+    var clickSelection: ((IndexPath, NSEvent.ModifierFlags) -> Set<IndexPath>)?
     var marqueeChanged: ((Set<IndexPath>, Bool) -> Void)?
     private(set) var isMarqueeTracking = false
     private(set) var marqueeRect: NSRect?
@@ -32,14 +32,14 @@ final class PhotoCollectionView: NSCollectionView {
         case .toggleTag: toggleTag?()
         }
     }
-    // Item clicks retain AppKit's Shift anchor, Command toggle and keyboard
-    // semantics. Only empty-space marquee tracking is handled here.
+    // Photo clicks use explicit modifier flags and a stable file anchor.
+    // AppKit retains keyboard navigation and ordinary folder/document handling.
     override func mouseDown(with event: NSEvent) {
         let origin = convert(event.locationInWindow, from: nil)
+        window?.makeFirstResponder(self)
         interactionPath = indexPathForItem(at: origin)
-        if event.clickCount == 1, event.modifierFlags.contains(.shift), let path = interactionPath,
-           photoPaths.contains(path), let rangeSelection {
-            selectionIndexPaths = rangeSelection(path, event.modifierFlags.contains(.command))
+        if event.clickCount == 1, let path = interactionPath, photoPaths.contains(path), let clickSelection {
+            selectionIndexPaths = clickSelection(path, event.modifierFlags)
             marqueeChanged?(selectionIndexPaths, true); return
         }
         guard indexPathForItem(at: origin) == nil, event.clickCount == 1, let window else {
@@ -52,18 +52,25 @@ final class PhotoCollectionView: NSCollectionView {
         let toggle = event.modifierFlags.contains(.command)
         if !additive && !toggle { selectionIndexPaths = []; marqueeChanged?([], false) }
         var last = event
+        var dragged = false, lastApplied = TimeInterval(0)
         NSEvent.startPeriodicEvents(afterDelay: 0.05, withPeriod: 1.0 / 30)
         defer {
             NSEvent.stopPeriodicEvents(); isMarqueeTracking = false; marqueeRect = nil; needsDisplay = true
             marqueeChanged?(selectionIndexPaths, true)
         }
         while let next = window.nextEvent(matching: [.leftMouseDragged, .leftMouseUp, .periodic, .keyDown]) {
-            if next.type == .leftMouseUp { break }
+            if next.type == .leftMouseUp {
+                if dragged { updateMarquee(from: origin, to: convert(next.locationInWindow, from: nil), original: original, additive: additive, toggle: toggle) }
+                break
+            }
             if next.type == .keyDown {
                 if next.keyCode == 53 { selectionIndexPaths = []; marqueeChanged?([], false); break }
                 continue
             }
-            if next.type != .periodic { last = next }
+            if next.type != .periodic { last = next; dragged = true }
+            let now = ProcessInfo.processInfo.systemUptime
+            guard now - lastApplied >= 1.0 / 60 else { continue }
+            lastApplied = now
             let point = convert(last.locationInWindow, from: nil)
             _ = scrollMarquee(toward: point)
             updateMarquee(from: origin, to: convert(last.locationInWindow, from: nil), original: original, additive: additive, toggle: toggle)
@@ -294,8 +301,6 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var selectionAnchorID: String?
     private var selectionPaths: Set<IndexPath> = []
     private var photoIndexByID: [String: IndexPath] = [:]
-    private var pendingGridFocus = false
-    private var requestedGridFocus: IndexPath?
     private var applyingGridInput = false
     private var confirmingTrash = false
     private var bulkTrashActive = false
@@ -398,19 +403,23 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         doubleClick.numberOfClicksRequired = 2; grid.addGestureRecognizer(doubleClick)
         grid.openCurrent = { [weak self] in self?.openSelectedPhoto() }
         grid.trashCurrent = { [weak self] in self?.trashBrowserSelection() }
-        grid.clearSelection = { [weak self] in self?.setGridSelection([], updatePreview: false) }
+        grid.clearSelection = { [weak self] in self?.selectionAnchorID = nil; self?.setGridSelection([], updatePreview: false) }
         grid.marqueeChanged = { [weak self] paths, finished in
             guard let self else { return }
             self.setGridSelection(paths, updatePreview: finished, focus: self.grid.isMarqueeTracking ? nil : self.grid.interactionPath)
         }
-        grid.rangeSelection = { [weak self] clicked, additive in
+        grid.clickSelection = { [weak self] clicked, modifiers in
             guard let self, !self.fileManagementActive else { return [] }
+            if !modifiers.contains(.shift) {
+                self.selectionAnchorID = self.entries[clicked.item].selectionID
+                return modifiers.contains(.command) ? self.selectionPaths.symmetricDifference([clicked]) : [clicked]
+            }
             let anchor = self.selectionAnchorID.flatMap { self.photoIndexByID[$0] } ?? clicked
             if self.selectionAnchorID == nil { self.selectionAnchorID = self.entries[clicked.item].selectionID }
             let range = Set((min(anchor.item, clicked.item)...max(anchor.item, clicked.item)).compactMap { index -> IndexPath? in
                 self.entries[index].isPhoto ? IndexPath(item: index, section: 0) : nil
             })
-            return additive ? self.selectionPaths.union(range) : range
+            return modifiers.contains(.command) ? self.selectionPaths.union(range) : range
         }
         grid.toggleTag = { [weak self] in self?.toggleCurrentTag() }
         let photoScroll = NSScrollView(); photoScroll.hasVerticalScroller = true; photoScroll.documentView = grid
@@ -710,7 +719,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         case #selector(refreshFolder): return currentFolder != nil
         case #selector(previousPhoto): return (list.selectedIndex ?? 0) > 0
         case #selector(nextPhoto): return list.selectedIndex.map { $0 + 1 < list.photos.count } ?? false
-        case #selector(trashFromMenu): return list.selectedPhoto != nil && !isTrashing
+        case #selector(trashFromMenu): return (NSApp.keyWindow === viewer?.window ? list.selectedPhoto != nil : !selectedPhotoIDs.isEmpty) && !isTrashing
         case #selector(openSelectedPhoto): return selectedURL != nil && (list.selectedPhoto != nil || entries.contains { $0.url == selectedURL && $0.isDirectory })
         case #selector(toggleTagFromMenu): return list.selectedPhoto != nil
         default: return false
@@ -945,25 +954,15 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         selectionPaths = paths.intersection(grid.photoPaths)
         selectedPhotoIDs = Set(selectionPaths.compactMap { entries.indices.contains($0.item) ? entries[$0.item].selectionID : nil })
         updateBadges(); updateSelectionStatus()
-        if updatePreview { requestedGridFocus = focus }
-        guard updatePreview, !grid.isMarqueeTracking, !pendingGridFocus else { return }
-        pendingGridFocus = true; let token = generation
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }; self.pendingGridFocus = false
-            guard self.generation == token, !self.fileManagementActive else { return }
-            let current = self.entries.firstIndex { $0.url == self.selectedURL }.map { IndexPath(item: $0, section: 0) }
-            let path = self.requestedGridFocus.flatMap { self.selectionPaths.contains($0) ? $0 : nil } ?? current.flatMap { self.selectionPaths.contains($0) ? $0 : nil } ?? self.selectionPaths.sorted().first
-            guard let path, self.entries.indices.contains(path.item), self.entries[path.item].url != self.selectedURL else { return }
-            self.applyingGridInput = true
-            self.selectEntry(at: path.item)
-            self.applyingGridInput = false
-            if self.selectionPaths.count == 1,
-               let frame = self.grid.collectionViewLayout?.layoutAttributesForItem(at: path)?.frame,
-               !self.grid.visibleRect.intersects(frame) {
-                self.grid.scrollToItems(at: [path], scrollPosition: .centeredVertically)
-            }
-            self.updateSelectionStatus()
-        }
+        guard updatePreview, !grid.isMarqueeTracking else { return }
+        let current = entries.firstIndex { $0.url == selectedURL }.map { IndexPath(item: $0, section: 0) }
+        let path = focus.flatMap { selectionPaths.contains($0) ? $0 : nil }
+            ?? current.flatMap { selectionPaths.contains($0) ? $0 : nil } ?? selectionPaths.sorted().first
+        guard let path, entries.indices.contains(path.item), entries[path.item].url != selectedURL else { return }
+        applyingGridInput = true; selectEntry(at: path.item); applyingGridInput = false
+        if selectionPaths.count == 1, let frame = grid.collectionViewLayout?.layoutAttributesForItem(at: path)?.frame,
+           !grid.visibleRect.intersects(frame) { grid.scrollToItems(at: [path], scrollPosition: .centeredVertically) }
+        updateSelectionStatus()
     }
     private func updateSelectionStatus() {
         if !selectedPhotoIDs.isEmpty { setStatus("\(selectedPhotoIDs.count)장 선택") }
@@ -1134,7 +1133,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private func updateBadges() {
         showButton.isEnabled = list.selectedPhoto != nil && !fileManagementActive
         tagButton.isEnabled = list.selectedPhoto != nil && !finishingTagWrites && !fileManagementActive
-        trashButton.isEnabled = list.selectedPhoto != nil && !isTrashing && !fileManagementActive
+        trashButton.isEnabled = !selectedPhotoIDs.isEmpty && !isTrashing && !fileManagementActive
         renameButton.isEnabled = currentFolder != nil && !fileManagementActive && !sorting && !folderLoading && !finishingTagWrites && !isTrashing
         for button in sortButtons { button.isEnabled = !fileManagementActive && !folderLoading && !finishingTagWrites }
         taggedOnlyButton.isEnabled = !fileManagementActive
@@ -1165,6 +1164,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private func trashBrowserSelection() {
         guard !isTrashing, !fileManagementActive, !finishingTagWrites, let lease else { return }
         let targets = entries.filter { $0.isPhoto && selectedPhotoIDs.contains($0.selectionID) }
+        guard !targets.isEmpty else { return }
         guard targets.count > 1 else {
             if let target = targets.first, let index = list.photos.firstIndex(where: { $0.url == target.url }) { showPhoto(index) }
             trashCurrentPhoto(); return

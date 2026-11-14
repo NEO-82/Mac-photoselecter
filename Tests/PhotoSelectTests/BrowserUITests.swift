@@ -121,10 +121,9 @@ final class BrowserUITests: XCTestCase {
         let time = ProcessInfo.processInfo.systemUptime
         let up = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseUp, location: point, modifierFlags: flags,
             timestamp: time + 0.01, windowNumber: window.windowNumber, context: nil, eventNumber: 1, clickCount: 1, pressure: 0))
-        NSApp.postEvent(up, atStart: true)
         let down = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDown, location: point, modifierFlags: flags,
             timestamp: time, windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
-        grid.mouseDown(with: down)
+        grid.mouseDown(with: down); grid.mouseUp(with: up)
     }
 
     @MainActor
@@ -133,7 +132,9 @@ final class BrowserUITests: XCTestCase {
         let root = try folder(), data = jpegData()
         for index in 0..<8 { try data.write(to: root.appendingPathComponent("\(index).jpg")) }
         try Data("document".utf8).write(to: root.appendingPathComponent("notes.txt"))
-        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: root)
+        let noMove = expectation(description: "empty browser selection cannot delete")
+        noMove.isInverted = true
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), trashService: PhotoTrash { _ in noMove.fulfill() }, initialFolder: root)
         defer { browser.close() }; browser.showWindow(nil)
         let views = descendants(try XCTUnwrap(browser.window?.contentView))
         let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
@@ -164,6 +165,8 @@ final class BrowserUITests: XCTestCase {
         grid.keyDown(with: escape)
         XCTAssertTrue(browser.selectedPhotoIDs.isEmpty); XCTAssertTrue(grid.selectionIndexPaths.isEmpty)
         XCTAssertNotNil(preview.imageView.image, "Clearing browser selection must retain the current preview")
+        grid.trashCurrent?()
+        wait(for: [noMove], timeout: 0.1)
     }
 
     @MainActor
@@ -198,7 +201,8 @@ final class BrowserUITests: XCTestCase {
         grid.updateMarquee(from: first.frame.origin, to: NSPoint(x: first.frame.maxX, y: first.frame.maxY), original: grid.photoPaths, additive: false, toggle: true)
         XCTAssertEqual(browser.selectedPhotoIDs.count, 3004)
         if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
-            let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": times.last ?? 0, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true]
+            let maximum: Double = times.last ?? 0
+            let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": maximum, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true]
             let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("selection-performance.json")
             try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted).write(to: output)
         }
@@ -1502,7 +1506,7 @@ final class BrowserUITests: XCTestCase {
         let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: nil)
         defer { browser.close() }
         let menu = AppMenus.make(for: browser)
-        XCTAssertEqual(menu.items.map(\.title), [AppBranding.displayName, "파일", "보기", "사진", "윈도우"])
+        XCTAssertEqual(menu.items.map(\.title), [AppBranding.displayName, "파일", "편집", "보기", "사진", "윈도우"])
         let file = try XCTUnwrap(menu.item(withTitle: "파일")?.submenu)
         let open = try XCTUnwrap(file.item(withTitle: "폴더 열기…"))
         XCTAssertEqual(open.keyEquivalent, "o"); XCTAssertEqual(open.keyEquivalentModifierMask, .command)
@@ -1556,6 +1560,8 @@ final class BrowserUITests: XCTestCase {
         let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
         waitUntil("first photo ready") { preview.filename.stringValue == "1.jpg" && preview.imageView.image != nil }
+        grid.selectionIndexPaths = [IndexPath(item: 0, section: 0)]
+        browser.collectionView(grid, didSelectItemsAt: grid.selectionIndexPaths)
         grid.trashCurrent?()
         grid.selectionIndexPaths = [IndexPath(item: 1, section: 0)]
         browser.collectionView(grid, didSelectItemsAt: [IndexPath(item: 1, section: 0)])
