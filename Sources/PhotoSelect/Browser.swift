@@ -13,14 +13,27 @@ final class PhotoCollectionView: NSCollectionView {
     private(set) var isMarqueeTracking = false
     private(set) var marqueeRect: NSRect?
     private(set) var marqueeFrameTimes: [Double] = []
+    private(set) var marqueeCosts: [[String: Double]] = []
+    private(set) var applyingSelection = false
+    private var knownSelectionPaths: Set<IndexPath> = []
+    func noteSelection(_ paths: Set<IndexPath>) { knownSelectionPaths = paths }
+    func captureNativeSelection() { knownSelectionPaths = selectionIndexPaths }
+    func applySelection(_ paths: Set<IndexPath>) {
+        let added = paths.subtracting(knownSelectionPaths), removed = knownSelectionPaths.subtracting(paths)
+        knownSelectionPaths = paths
+        applyingSelection = true
+        defer { applyingSelection = false }
+        if !removed.isEmpty { deselectItems(at: removed) }
+        if !added.isEmpty { selectItems(at: added, scrollPosition: []) }
+    }
     override func selectAll(_ sender: Any?) {
         interactionPath = nil
-        selectionIndexPaths = photoPaths
-        marqueeChanged?(selectionIndexPaths, true)
+        applySelection(photoPaths)
+        marqueeChanged?(photoPaths, true)
     }
     override func keyDown(with event: NSEvent) {
         interactionPath = nil
-        if event.keyCode == 53 { selectionIndexPaths = []; clearSelection?(); return }
+        if event.keyCode == 53 { applySelection([]); clearSelection?(); return }
         if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers?.lowercased() == "a" { selectAll(nil); return }
         if event.keyCode == 36 || event.keyCode == 76 {
             if !event.isARepeat { openCurrent?() }; return
@@ -39,24 +52,25 @@ final class PhotoCollectionView: NSCollectionView {
         window?.makeFirstResponder(self)
         interactionPath = indexPathForItem(at: origin)
         if event.clickCount == 1, let path = interactionPath, photoPaths.contains(path), let clickSelection {
-            selectionIndexPaths = clickSelection(path, event.modifierFlags)
-            marqueeChanged?(selectionIndexPaths, true); return
+            let paths = clickSelection(path, event.modifierFlags)
+            applySelection(paths)
+            marqueeChanged?(paths, true); return
         }
         guard indexPathForItem(at: origin) == nil, event.clickCount == 1, let window else {
             super.mouseDown(with: event); return
         }
         window.makeFirstResponder(self)
         isMarqueeTracking = true
-        let original = selectionIndexPaths
+        let original = knownSelectionPaths
         let additive = event.modifierFlags.contains(.shift)
         let toggle = event.modifierFlags.contains(.command)
-        if !additive && !toggle { selectionIndexPaths = []; marqueeChanged?([], false) }
+        if !additive && !toggle { applySelection([]); marqueeChanged?([], false) }
         var last = event
         var dragged = false, lastApplied = TimeInterval(0)
         NSEvent.startPeriodicEvents(afterDelay: 0.05, withPeriod: 1.0 / 30)
         defer {
             NSEvent.stopPeriodicEvents(); isMarqueeTracking = false; marqueeRect = nil; needsDisplay = true
-            marqueeChanged?(selectionIndexPaths, true)
+            marqueeChanged?(knownSelectionPaths, true)
         }
         while let next = window.nextEvent(matching: [.leftMouseDragged, .leftMouseUp, .periodic, .keyDown]) {
             if next.type == .leftMouseUp {
@@ -64,7 +78,7 @@ final class PhotoCollectionView: NSCollectionView {
                 break
             }
             if next.type == .keyDown {
-                if next.keyCode == 53 { selectionIndexPaths = []; marqueeChanged?([], false); break }
+                if next.keyCode == 53 { applySelection([]); marqueeChanged?([], false); break }
                 continue
             }
             if next.type != .periodic { last = next; dragged = true }
@@ -97,11 +111,20 @@ final class PhotoCollectionView: NSCollectionView {
         let old = marqueeRect ?? .zero; marqueeRect = rect
         // Query layout geometry, including offscreen items. Never create cells
         // or decode images to decide whether an item intersects the marquee.
-        let hits = Set((collectionViewLayout?.layoutAttributesForElements(in: rect) ?? [])
-            .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-            .compactMap(\.indexPath)).intersection(photoPaths)
+        var hits: Set<IndexPath> = []
+        for attributes in collectionViewLayout?.layoutAttributesForElements(in: rect) ?? [] {
+            if attributes.representedElementCategory == .item, attributes.frame.intersects(rect),
+               let path = attributes.indexPath, photoPaths.contains(path) { hits.insert(path) }
+        }
         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-        if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
+        let geometryDone = ProcessInfo.processInfo.systemUptime
+        let changed = knownSelectionPaths != paths
+        if changed { applySelection(paths) }
+        let nativeDone = ProcessInfo.processInfo.systemUptime
+        if changed { marqueeChanged?(paths, false) }
+        let modelDone = ProcessInfo.processInfo.systemUptime
+        marqueeCosts.append(["geometryMs": (geometryDone - started) * 1000, "nativeMs": (nativeDone - geometryDone) * 1000, "modelMs": (modelDone - nativeDone) * 1000])
+        if marqueeCosts.count > 128 { marqueeCosts.removeFirst() }
         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
         marqueeFrameTimes.append((ProcessInfo.processInfo.systemUptime - started) * 1000)
         if marqueeFrameTimes.count > 128 { marqueeFrameTimes.removeFirst() }
@@ -301,6 +324,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var selectionAnchorID: String?
     private var selectionPaths: Set<IndexPath> = []
     private var photoIndexByID: [String: IndexPath] = [:]
+    private var photoIDByItem: [String?] = []
     private var applyingGridInput = false
     private var confirmingTrash = false
     private var bulkTrashActive = false
@@ -885,6 +909,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             ? allEntries.filter { $0.isPhoto && taggedPaths.contains(TagStore.key($0.url)) }
             : allEntries
         photoIndexByID = [:]; grid.photoPaths = []
+        photoIDByItem = entries.map { $0.isPhoto ? $0.selectionID : nil }
         for (index, entry) in entries.enumerated() where entry.isPhoto {
             let path = IndexPath(item: index, section: 0)
             photoIndexByID[entry.selectionID] = path; grid.photoPaths.insert(path)
@@ -920,8 +945,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private func synchronizeGrid(reload: Bool = false) {
         guard !applyingGridInput else { return }
         syncingSelection = true
-        if reload { grid.reloadData() }
-        if grid.selectionIndexPaths != selectionPaths { grid.selectionIndexPaths = selectionPaths }
+        if reload { grid.reloadData(); grid.captureNativeSelection() }
+        grid.applySelection(selectionPaths)
         if let index = entries.firstIndex(where: { $0.url == selectedURL }) {
             grid.scrollToItems(at: [IndexPath(item: index, section: 0)], scrollPosition: .centeredVertically)
         }
@@ -929,7 +954,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int { entries.count }
     func collectionView(_ collectionView: NSCollectionView, didSelectItemsAt indexPaths: Set<IndexPath>) {
-        guard !syncingSelection else { return }
+        guard !syncingSelection, !grid.applyingSelection else { return }
         if let path = indexPaths.sorted().last, entries.indices.contains(path.item), !entries[path.item].isPhoto {
             applyingGridInput = true; selectEntry(at: path.item); applyingGridInput = false
         }
@@ -946,14 +971,23 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         setGridSelection(paths, updatePreview: previewPhoto, focus: focus)
     }
     func collectionView(_ collectionView: NSCollectionView, didDeselectItemsAt indexPaths: Set<IndexPath>) {
-        guard !syncingSelection else { return }
+        guard !syncingSelection, !grid.applyingSelection else { return }
         setGridSelection(grid.selectionIndexPaths, updatePreview: false)
     }
     private func setGridSelection(_ paths: Set<IndexPath>, updatePreview: Bool, focus: IndexPath? = nil) {
         guard !fileManagementActive else { return }
+        grid.noteSelection(paths)
+        let previous = selectionPaths
         selectionPaths = paths.intersection(grid.photoPaths)
-        selectedPhotoIDs = Set(selectionPaths.compactMap { entries.indices.contains($0.item) ? entries[$0.item].selectionID : nil })
-        updateBadges(); updateSelectionStatus()
+        for path in previous.subtracting(selectionPaths) where photoIDByItem.indices.contains(path.item) {
+            if let id = photoIDByItem[path.item] { selectedPhotoIDs.remove(id) }
+        }
+        for path in selectionPaths.subtracting(previous) where photoIDByItem.indices.contains(path.item) {
+            if let id = photoIDByItem[path.item] { selectedPhotoIDs.insert(id) }
+        }
+        if updatePreview { updateBadges() }
+        else { trashButton.isEnabled = !selectedPhotoIDs.isEmpty && !isTrashing && !fileManagementActive }
+        updateSelectionStatus()
         guard updatePreview, !grid.isMarqueeTracking else { return }
         let current = entries.firstIndex { $0.url == selectedURL }.map { IndexPath(item: $0, section: 0) }
         let path = focus.flatMap { selectionPaths.contains($0) ? $0 : nil }
@@ -966,7 +1000,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     private func updateSelectionStatus() {
         if !selectedPhotoIDs.isEmpty { setStatus("\(selectedPhotoIDs.count)장 선택") }
-        else { setStatus("모든 항목") }
+        else { setStatus(taggedOnlyButton.state == .on ? "태그된 사진만 보기" : "모든 항목") }
     }
     func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt path: IndexPath) -> NSCollectionViewItem {
         let item = collectionView.makeItem(withIdentifier: NSUserInterfaceItemIdentifier("thumbnail"), for: path) as! ThumbnailItem

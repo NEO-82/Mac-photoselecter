@@ -191,7 +191,11 @@ final class BrowserUITests: XCTestCase {
         XCTAssertEqual(browser.navigationSamples.count, navigation, "Dragging must not decode/change the main preview")
         let times = grid.marqueeFrameTimes.sorted(), p95 = times[min(times.count - 1, Int(Double(times.count) * 0.95))]
         print("3005-photo marquee p95 ms: \(p95), max ms: \(times.last ?? 0)")
-        XCTAssertLessThan(p95, 100, "Main-thread selection geometry must remain bounded, even in Debug CI")
+        #if DEBUG
+        XCTAssertLessThan(p95, 100, "Debug selection work must remain bounded")
+        #else
+        XCTAssertLessThan(p95, 33.4, "Release marquee must sustain at least 30 updates per second on CI")
+        #endif
         let scroll = try XCTUnwrap(grid.enclosingScrollView)
         let before = scroll.contentView.bounds.origin.y
         for _ in 0..<20 { _ = grid.scrollMarquee(toward: NSPoint(x: 50, y: grid.visibleRect.maxY + 10)) }
@@ -202,7 +206,7 @@ final class BrowserUITests: XCTestCase {
         XCTAssertEqual(browser.selectedPhotoIDs.count, 3004)
         if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
             let maximum: Double = times.last ?? 0
-            let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": maximum, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true]
+            let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": maximum, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true, "frameCosts": grid.marqueeCosts]
             let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("selection-performance.json")
             try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted).write(to: output)
         }
