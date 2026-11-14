@@ -1,14 +1,14 @@
 Creating disposable filesystem image: APFS
-created: /Users/runner/work/_temp/js-filesystem-probe.JrbpIS/APFS.sparseimage
+created: /Users/runner/work/_temp/js-filesystem-probe.V6Gwnb/APFS.sparseimage
 /dev/disk2          	GUID_partition_scheme          	
 /dev/disk2s1        	Apple_APFS                     	
 /dev/disk3          	EF57347C-0000-11AA-AA11-0030654	
-/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.JrbpIS/mount-APFS
+/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.V6Gwnb/mount-APFS
    File System Personality:   APFS
    Type (Bundle):             apfs
-["collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17", "identityStable": true, "volume": "mount-APFS", "move": "success", "api": "renamex-RENAME_EXCL", "bytesPreserved": true]
-["collision": "NSOSStatusErrorDomain:-48", "collisionPreserved": true, "volume": "mount-APFS", "move": "success", "identityStable": true, "api": "FSRenameUnicode", "bytesPreserved": true]
-["move": "success", "collision": "NSOSStatusErrorDomain:-48", "collisionPreserved": true, "volume": "mount-APFS", "api": "FSPathMoveObjectSync-no-overwrite", "identityStable": true, "bytesPreserved": true]
+["volume": "mount-APFS", "identityStable": true, "collisionPreserved": true, "move": "success", "api": "renamex-RENAME_EXCL", "collision": "NSPOSIXErrorDomain:17", "bytesPreserved": true]
+["collisionPreserved": true, "bytesPreserved": true, "collision": "NSOSStatusErrorDomain:-48", "move": "success", "volume": "mount-APFS", "api": "FSRenameUnicode", "identityStable": true]
+["collision": "NSOSStatusErrorDomain:-48", "api": "FSPathMoveObjectSync-no-overwrite", "collisionPreserved": true, "move": "success", "bytesPreserved": true, "volume": "mount-APFS", "identityStable": true]
 Building for debugging...
 [0/11] /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/x86_64-apple-macosx/debug/PhotoSelectPackageTests.derived/runner.swift
 [1/11] Write sources
@@ -30,22 +30,22 @@ Building for debugging...
 [19/23] Linking PhotoSelect
 [20/23] Applying PhotoSelect
 [22/30] Emitting module PhotoSelectTests
-[23/35] Compiling PhotoSelectTests PhotoActionsTests.swift
-[24/35] Compiling PhotoSelectTests PhotoSelectTests.swift
-[25/35] Compiling PhotoSelectTests PhotoSortingTests.swift
-[26/35] Compiling PhotoSelectTests ViewerInteractionTests.swift
-[27/35] Compiling PhotoSelectTests WindowLayoutTests.swift
-[28/35] Compiling PhotoSelectTests BatchRenameTests.swift
-[29/35] Compiling PhotoSelectTests BrowserUITests.swift
-[30/35] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
-[31/35] Compiling PhotoSelectTests FilesystemRenameTests.swift
-[32/35] Compiling PhotoSelectTests FolderTreeTests.swift
-[33/35] Compiling PhotoSelectTests ImagePipelineTests.swift
-[34/37] Compiling PhotoSelectPackageTests runner.swift
-[35/37] Emitting module PhotoSelectPackageTests
+[23/30] Compiling PhotoSelectTests BatchRenameTests.swift
+[24/30] Compiling PhotoSelectTests BrowserUITests.swift
+[25/30] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
+[26/30] Compiling PhotoSelectTests FilesystemRenameTests.swift
+[27/30] Compiling PhotoSelectTests FolderTreeTests.swift
+[28/30] Compiling PhotoSelectTests ImagePipelineTests.swift
+[29/35] Compiling PhotoSelectTests PhotoActionsTests.swift
+[30/35] Compiling PhotoSelectTests PhotoSelectTests.swift
+[31/35] Compiling PhotoSelectTests PhotoSortingTests.swift
+[32/35] Compiling PhotoSelectTests ViewerInteractionTests.swift
+[33/35] Compiling PhotoSelectTests WindowLayoutTests.swift
+[34/37] Emitting module PhotoSelectPackageTests
+[35/37] Compiling PhotoSelectPackageTests runner.swift
 [35/37] Write Objects.LinkFileList
 [36/37] Linking PhotoSelectPackageTests
-Build complete! (91.48s)
+Build complete! (173.96s)
 [1/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
 [2/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
 [3/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
@@ -56,21 +56,90 @@ Build complete! (91.48s)
 ↳ Testing Library Version: 124.4
 ↳ Target Platform: x86_64-apple-macos14.0
 ✔ Test run with 0 tests passed after 0.001 seconds.
-Traceback (most recent call last):
-  File "<string>", line 3, in <module>
-    images = plistlib.load(sys.stdin).get("images", [])
-             ~~~~~~~~~~~~~^^^^^^^^^^^
-  File "/usr/local/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/plistlib.py", line 899, in load
-    fp.seek(0)
-    ~~~~~~~^^^
-io.UnsupportedOperation: underlying stream is not seekable
-Traceback (most recent call last):
-  File "<string>", line 3, in <module>
-    images = plistlib.load(sys.stdin).get("images", [])
-             ~~~~~~~~~~~~~^^^^^^^^^^^
-  File "/usr/local/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/plistlib.py", line 899, in load
-    fp.seek(0)
-    ~~~~~~~^^^
-io.UnsupportedOperation: underlying stream is not seekable
-rm: /Users/runner/work/_temp/js-filesystem-probe.JrbpIS/mount-APFS: Resource busy
-rm: /Users/runner/work/_temp/js-filesystem-probe.JrbpIS: Directory not empty
+"disk2" ejected.
+Creating disposable filesystem image: HFS+
+created: /Users/runner/work/_temp/js-filesystem-probe.V6Gwnb/HFSplus.sparseimage
+/dev/disk2          	GUID_partition_scheme          	
+/dev/disk2s1        	Apple_HFS                      	/Users/runner/work/_temp/js-filesystem-probe.V6Gwnb/mount-HFSplus
+   File System Personality:   HFS+
+   Type (Bundle):             hfs
+["collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "identityStable": true, "api": "renamex-RENAME_EXCL", "bytesPreserved": true, "volume": "mount-HFSplus", "move": "success"]
+["bytesPreserved": true, "collisionPreserved": true, "move": "success", "api": "FSRenameUnicode", "identityStable": true, "volume": "mount-HFSplus", "collision": "NSOSStatusErrorDomain:-48"]
+["volume": "mount-HFSplus", "identityStable": true, "bytesPreserved": true, "collisionPreserved": true, "move": "success", "api": "FSPathMoveObjectSync-no-overwrite", "collision": "NSOSStatusErrorDomain:-48"]
+[0/1] Planning build
+Building for debugging...
+[0/4] Write swift-version--79AA4F9932D1E87A.txt
+Build complete! (0.38s)
+[1/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
+[2/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
+[3/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
+[4/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
+[5/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
+[6/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: x86_64-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.
+"disk2" ejected.
+Creating disposable filesystem image: ExFAT
+created: /Users/runner/work/_temp/js-filesystem-probe.V6Gwnb/ExFAT.sparseimage
+/dev/disk2          	GUID_partition_scheme          	
+/dev/disk2s1        	Microsoft Basic Data           	/Users/runner/work/_temp/js-filesystem-probe.V6Gwnb/mount-ExFAT
+   File System Personality:   ExFAT
+   Type (Bundle):             exfat
+["collisionPreserved": true, "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "api": "renamex-RENAME_EXCL", "volume": "mount-ExFAT", "collision": "NSPOSIXErrorDomain:17"]
+["bytesPreserved": true, "volume": "mount-ExFAT", "api": "FSRenameUnicode", "collision": "NSOSStatusErrorDomain:-48", "identityStable": true, "collisionPreserved": true, "move": "success"]
+["collision": "NSOSStatusErrorDomain:-48", "collisionPreserved": true, "identityStable": true, "volume": "mount-ExFAT", "api": "FSPathMoveObjectSync-no-overwrite", "move": "success", "bytesPreserved": true]
+[0/1] Planning build
+Building for debugging...
+[0/4] Write swift-version--79AA4F9932D1E87A.txt
+Build complete! (0.38s)
+[1/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
+[2/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
+[3/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
+[4/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
+[5/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
+[6/6] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
+Test Suite 'Selected tests' started at 2026-11-14 15:00:40.685.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-14 15:00:40.688.
+Test Suite 'FilesystemRenameTests' started at 2026-11-14 15:00:40.688.
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:101: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner] : XCTAssertEqual failed: ("2") is not equal to ("1") - No-replace must have exactly one winner
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:102: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner] : XCTUnwrap failed: expected non-nil value of type "URL"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner]' failed (2.231 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-14 15:00:42.919.
+	 Executed 1 test, with 2 failures (0 unexpected) in 2.231 (2.231) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-14 15:00:42.919.
+	 Executed 1 test, with 2 failures (0 unexpected) in 2.231 (2.231) seconds
+Test Suite 'Selected tests' failed at 2026-11-14 15:00:42.919.
+	 Executed 1 test, with 2 failures (0 unexpected) in 2.231 (2.234) seconds
+
+Test Suite 'Selected tests' started at 2026-11-14 15:00:43.055.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-14 15:00:43.058.
+Test Suite 'FilesystemRenameTests' started at 2026-11-14 15:00:43.058.
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount]' started.
+"disk2" ejected.
+/dev/disk2          	GUID_partition_scheme          	
+/dev/disk2s1        	Microsoft Basic Data           	/Users/runner/work/_temp/js-filesystem-probe.V6Gwnb/mount-ExFAT
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:140: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount] : XCTAssertTrue failed - 파일 시스템 exfat · FSRenameUnicode(no-replace)
+A.ARW: 파일 위치를 확인할 수 없습니다.
+B.JPG: 파일 위치를 확인할 수 없습니다.
+A.ARW: 파일 위치를 확인할 수 없습니다.
+B.JPG: 파일 위치를 확인할 수 없습니다.
+미완료 작업 기록 보존: /var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/J-S-filesystem-test-9D92D4BE-EE90-486C-9B8F-1D365DE8539B/D7730715-6582-4CB5-A9CA-C732D423ADCB.json
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:141: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount] : XCTAssertEqual failed: threw error "Error Domain=NSCocoaErrorDomain Code=260 "The file “A.ARW” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Users/runner/work/_temp/js-filesystem-probe.V6Gwnb/mount-ExFAT/J-S-filesystem-test-B88E3C88-0EC8-4414-AABB-9F87BC72B824/A.ARW, NSURL=file:///Users/runner/work/_temp/js-filesystem-probe.V6Gwnb/mount-ExFAT/J-S-filesystem-test-B88E3C88-0EC8-4414-AABB-9F87BC72B824/A.ARW, NSUnderlyingError=0x600000724f00 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}"
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:143: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount] : XCTAssertTrue failed
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount]' failed (4.507 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-14 15:00:47.566.
+	 Executed 1 test, with 3 failures (1 unexpected) in 4.507 (4.507) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-14 15:00:47.566.
+	 Executed 1 test, with 3 failures (1 unexpected) in 4.507 (4.508) seconds
+Test Suite 'Selected tests' failed at 2026-11-14 15:00:47.566.
+	 Executed 1 test, with 3 failures (1 unexpected) in 4.507 (4.511) seconds
+Verified disposable-image detach/reattach: mount-ExFAT
+
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: x86_64-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.
+"disk2" ejected.

@@ -4,5 +4,6 @@
   "files" : 368,
   "format" : "apfs",
   "method" : "renamex_np(RENAME_EXCL)",
-  "physicalDevice" : false
+  "physicalDevice" : false,
+  "realSonySamplePreserved" : true
 }

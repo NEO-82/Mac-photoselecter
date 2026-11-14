@@ -1,0 +1,9 @@
+{
+  "allRenamed" : true,
+  "bytesAndTagsPreserved" : true,
+  "files" : 368,
+  "format" : "exfat",
+  "method" : "FSRenameUnicode(no-replace)",
+  "physicalDevice" : false,
+  "realSonySamplePreserved" : true
+}
