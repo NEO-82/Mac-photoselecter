@@ -6,7 +6,9 @@
 
 ## 현재 상태
 
-현재 배포는 **J♡S v0.6.0 빌드61**입니다. [DMG 다운로드·정렬/이름 변경 사용법·116개 XCTest와 Release 검사4개·다운로드 SHA 검증](file-management.md)을 참고하세요.
+현재 배포는 **J♡S v0.6.0 빌드65**입니다. [Finder ARW 연결·최신 DMG·119개 XCTest와 Release 검사4개·다운로드 SHA 검증](finder-open.md).
+
+이전 배포는 **v0.6.0 빌드61**입니다. [DMG 다운로드·정렬/이름 변경 사용법·116개 XCTest와 Release 검사4개·다운로드 SHA 검증](file-management.md)을 참고하세요.
 
 이전 **v0.5.5 빌드48**의 [전환·캐시 수정 및 실제 계측/설치 파일](navigation-performance.md)과 안정 복원 태그도 보존했습니다.
 

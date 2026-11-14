@@ -1,12 +1,12 @@
 {
   "version": "0.6.0",
-  "build_number": "61",
-  "artifact_commit": "889f5483a0b3daabb5d083aeaf3d11e86d5e126f",
-  "source_commit": "da2986aea60c467b437e172936ea36a8d129a814",
-  "url": "https://github.com/NEO-82/Mac-photoselecter/raw/889f5483a0b3daabb5d083aeaf3d11e86d5e126f/downloads/J-S-0.6.0-arm64.dmg",
+  "build_number": "65",
+  "artifact_commit": "070b36c4980e8ff4bb3a7c5e2ee295264c70ee3b",
+  "source_commit": "d423f8da29a340067a4139ddb8a3a59119cc2d3f",
+  "url": "https://github.com/NEO-82/Mac-photoselecter/raw/070b36c4980e8ff4bb3a7c5e2ee295264c70ee3b/downloads/J-S-0.6.0-arm64.dmg",
   "http_status": 200,
-  "bytes": 3396664,
-  "sha256": "10c1a8b704e8b52c4980fb140133d68dc22ce53b55d986f8727c1e93c337b332",
+  "bytes": 3402128,
+  "sha256": "6c1739aef8c8eb4ae286722240462ccd96a1d4e0b0df0286712b450126e874e0",
   "checksum_match": true,
-  "verified_at_utc": "2026-11-13T15:30:18.831457+00:00"
+  "verified_at_utc": "2026-11-14T08:23:37.296733+00:00"
 }

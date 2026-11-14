@@ -4,9 +4,9 @@ Jeonggwang ♡ Seoa.
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[J♡S v0.6.0 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/889f5483a0b3daabb5d083aeaf3d11e86d5e126f/downloads/J-S-0.6.0-arm64.dmg)
+[J♡S v0.6.0 설치 파일 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/070b36c4980e8ff4bb3a7c5e2ee295264c70ee3b/downloads/J-S-0.6.0-arm64.dmg)
 
-현재 버전은 대량 목록 처리·정렬·일괄 이름 변경을 추가한 **v0.6.0 빌드61**입니다. [변경 파일·사용법·복구 절차·테스트 결과](docs/file-management.md).
+현재 버전은 Finder Sony ARW 파일 연결을 추가한 **v0.6.0 빌드65**입니다. [Finder 열기·기본 앱 설정·119개 XCTest 및 설치 파일 검증](docs/finder-open.md). 대량 목록 처리·정렬·일괄 이름 변경은 유지합니다. [기존 기능·사용법·복구 절차](docs/file-management.md).
 
 DMG를 열고 **J♡S.app**을 Applications로 끌어 넣으세요. 실행에는 Xcode가 필요하지 않습니다.
 기존 `정광이의 MAC 포토셀렉터.app`, `PhotoSelect.app`, J♡S를 모두 종료하세요. J♡S.app을 Applications에 넣은 뒤 이전 이름의 **앱 번들만** 휴지통으로 옮기세요. 이름이 달라 자동 교체되지 않을 수 있습니다. Dock의 이전 바로가기도 J♡S로 다시 등록하세요. `~/Library/Application Support/dev.photoselect.app/tags.json`과 사용자 설정은 삭제하지 말고, 앱 정리 도구의 관련 데이터 삭제 기능은 사용하지 마세요.

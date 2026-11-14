@@ -1,6 +1,16 @@
 # Finder에서 Sony ARW 열기
 
-v0.6.0 빌드61 소스 이후의 변경입니다. 이 변경의 macOS 빌드/설치 파일은 아직 검증하지 않았습니다.
+v0.6.0 빌드61에서 이어서 구현한 **v0.6.0 빌드65**입니다.
+
+[Apple Silicon용 최신 DMG 다운로드](https://github.com/NEO-82/Mac-photoselecter/raw/070b36c4980e8ff4bb3a7c5e2ee295264c70ee3b/downloads/J-S-0.6.0-arm64.dmg)
+
+[macOS 빌드65](https://github.com/NEO-82/Mac-photoselecter/actions/runs/43574908345)에서 XCTest **119개**(Finder 검사3개 포함)와 Release RAW/탐색 검사 **4개**가 실패·건너뜀 없이 통과했습니다. 같은 폴더의 실제 Sony ARW 재열기 캐시 적중도 확인했습니다. arm64 Release 앱, ad-hoc 서명, 아이콘, DMG 무결성 및 마운트 후 앱 서명 검증이 통과했습니다. 실제 다운로드 HTTP **200**, **3,402,128바이트**, SHA-256 일치를 확인했습니다.
+
+```text
+6c1739aef8c8eb4ae286722240462ccd96a1d4e0b0df0286712b450126e874e0  J-S-0.6.0-arm64.dmg
+```
+
+소스 커밋: `d423f8da29a340067a4139ddb8a3a59119cc2d3f`. 설치 파일 커밋: `070b36c4980e8ff4bb3a7c5e2ee295264c70ee3b`. [다운로드 검증 기록](../downloads/download-verification-0.6.0.json).
 
 ## 동작 및 권한
 
@@ -22,7 +32,7 @@ export PHOTOSELECT_ARW_SAMPLE_DIRECTORY="${TMPDIR:-/tmp}/photoselect-raw-samples
 bash scripts/fetch-raw-test-samples.sh
 bash scripts/validate-macos.sh
 # PHOTOSELECT_BUILD_NUMBER에 기존 배포보다 큰 새 번호 지정
-PHOTOSELECT_BUILD_NUMBER=62 bash scripts/package-macos.sh
+PHOTOSELECT_BUILD_NUMBER=66 bash scripts/package-macos.sh
 ```
 
 배포 브랜치의 기존 Actions도 동일한 패키징과 Release RAW 검사 4개를 수행합니다. 새 Finder XCTest 3개는 전체 Debug XCTest에 포함됩니다. 이 중 2개는 선택/창 재사용/폴더 전환/일반 JPEG 탐색을 확인하고, 1개는 실제 Sony ARW의 내장 JPEG 미리보기를 확인합니다. 테스트 메서드 직접 호출만으로 Launch Services 이벤트나 실물 저장장치의 권한 처리가 검증되지는 않습니다.
@@ -36,4 +46,4 @@ PHOTOSELECT_BUILD_NUMBER=62 bash scripts/package-macos.sh
 7. 기존 RAW 색/확대/탐색 속도, 태그 저장 후 재실행 복원, 테스트용 사진 휴지통 이동, 정렬 및 일괄 이름 변경을 확인합니다.
 8. DMG arm64/서명/마운트 검증이 통과한 뒤 업로드하고 실제 다운로드 SHA-256을 비교합니다. 기존 빌드61 DMG를 새 기능 결과물로 사용하지 않습니다.
 
-현재 Linux에서 패키징 실패 처리 테스트 9개는 통과했습니다. macOS XCTest, Launch Services, 실제 GUI/RAW/외장 장치 및 새 DMG는 미검증입니다. 현재 GitHub Actions API 접근은 Forbidden이므로 이 환경에서는 원격 빌드를 시작하지 못했습니다.
+Linux의 패키징 실패 처리 테스트 9개와 macOS CI 검증은 통과했습니다. GitHub Actions API는 Forbidden이지만 기존 HTTPS Git 인증으로 배포 브랜치에 푸시하여 원격 빌드와 설치 파일 업로드를 완료했습니다. 실제 Finder Launch Services 더블클릭/기본 앱 설정, 물리 입력, SD/SSD의 권한 대화상자 및 분리/재연결은 위 절차에 따른 실기기 검증이 남아 있습니다. 테스트와 arm64 앱 빌드는 Intel macOS/Xcode 16.4에서 수행했으며 Apple Silicon 실기기 실행을 대신하지 않습니다.
