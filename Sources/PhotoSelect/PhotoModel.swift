@@ -130,7 +130,13 @@ enum ZoomGeometry {
 final class FolderLease {
     let url: URL
     private let scoped: Bool
-    init(_ url: URL) { self.url = url; scoped = url.startAccessingSecurityScopedResource() }
+    // A Finder file grant is distinct from a directory grant. Keep both alive
+    // until all asynchronous image, metadata and file operations have finished.
+    private let retainedLease: FolderLease?
+    init(_ url: URL, retaining lease: FolderLease? = nil) {
+        self.url = url; retainedLease = lease
+        scoped = url.startAccessingSecurityScopedResource()
+    }
     deinit { if scoped { url.stopAccessingSecurityScopedResource() } }
 }
 

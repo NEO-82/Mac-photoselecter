@@ -26,6 +26,27 @@
     <string>$(MACOSX_DEPLOYMENT_TARGET)</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.photography</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key><string>Sony ARW RAW image</string>
+            <key>CFBundleTypeRole</key><string>Viewer</string>
+            <key>LSHandlerRank</key><string>Alternate</string>
+            <key>LSItemContentTypes</key><array><string>com.sony.arw-raw-image</string></array>
+        </dict>
+    </array>
+    <key>UTImportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key><string>com.sony.arw-raw-image</string>
+            <key>UTTypeDescription</key><string>Sony ARW RAW image</string>
+            <key>UTTypeConformsTo</key><array><string>public.camera-raw-image</string></array>
+            <key>UTTypeTagSpecification</key>
+            <dict><key>public.filename-extension</key><array><string>arw</string><string>ARW</string></array></dict>
+        </dict>
+    </array>
+    <key>NSRemovableVolumesUsageDescription</key>
+    <string>Finder에서 선택한 SD 카드나 외장 저장장치의 사진과 상위 폴더를 탐색하는 데 사용합니다.</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSDesktopFolderUsageDescription</key>

@@ -94,6 +94,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     private var browser: BrowserController?
     private var terminationPending = false
+    private var pendingOpenURLs: [URL] = []
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        // Launch Services can deliver the event before didFinishLaunching.
+        guard let browser else { pendingOpenURLs = urls; return }
+        openFinderURLs(urls, in: browser)
+    }
+
+    private func openFinderURLs(_ urls: [URL], in browser: BrowserController) {
+        // A single browser has one selection; deterministically use the first ARW.
+        guard let url = urls.first(where: { $0.isFileURL && $0.pathExtension.lowercased() == "arw" }) else { return }
+        browser.openFinderFile(url)
+        browser.showWindow(nil)
+        browser.window?.deminiaturize(nil)
+        browser.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
     func applicationDidFinishLaunching(_ notification: Notification) {
         let savedTheme = UserDefaults.standard.object(forKey: "appearancePreference") as? Int ?? 2
         NSApp.appearance = savedTheme == 0 ? nil : NSAppearance(named: savedTheme == 1 ? .aqua : .darkAqua)
@@ -101,6 +118,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.mainMenu = AppMenus.make(for: browser)
         NSApp.windowsMenu = NSApp.mainMenu?.item(withTitle: "윈도우")?.submenu
         browser.showWindow(nil)
+        if !pendingOpenURLs.isEmpty {
+            openFinderURLs(pendingOpenURLs, in: browser)
+            pendingOpenURLs = []
+        }
         NSApp.activate(ignoringOtherApps: true)
     }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {

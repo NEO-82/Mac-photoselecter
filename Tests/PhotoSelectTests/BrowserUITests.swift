@@ -37,6 +37,76 @@ final class BrowserUITests: XCTestCase {
         return NSBitmapImageRep(cgImage: context.makeImage()!).representation(using: .jpeg, properties: [:])!
     }
     @MainActor
+    func testFinderOpenSelectsARWLoadsParentAndReusesWindow() throws {
+        _ = NSApplication.shared
+        let root = try folder()
+        let first = root.appendingPathComponent("A.ARW")
+        let second = root.appendingPathComponent("B.arw")
+        // Invalid RAWs exercise selection and the normal decode-error path;
+        // actual Sony preview decoding remains covered by the RAW regression suite.
+        try Data("invalid RAW fixture".utf8).write(to: first)
+        try Data("invalid RAW fixture".utf8).write(to: second)
+        try jpegData().write(to: root.appendingPathComponent("neighbor.jpg"))
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent("tags.json")), initialFolder: nil)
+        defer { browser.close() }
+        let window = browser.window
+        let views = descendants(try XCTUnwrap(window?.contentView))
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoGridView }.first)
+        let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.title == "태그된 사진만 보기" })
+        filter.state = .on
+        browser.openFinderFile(first)
+        waitUntil("Finder selects first ARW") {
+            preview.filename.stringValue == "A.ARW" && !browser.sorting && grid.numberOfItems(inSection: 0) >= 3
+        }
+        XCTAssertEqual(filter.state, .off)
+        XCTAssertEqual(preview.filename.toolTip, first.path)
+        browser.openFinderFile(second)
+        waitUntil("running browser selects second ARW") { preview.filename.stringValue == "B.arw" }
+        XCTAssertTrue(browser.window === window)
+        browser.nextPhoto()
+        waitUntil("normal neighbor preview remains usable") {
+            preview.filename.stringValue == "neighbor.jpg" && preview.imageView.image != nil
+        }
+        browser.openFinderFile(second)
+        waitUntil("cached folder selects RAW again") { preview.filename.stringValue == "B.arw" }
+    }
+
+    @MainActor
+    func testFinderOpenRealSonyPreview() throws {
+        guard let directory = ProcessInfo.processInfo.environment["PHOTOSELECT_ARW_SAMPLE_DIRECTORY"] else {
+            throw XCTSkip("Sony samples required")
+        }
+        _ = NSApplication.shared
+        let root = try folder()
+        let raw = root.appendingPathComponent("Finder selected.ARW")
+        try FileManager.default.copyItem(at: URL(fileURLWithPath: directory).appendingPathComponent("Sony-A7M4.ARW"), to: raw)
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: nil)
+        defer { browser.close() }
+        let preview = try XCTUnwrap(descendants(try XCTUnwrap(browser.window?.contentView)).compactMap { $0 as? PreviewPane }.first)
+        browser.openFinderFile(raw)
+        waitUntil("Finder Sony embedded JPEG", timeout: 30) {
+            preview.filename.stringValue == raw.lastPathComponent && preview.imageView.image != nil
+        }
+        XCTAssertTrue(preview.detail.stringValue.contains("ARW 내장 JPEG"))
+    }
+
+    @MainActor
+    func testFinderRapidFolderOpenKeepsLatestSelection() throws {
+        _ = NSApplication.shared
+        let firstRoot = try folder(), secondRoot = try folder()
+        let first = firstRoot.appendingPathComponent("first.arw")
+        let second = secondRoot.appendingPathComponent("second.ARW")
+        try Data().write(to: first); try Data().write(to: second)
+        let browser = BrowserController(tagStore: TagStore(fileURL: secondRoot.appendingPathComponent("tags.json")), initialFolder: nil)
+        defer { browser.close() }
+        let preview = try XCTUnwrap(descendants(try XCTUnwrap(browser.window?.contentView)).compactMap { $0 as? PreviewPane }.first)
+        browser.openFinderFile(first); browser.openFinderFile(second)
+        waitUntil("latest Finder request wins") { preview.filename.stringValue == "second.ARW" && !browser.sorting }
+        XCTAssertEqual(preview.filename.toolTip, second.path)
+    }
+
+    @MainActor
     private func saveBrowserSnapshot(_ window: NSWindow, name: String) throws {
         guard let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] else { return }
         let content = try XCTUnwrap(window.contentView)

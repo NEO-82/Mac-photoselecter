@@ -488,6 +488,48 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         UserDefaults.standard.set(sender.tag, forKey: "appearancePreference")
         NSApp.appearance = sender.tag == 1 ? NSAppearance(named: .aqua) : sender.tag == 2 ? NSAppearance(named: .darkAqua) : nil
     }
+    private var finderSelection: URL?
+
+    func openFinderFile(_ url: URL) {
+        guard !fileManagementActive, !isTrashing, !finishingTagWrites else {
+            setStatus("파일 작업이 끝난 뒤 Finder에서 다시 열어 주세요.", error: true)
+            return
+        }
+        guard url.isFileURL, url.pathExtension.lowercased() == "arw" else { return }
+        taggedOnlyButton.state = .off
+        if url.lastPathComponent.hasPrefix(".") { tree.showHidden = true }
+        if currentFolder == url.deletingLastPathComponent(), !folderLoading,
+           let index = allEntries.firstIndex(where: { $0.url == url }) {
+            selectedURL = allEntries[index].url
+            applyTagFilter()
+            if let index = list.selectedIndex { showPhoto(index) }
+            return
+        }
+        finderSelection = url
+        let fileLease = FolderLease(url)
+        tree.select(url.deletingLastPathComponent(),
+                    lease: FolderLease(url.deletingLastPathComponent(), retaining: fileLease), renewAccess: true)
+    }
+
+    private func authorizeFinderFolder(for file: URL) {
+        guard let window else { return }
+        let token = generation
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true; panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = file.deletingLastPathComponent()
+        panel.message = "선택한 ARW의 상위 폴더에 접근하려면 해당 폴더를 선택해 주세요."
+        panel.beginSheetModal(for: window) { [weak self] response in
+            guard let self, self.generation == token, response == .OK, let folder = panel.url else { return }
+            guard TagStore.key(folder) == TagStore.key(file.deletingLastPathComponent()) else {
+                self.setStatus("ARW 파일이 들어 있는 상위 폴더를 선택해 주세요.", error: true)
+                return
+            }
+            self.finderSelection = file
+            self.tree.select(folder, lease: FolderLease(folder), renewAccess: true)
+        }
+    }
+
     @objc func openFolder() {
         guard !fileManagementActive else { return }
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false
@@ -562,6 +604,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         tagStore.finishPendingWrites(completion: completion)
     }
     private func loadFolder(_ url: URL, lease: FolderLease, preserving: URL? = nil, preserveImages: Bool = false) {
+        let requestedFile = finderSelection
+        finderSelection = nil
+        let preserving = requestedFile ?? preserving
         generation = UUID(); let token = generation
         previousPhotoIndex = nil; loading = false
         sortRequest?.cancel(); sortGeneration = UUID(); sorting = false
@@ -590,6 +635,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                     let message = FolderReader.errorMessage(for: error)
                     self.setStatus("폴더 읽기 실패: \(message)", error: true)
                     self.preview.detail.stringValue = message
+                    let code = error as NSError
+                    if let requestedFile,
+                       (code.domain == NSCocoaErrorDomain && code.code == CocoaError.Code.fileReadNoPermission.rawValue) ||
+                       (code.domain == NSPOSIXErrorDomain && [1, 13].contains(code.code)) {
+                        self.authorizeFinderFolder(for: requestedFile)
+                    }
                 }
             }
         }
