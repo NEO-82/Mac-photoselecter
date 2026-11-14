@@ -1,0 +1,27 @@
+[
+  {
+    "api" : "renamex-RENAME_EXCL",
+    "collision" : "NSPOSIXErrorDomain:17",
+    "collisionPreserved" : true,
+    "move" : "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported",
+    "volume" : "mount-ExFAT"
+  },
+  {
+    "api" : "FSRenameUnicode",
+    "bytesPreserved" : true,
+    "collision" : "NSOSStatusErrorDomain:-48",
+    "collisionPreserved" : true,
+    "identityStable" : true,
+    "move" : "success",
+    "volume" : "mount-ExFAT"
+  },
+  {
+    "api" : "FSPathMoveObjectSync-no-overwrite",
+    "bytesPreserved" : true,
+    "collision" : "NSOSStatusErrorDomain:-48",
+    "collisionPreserved" : true,
+    "identityStable" : true,
+    "move" : "success",
+    "volume" : "mount-ExFAT"
+  }
+]

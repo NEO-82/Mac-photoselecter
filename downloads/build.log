@@ -1,94 +1,27 @@
 /dev/disk2          	GUID_partition_scheme          	
 /dev/disk2s1        	Apple_APFS                     	
 /dev/disk3          	EF57347C-0000-11AA-AA11-0030654	
-/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.nsRE60/mount-APFS
+/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.s42RBQ/mount-APFS
    File System Personality:   APFS
    Type (Bundle):             apfs
-scripts/probe-rename-filesystems.swift:14:15: error: cannot find 'FSRef' in scope
-12 | }
-13 | func carbonRename(_ source: URL, _ destination: URL) throws {
-14 |     var ref = FSRef(), result = FSRef()
-   |               `- error: cannot find 'FSRef' in scope
-15 |     let status = source.withUnsafeFileSystemRepresentation { ptr in
-16 |         FSPathMakeRef(UnsafeRawPointer(ptr!).assumingMemoryBound(to: UInt8.self), &ref, nil)
-
-scripts/probe-rename-filesystems.swift:14:33: error: cannot find 'FSRef' in scope
-12 | }
-13 | func carbonRename(_ source: URL, _ destination: URL) throws {
-14 |     var ref = FSRef(), result = FSRef()
-   |                                 `- error: cannot find 'FSRef' in scope
-15 |     let status = source.withUnsafeFileSystemRepresentation { ptr in
-16 |         FSPathMakeRef(UnsafeRawPointer(ptr!).assumingMemoryBound(to: UInt8.self), &ref, nil)
-
-scripts/probe-rename-filesystems.swift:16:9: error: cannot find 'FSPathMakeRef' in scope
-14 |     var ref = FSRef(), result = FSRef()
-15 |     let status = source.withUnsafeFileSystemRepresentation { ptr in
-16 |         FSPathMakeRef(UnsafeRawPointer(ptr!).assumingMemoryBound(to: UInt8.self), &ref, nil)
-   |         `- error: cannot find 'FSPathMakeRef' in scope
-17 |     }
-18 |     guard status == noErr else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(status)) }
-
-scripts/probe-rename-filesystems.swift:16:89: error: 'nil' requires a contextual type
-14 |     var ref = FSRef(), result = FSRef()
-15 |     let status = source.withUnsafeFileSystemRepresentation { ptr in
-16 |         FSPathMakeRef(UnsafeRawPointer(ptr!).assumingMemoryBound(to: UInt8.self), &ref, nil)
-   |                                                                                         `- error: 'nil' requires a contextual type
-17 |     }
-18 |     guard status == noErr else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(status)) }
-
-scripts/probe-rename-filesystems.swift:21:9: error: cannot find 'FSRenameUnicode' in scope
-19 |     let name = Array(destination.lastPathComponent.utf16)
-20 |     let renamed = name.withUnsafeBufferPointer {
-21 |         FSRenameUnicode(&ref, UniCharCount($0.count), $0.baseAddress, TextEncoding(kTextEncodingUnknown), &result)
-   |         `- error: cannot find 'FSRenameUnicode' in scope
-22 |     }
-23 |     guard renamed == noErr else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(renamed)) }
-
-scripts/probe-rename-filesystems.swift:21:31: error: cannot find 'UniCharCount' in scope
-19 |     let name = Array(destination.lastPathComponent.utf16)
-20 |     let renamed = name.withUnsafeBufferPointer {
-21 |         FSRenameUnicode(&ref, UniCharCount($0.count), $0.baseAddress, TextEncoding(kTextEncodingUnknown), &result)
-   |                               `- error: cannot find 'UniCharCount' in scope
-22 |     }
-23 |     guard renamed == noErr else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(renamed)) }
-
-scripts/probe-rename-filesystems.swift:21:71: error: cannot find 'TextEncoding' in scope
-19 |     let name = Array(destination.lastPathComponent.utf16)
-20 |     let renamed = name.withUnsafeBufferPointer {
-21 |         FSRenameUnicode(&ref, UniCharCount($0.count), $0.baseAddress, TextEncoding(kTextEncodingUnknown), &result)
-   |                                                                       `- error: cannot find 'TextEncoding' in scope
-22 |     }
-23 |     guard renamed == noErr else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(renamed)) }
-
-scripts/probe-rename-filesystems.swift:21:84: error: cannot find 'kTextEncodingUnknown' in scope
-19 |     let name = Array(destination.lastPathComponent.utf16)
-20 |     let renamed = name.withUnsafeBufferPointer {
-21 |         FSRenameUnicode(&ref, UniCharCount($0.count), $0.baseAddress, TextEncoding(kTextEncodingUnknown), &result)
-   |                                                                                    `- error: cannot find 'kTextEncodingUnknown' in scope
-22 |     }
-23 |     guard renamed == noErr else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(renamed)) }
-
-scripts/probe-rename-filesystems.swift:26:18: error: cannot find 'FSPathMoveObjectSync' in scope
-24 | }
-25 | func carbonMove(_ source: URL, _ destination: URL) throws {
-26 |     let status = FSPathMoveObjectSync(source.path, destination.deletingLastPathComponent().path,
-   |                  `- error: cannot find 'FSPathMoveObjectSync' in scope
-27 |         destination.lastPathComponent as CFString, nil, OptionBits(kFSFileOperationDoNotMoveAcrossVolumes))
-28 |     guard status == noErr else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(status)) }
-
-scripts/probe-rename-filesystems.swift:27:68: error: cannot find 'kFSFileOperationDoNotMoveAcrossVolumes' in scope
-25 | func carbonMove(_ source: URL, _ destination: URL) throws {
-26 |     let status = FSPathMoveObjectSync(source.path, destination.deletingLastPathComponent().path,
-27 |         destination.lastPathComponent as CFString, nil, OptionBits(kFSFileOperationDoNotMoveAcrossVolumes))
-   |                                                                    `- error: cannot find 'kFSFileOperationDoNotMoveAcrossVolumes' in scope
-28 |     guard status == noErr else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(status)) }
-29 | }
-
-scripts/probe-rename-filesystems.swift:27:52: error: 'nil' requires a contextual type
-25 | func carbonMove(_ source: URL, _ destination: URL) throws {
-26 |     let status = FSPathMoveObjectSync(source.path, destination.deletingLastPathComponent().path,
-27 |         destination.lastPathComponent as CFString, nil, OptionBits(kFSFileOperationDoNotMoveAcrossVolumes))
-   |                                                    `- error: 'nil' requires a contextual type
-28 |     guard status == noErr else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(status)) }
-29 | }
+["collisionPreserved": true, "move": "success", "identityStable": true, "collision": "NSPOSIXErrorDomain:17", "bytesPreserved": true, "api": "renamex-RENAME_EXCL", "volume": "mount-APFS"]
+["volume": "mount-APFS", "move": "success", "collision": "NSOSStatusErrorDomain:-48", "identityStable": true, "bytesPreserved": true, "api": "FSRenameUnicode", "collisionPreserved": true]
+["collisionPreserved": true, "volume": "mount-APFS", "move": "success", "bytesPreserved": true, "api": "FSPathMoveObjectSync-no-overwrite", "collision": "NSOSStatusErrorDomain:-48", "identityStable": true]
 "disk2" ejected.
+/dev/disk2          	GUID_partition_scheme          	
+/dev/disk2s1        	Apple_HFS                      	/Users/runner/work/_temp/js-filesystem-probe.s42RBQ/mount-HFSplus
+   File System Personality:   HFS+
+   Type (Bundle):             hfs
+["move": "success", "collision": "NSPOSIXErrorDomain:17", "volume": "mount-HFSplus", "collisionPreserved": true, "identityStable": true, "api": "renamex-RENAME_EXCL", "bytesPreserved": true]
+["volume": "mount-HFSplus", "collisionPreserved": true, "identityStable": true, "api": "FSRenameUnicode", "collision": "NSOSStatusErrorDomain:-48", "move": "success", "bytesPreserved": true]
+["collisionPreserved": true, "move": "success", "identityStable": true, "volume": "mount-HFSplus", "bytesPreserved": true, "collision": "NSOSStatusErrorDomain:-48", "api": "FSPathMoveObjectSync-no-overwrite"]
+"disk2" ejected.
+/dev/disk2          	GUID_partition_scheme          	
+/dev/disk2s1        	Microsoft Basic Data           	/Users/runner/work/_temp/js-filesystem-probe.s42RBQ/mount-ExFAT
+   File System Personality:   ExFAT
+   Type (Bundle):             exfat
+["move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17", "volume": "mount-ExFAT", "api": "renamex-RENAME_EXCL"]
+["bytesPreserved": true, "move": "success", "collisionPreserved": true, "identityStable": true, "collision": "NSOSStatusErrorDomain:-48", "volume": "mount-ExFAT", "api": "FSRenameUnicode"]
+["identityStable": true, "bytesPreserved": true, "volume": "mount-ExFAT", "collisionPreserved": true, "collision": "NSOSStatusErrorDomain:-48", "move": "success", "api": "FSPathMoveObjectSync-no-overwrite"]
+"disk2" ejected.
+Filesystem probes finished; compatibility implementation is pending.

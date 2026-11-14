@@ -1,0 +1,29 @@
+[
+  {
+    "api" : "renamex-RENAME_EXCL",
+    "bytesPreserved" : true,
+    "collision" : "NSPOSIXErrorDomain:17",
+    "collisionPreserved" : true,
+    "identityStable" : true,
+    "move" : "success",
+    "volume" : "mount-HFSplus"
+  },
+  {
+    "api" : "FSRenameUnicode",
+    "bytesPreserved" : true,
+    "collision" : "NSOSStatusErrorDomain:-48",
+    "collisionPreserved" : true,
+    "identityStable" : true,
+    "move" : "success",
+    "volume" : "mount-HFSplus"
+  },
+  {
+    "api" : "FSPathMoveObjectSync-no-overwrite",
+    "bytesPreserved" : true,
+    "collision" : "NSOSStatusErrorDomain:-48",
+    "collisionPreserved" : true,
+    "identityStable" : true,
+    "move" : "success",
+    "volume" : "mount-HFSplus"
+  }
+]
