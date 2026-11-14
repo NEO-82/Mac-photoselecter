@@ -33,8 +33,15 @@ final class FilesystemRenameTests: XCTestCase {
         let root = try folder(), tags = try store(), engine = try engine()
         let support = try RenameFilesystem.prepare(in: root)
         print("Verified volume: \(support.description)")
+        let realSony = try ProcessInfo.processInfo.environment["PHOTOSELECT_ARW_SAMPLE_DIRECTORY"].map {
+            try Data(contentsOf: URL(fileURLWithPath: $0).appendingPathComponent("Sony-A7M4.ARW"))
+        }
+        func bytes(_ index: Int) -> Data {
+            if index == 0, let realSony { return realSony }
+            return Data("ARW original payload \(index)\u{0}Exif preserved".utf8)
+        }
         for index in 0..<368 {
-            try Data("ARW original payload \(index)\u{0}Exif preserved".utf8).write(to: root.appendingPathComponent(String(format: "DSC%04d.ARW", index)))
+            try bytes(index).write(to: root.appendingPathComponent(String(format: "DSC%04d.ARW", index)))
         }
         tag(root.appendingPathComponent("DSC0000.ARW"), tags)
         let result = try execute(engine, plan(root), tags)
@@ -42,11 +49,11 @@ final class FilesystemRenameTests: XCTestCase {
         XCTAssertEqual(result.files.count, 368)
         XCTAssertEqual(result.files.filter { $0.state == .renamed }.count, 368)
         for index in 0..<368 {
-            XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(String(format: "Wedding_%03d.ARW", index + 1))), Data("ARW original payload \(index)\u{0}Exif preserved".utf8))
+            XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(String(format: "Wedding_%03d.ARW", index + 1))), bytes(index))
         }
         XCTAssertEqual(result.taggedPaths, [TagStore.key(root.appendingPathComponent("Wedding_001.ARW"))])
         XCTAssertTrue(try engine.pending(in: root).isEmpty)
-        let report: [String: Any] = ["format": support.volume.format, "method": support.method.rawValue, "files": 368, "allRenamed": result.completed, "bytesAndTagsPreserved": true, "physicalDevice": false]
+        let report: [String: Any] = ["format": support.volume.format, "method": support.method.rawValue, "files": 368, "allRenamed": result.completed, "bytesAndTagsPreserved": true, "physicalDevice": false, "realSonySamplePreserved": realSony != nil]
         if let output = ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_REPORT"] {
             try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]).write(to: URL(fileURLWithPath: output))
         }

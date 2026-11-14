@@ -8,20 +8,25 @@ image=""
 detach_owned_image() {
     [[ -n "$image" ]] || return 0
     local device
-    device="$(hdiutil info -plist | python3 -c '
-import plistlib, sys
-images = plistlib.load(sys.stdin).get("images", [])
+    if ! device="$(hdiutil info -plist | python3 -c '
+import os, plistlib, sys
+images = plistlib.loads(sys.stdin.buffer.read()).get("images", [])
 for item in images:
-    if item.get("image-path") == sys.argv[1]:
+    if os.path.realpath(item.get("image-path", "")) == os.path.realpath(sys.argv[1]):
         entities = item.get("system-entities", [])
         if entities:
             print(entities[0].get("dev-entry", ""))
         break
-' "$image")"
+' "$image")"; then return 1; fi
     if [[ -n "$device" ]]; then hdiutil detach "$device"; fi
 }
 cleanup() {
-    detach_owned_image || return
+    local owned
+    for owned in "$base"/*.sparseimage; do
+        [[ -f "$owned" ]] || continue
+        image="$owned"
+        detach_owned_image || return
+    done
     rm -rf "$base"
 }
 trap cleanup EXIT
