@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.7.0'
+        default: '0.7.1'
         type: string
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.7.0' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.7.1' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
   PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
@@ -43,7 +43,7 @@ jobs:
         id: package
         run: |
           set -o pipefail
-          bash scripts/package-macos.sh 2>&1 | tee "$RUNNER_TEMP/PhotoSelect-build.log"
+          { bash scripts/probe-rename-filesystems.sh; bash scripts/package-macos.sh; } 2>&1 | tee "$RUNNER_TEMP/PhotoSelect-build.log"
           python3 - <<'PYTEST'
           import xml.etree.ElementTree as ET
           root = ET.parse('.build/xctest-results.xml').getroot()
@@ -110,6 +110,7 @@ jobs:
             .build/*results.xml
             .build/about-panel.png
             .build/arw-*.json
+            .build/filesystem-*.json
             .build/selection-performance.json
             .build/icon-validation.json
             .build/finder-icon.png
