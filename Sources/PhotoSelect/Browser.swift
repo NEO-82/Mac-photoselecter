@@ -831,6 +831,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
                             self.preparingRename = false
                             let photos = sorted.filter(RenamePlan.isTargetPhoto)
+                            let available = Set(photos.map(\.selectionID))
+                            guard selectedIDs.isSubset(of: available) else {
+                                self.updateBadges()
+                                self.batchError("선택한 파일이 이동·교체되었거나 이름 변경 대상에서 제외됐습니다. 새로고침하고 다시 선택해 주세요.")
+                                return
+                            }
                             guard !photos.isEmpty else { self.updateBadges(); self.batchError("현재 폴더에 변경할 사진이 없습니다."); return }
                             self.presentRename(folder: folder, photos: photos, names: value.2, orderTitle: order.title, lease: lease, volume: volume, recovery: nil, selectedIDs: selectedIDs)
                         }

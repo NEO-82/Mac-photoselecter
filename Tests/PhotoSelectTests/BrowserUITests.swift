@@ -269,6 +269,34 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    func testSelectedRenameCannotFallBackToWholeFolderWhenSelectedFileWasReplaced() throws {
+        _ = NSApplication.shared
+        let root = try folder(), data = jpegData()
+        try data.write(to: root.appendingPathComponent("selected.jpg"))
+        try data.write(to: root.appendingPathComponent("unselected.jpg"))
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: root)
+        defer { browser.close() }; browser.showWindow(nil)
+        let grid = try XCTUnwrap(descendants(try XCTUnwrap(browser.window?.contentView)).compactMap { $0 as? PhotoCollectionView }.first)
+        waitUntil("replacement selection ready") { grid.numberOfItems(inSection: 0) == 2 && !browser.sorting }
+        try nativeGridClick(grid, item: 0)
+        XCTAssertEqual(browser.selectedPhotoIDs.count, 1)
+        let replacement = root.appendingPathComponent(".replacement.jpg")
+        try data.write(to: replacement) // Allocate a different inode while the selected file still exists.
+        try FileManager.default.removeItem(at: root.appendingPathComponent("selected.jpg"))
+        try FileManager.default.moveItem(at: replacement, to: root.appendingPathComponent("selected.jpg"))
+        browser.openBatchRename()
+        waitUntil("replacement blocks rename") { browser.window?.attachedSheet != nil }
+        let sheet = try XCTUnwrap(browser.window?.attachedSheet)
+        let controls = descendants(try XCTUnwrap(sheet.contentView))
+        XCTAssertFalse(controls.contains { $0.identifier?.rawValue == "RenameExecute" }, "Missing selections must never silently switch to whole-folder rename")
+        let text = controls.compactMap { $0 as? NSTextField }.map(\.stringValue).joined(separator: " ")
+        XCTAssertTrue(text.contains("교체"))
+        for name in ["selected.jpg", "unselected.jpg"] { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), data) }
+        let ok = try XCTUnwrap(controls.compactMap { $0 as? NSButton }.first { $0.title == "확인" })
+        ok.performClick(nil)
+    }
+
+    @MainActor
     func testBulkTrashConfirmationCancelPartialFailureAndSelectionRetention() throws {
         _ = NSApplication.shared
         let root = try folder(), trash = try folder(), data = jpegData()
