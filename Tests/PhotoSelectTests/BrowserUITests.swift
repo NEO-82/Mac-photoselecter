@@ -52,7 +52,7 @@ final class BrowserUITests: XCTestCase {
         let window = browser.window
         let views = descendants(try XCTUnwrap(window?.contentView))
         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
-        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoGridView }.first)
+        let grid = try XCTUnwrap(views.compactMap { $0 as? NSCollectionView }.first)
         let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.title == "태그된 사진만 보기" })
         filter.state = .on
         browser.openFinderFile(first)
