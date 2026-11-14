@@ -4,8 +4,24 @@ cd "$(dirname "$0")/.."
 [[ "$(uname -s)" == Darwin ]] || exit 2
 base="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/js-filesystem-probe.XXXXXX")"
 mount_path=""
+image=""
+detach_owned_image() {
+    [[ -n "$image" ]] || return 0
+    local device
+    device="$(hdiutil info -plist | python3 -c '
+import plistlib, sys
+images = plistlib.load(sys.stdin).get("images", [])
+for item in images:
+    if item.get("image-path") == sys.argv[1]:
+        entities = item.get("system-entities", [])
+        if entities:
+            print(entities[0].get("dev-entry", ""))
+        break
+' "$image")"
+    if [[ -n "$device" ]]; then hdiutil detach "$device"; fi
+}
 cleanup() {
-    if [[ -n "$mount_path" ]]; then hdiutil detach "$mount_path" || return; fi
+    detach_owned_image || return
     rm -rf "$base"
 }
 trap cleanup EXIT
@@ -15,7 +31,8 @@ for fs in APFS HFS+ ExFAT; do
     image="$base/$label.sparseimage"
     mount_path="$base/mount-$label"
     mkdir "$mount_path"
-    hdiutil create -quiet -size 256m -type SPARSE -layout GPTSPUD -fs "$fs" -volname "J-S-$label" "$image"
+    echo "Creating disposable filesystem image: $fs"
+    hdiutil create -size 256m -type SPARSE -layout GPTSPUD -fs "$fs" -volname "J-S-$label" "$image"
     hdiutil attach -nobrowse -mountpoint "$mount_path" "$image"
     diskutil info "$mount_path" | sed -n '/File System Personality/p;/Type (Bundle)/p;/Read-Only Volume/p'
     xcrun swift scripts/probe-rename-filesystems.swift "$mount_path" ".build/filesystem-probe-$label.json"
@@ -29,6 +46,7 @@ cases = list(ET.parse(sys.argv[1]).getroot().iter('testcase'))
 assert len(cases) == 6, len(cases)
 assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
 PYTEST
-    hdiutil detach "$mount_path"
+    detach_owned_image
     mount_path=""
+    image=""
 done

@@ -169,7 +169,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
             self.busy = false; self.closeButton.isEnabled = true
             self.progress.maxValue = 1; self.progress.doubleValue = result.completed || result.restored ? 1 : 0
             if result.files.isEmpty && !result.completed {
-                self.outcome.stringValue = "실행 전 중단 · 파일 변경 0개\n" + result.message
+                self.outcome.stringValue = (result.journalURL == nil ? "실행 전 중단 · 이번 시도의 파일 변경 0개\n" : "복구 전 확인 중단 · 파일 위치 확인 필요\n") + result.message
             } else {
                 let renamed = result.files.filter { $0.state == .renamed }.count
                 let original = result.files.filter { $0.state == .original }.count
