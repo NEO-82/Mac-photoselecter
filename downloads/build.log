@@ -8,116 +8,257 @@ Building for debugging...
 [5/11] Write swift-version--79AA4F9932D1E87A.txt
 [7/18] Emitting module PhotoSelect
 [8/18] Compiling PhotoSelect App.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:59: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                           |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                           `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
-
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:93: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                                                             |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                                                             `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
 [9/18] Compiling PhotoSelect BatchRename.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:59: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                           |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                           `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
-
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:93: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                                                             |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                                                             `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
 [10/18] Compiling PhotoSelect BatchRenameWindow.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:59: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                           |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                           `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
-
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:93: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                                                             |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                                                             `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
 [11/18] Compiling PhotoSelect Browser.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:59: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                           |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                           `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
-
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:93: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                                                             |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                                                             `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
 [12/18] Compiling PhotoSelect EmbeddedPreview.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:59: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                           |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                           `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
-
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:93: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                                                             |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                                                             `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
 [13/18] Compiling PhotoSelect FolderTree.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:59: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                           |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                           `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
-
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:84:93: error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-  82 |             .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
-  83 |             .map(\.indexPath)).intersection(photoPaths)
-  84 |         let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
-     |                                                                                             |- error: cannot convert value of type 'Set<IndexPath?>' to expected argument type 'Set<IndexPath>'
-     |                                                                                             `- note: arguments to generic parameter 'Element' ('IndexPath?' and 'IndexPath') are expected to be equal
-  85 |         if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
-  86 |         setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
 [14/23] Compiling PhotoSelect ImagePipeline.swift
 [15/23] Compiling PhotoSelect PhotoActions.swift
 [16/23] Compiling PhotoSelect PhotoModel.swift
 [17/23] Compiling PhotoSelect PhotoSorting.swift
 [18/23] Compiling PhotoSelect Viewer.swift
-error: fatalError
+[18/23] Write Objects.LinkFileList
+[19/23] Linking PhotoSelect
+[20/23] Applying PhotoSelect
+[22/29] Compiling PhotoSelectTests BatchRenameTests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:201:110: warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 199 |         XCTAssertEqual(browser.selectedPhotoIDs.count, 3004)
+ 200 |         if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+ 201 |             let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": times.last ?? 0, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true]
+     |                                                                                                              `- warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 202 |             let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("selection-performance.json")
+ 203 |             try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted).write(to: output)
+[23/29] Compiling PhotoSelectTests BrowserUITests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:201:110: warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 199 |         XCTAssertEqual(browser.selectedPhotoIDs.count, 3004)
+ 200 |         if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+ 201 |             let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": times.last ?? 0, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true]
+     |                                                                                                              `- warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 202 |             let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("selection-performance.json")
+ 203 |             try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted).write(to: output)
+[24/29] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:201:110: warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 199 |         XCTAssertEqual(browser.selectedPhotoIDs.count, 3004)
+ 200 |         if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+ 201 |             let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": times.last ?? 0, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true]
+     |                                                                                                              `- warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 202 |             let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("selection-performance.json")
+ 203 |             try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted).write(to: output)
+[25/29] Compiling PhotoSelectTests FolderTreeTests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:201:110: warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 199 |         XCTAssertEqual(browser.selectedPhotoIDs.count, 3004)
+ 200 |         if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+ 201 |             let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": times.last ?? 0, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true]
+     |                                                                                                              `- warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 202 |             let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("selection-performance.json")
+ 203 |             try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted).write(to: output)
+[26/29] Compiling PhotoSelectTests ImagePipelineTests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:201:110: warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 199 |         XCTAssertEqual(browser.selectedPhotoIDs.count, 3004)
+ 200 |         if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+ 201 |             let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": times.last ?? 0, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true]
+     |                                                                                                              `- warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+ 202 |             let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("selection-performance.json")
+ 203 |             try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted).write(to: output)
+[27/29] Emitting module PhotoSelectTests
+[28/34] Compiling PhotoSelectTests PhotoActionsTests.swift
+[29/34] Compiling PhotoSelectTests PhotoSelectTests.swift
+[30/34] Compiling PhotoSelectTests PhotoSortingTests.swift
+[31/34] Compiling PhotoSelectTests ViewerInteractionTests.swift
+[32/34] Compiling PhotoSelectTests WindowLayoutTests.swift
+[33/36] Emitting module PhotoSelectPackageTests
+[34/36] Compiling PhotoSelectPackageTests runner.swift
+[34/36] Write Objects.LinkFileList
+[35/36] Linking PhotoSelectPackageTests
+Build complete! (77.00s)
+[1/129] Testing PhotoSelectTests.BatchRenameTests/testAppleDoubleMetadataIsNotTreatedAsARWPhoto
+[2/129] Testing PhotoSelectTests.BatchRenameTests/testChangedVolumeRefusesBeforeAnyRename
+[3/129] Testing PhotoSelectTests.BatchRenameTests/testCommittedRecoveryReplaysTagsIdempotentlyAcrossNameSwap
+[4/129] Testing PhotoSelectTests.BatchRenameTests/testCommitUpdatesOnlyTargetsAndTagsWithoutChangingPhotoBytes
+[5/129] Testing PhotoSelectTests.BatchRenameTests/testConflictPermissionErrorAndChangedFolderNeverOverwrite
+[6/129] Testing PhotoSelectTests.BatchRenameTests/testCycleUsesTemporaryNamesAndTagMappingIsSimultaneous
+[7/129] Testing PhotoSelectTests.BatchRenameTests/testExclusiveMoveAndTraversalValidationProtectForeignFiles
+[8/129] Testing PhotoSelectTests.BatchRenameTests/testForeignFileCreatedDuringFailureIsNeverOverwrittenOnRollback
+[9/129] Testing PhotoSelectTests.BatchRenameTests/testHardLinkAliasesAndCorruptTagStoreRefuseBeforeFileChanges
+[10/129] Testing PhotoSelectTests.BatchRenameTests/testInterruptedDriveOperationKeepsJournalAndCanRecoverLater
+[11/129] Testing PhotoSelectTests.BatchRenameTests/testMiddleCommitFailureRollsBackOriginalNamesAndTags
+[12/129] Testing PhotoSelectTests.BatchRenameTests/testSelectedOnlyConflictWithUnselectedCaseAndUnicodeNames
+[13/129] Testing PhotoSelectTests.BatchRenameTests/testSelectedOnlyOneAndMixedFilesLeaveUnselectedPhotosUnchanged
+[14/129] Testing PhotoSelectTests.BatchRenameTests/testSelectedPreviewRejectsReplacedAndModifiedFilesBeforeAnyMove
+[15/129] Testing PhotoSelectTests.BatchRenameTests/testSelectedRenameDetectsExternalChangeBetweenStagingMoves
+[16/129] Testing PhotoSelectTests.BatchRenameTests/testSelectedRenameRollbackRestoresTargetsTagsAndNeverTouchesUnselected
+[17/129] Testing PhotoSelectTests.BatchRenameTests/testTagWriteFailureRestoresFilesAndRetainsJournalUntilTagsAreWritable
+[18/129] Testing PhotoSelectTests.BatchRenameTests/testThreeThousandActualRenamesWithOneThousandTagsPreserveEveryFile
+[19/129] Testing PhotoSelectTests.BatchRenameTests/testThreeThousandPreviewUsesSortedOrderIndependentExtensionsAndContinuousNumbers
+[20/129] Testing PhotoSelectTests.BrowserUITests/testAboutMenuShowsSeoaCreditsInRoseOnNativePanel
+[21/129] Testing PhotoSelectTests.BrowserUITests/testBatchRenamePreviewWhileTaggedFilterIncludesEveryPhotoAndKeepsTags
+[22/129] Testing PhotoSelectTests.BrowserUITests/testBrowserStartsWithTreeGridAndPreviewColumns
+[23/129] Testing PhotoSelectTests.BrowserUITests/testBulkTrashConfirmationCancelPartialFailureAndSelectionRetention
+[24/129] Testing PhotoSelectTests.BrowserUITests/testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized
+[25/129] Testing PhotoSelectTests.BrowserUITests/testDeviceChangeInvalidatesRenamePreviewAndAllowsReopening
+[26/129] Testing PhotoSelectTests.BrowserUITests/testDeviceChangeNotificationRetainsErrorWhenReopeningViewer
+[27/129] Testing PhotoSelectTests.BrowserUITests/testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch
+[28/129] Testing PhotoSelectTests.BrowserUITests/testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns
+[29/129] Testing PhotoSelectTests.BrowserUITests/testFinderOpenRealSonyPreview
+[30/129] Testing PhotoSelectTests.BrowserUITests/testFinderOpenSelectsARWLoadsParentAndReusesWindow
+[31/129] Testing PhotoSelectTests.BrowserUITests/testFinderRapidFolderOpenKeepsLatestSelection
+[32/129] Testing PhotoSelectTests.BrowserUITests/testInitialBrowserFrameFitsActualAvailableScreen
+[33/129] Testing PhotoSelectTests.BrowserUITests/testLargeFolders2000And3000UseLazyThumbnailsAndBoundedDisplayWork
+[34/129] Testing PhotoSelectTests.BrowserUITests/testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded
+[35/129] Testing PhotoSelectTests.BrowserUITests/testMixedBrowserFolderNavigationFilePreviewAndCreditLayout
+[36/129] Testing PhotoSelectTests.BrowserUITests/testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort
+[37/129] Testing PhotoSelectTests.BrowserUITests/testMultiSelectionThreeThousandMarqueeOffscreenAndAutoScrollPerformance
+[38/129] Testing PhotoSelectTests.BrowserUITests/testNativeMenuCommandsNavigateAndTagCurrentPhoto
+[39/129] Testing PhotoSelectTests.BrowserUITests/testNavigationKeepsLastFrameRejectsStaleCompletionAndSurvivesFailure
+[40/129] Testing PhotoSelectTests.BrowserUITests/testPresentingVisibleViewerKeepsManualWindowSize
+[41/129] Testing PhotoSelectTests.BrowserUITests/testPreviewFilenameIsBelowImage
+[42/129] Testing PhotoSelectTests.BrowserUITests/testRealA7M4NavigationBenchmark
+[43/129] Testing PhotoSelectTests.BrowserUITests/testRealA7M4PreviewStaysIdenticalDuringHeldZoomAndCachedNavigation
+[44/129] Testing PhotoSelectTests.BrowserUITests/testSelectedRenameScopeTagFilterMixedFilesAndIdentityPreservation
+[45/129] Testing PhotoSelectTests.BrowserUITests/testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList
+[46/129] Testing PhotoSelectTests.BrowserUITests/testSelectingThumbnailChangesRightPreview
+[47/129] Testing PhotoSelectTests.BrowserUITests/testSoftRomanticPaletteRendersInDarkAndLightAppearances
+[48/129] Testing PhotoSelectTests.BrowserUITests/testSortButtonsKeepSelectionAndViewerOrderWithoutTouchingTags
+[49/129] Testing PhotoSelectTests.BrowserUITests/testStandardMenusDisablePhotoActionsUntilFolderHasPhotos
+[50/129] Testing PhotoSelectTests.BrowserUITests/testTagBadgeReturnsAfterClosingAndRecreatingBrowser
+[51/129] Testing PhotoSelectTests.BrowserUITests/testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths
+[52/129] Testing PhotoSelectTests.BrowserUITests/testTaggedFilterViewerNavigationUntagTrashAndPersistence
+[53/129] Testing PhotoSelectTests.BrowserUITests/testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge
+[54/129] Testing PhotoSelectTests.BrowserUITests/testViewerDoubleClickReturnsToSamePhotoAndFolder
+[55/129] Testing PhotoSelectTests.BrowserUITests/testViewerHeldZoomDeleteIsSingleEvenWithBrowserMultiSelection
+[56/129] Testing PhotoSelectTests.BrowserUITests/testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll
+[57/129] Testing PhotoSelectTests.BrowserUITests/testViewerStartsAsMaximizedWindowInsideVisibleScreen
+[58/129] Testing PhotoSelectTests.EmbeddedPreviewTests/testAdobeRGBHintUsesOuterExifInteropWhenJPEGHasNoExif
+[59/129] Testing PhotoSelectTests.EmbeddedPreviewTests/testCFASensorStripIsNotScannedOrSelectedOverCameraPreview
+[60/129] Testing PhotoSelectTests.EmbeddedPreviewTests/testCyclicIFDAndOversizedOffsetsAreBounded
+[61/129] Testing PhotoSelectTests.EmbeddedPreviewTests/testEightBitYCbCrJPEGStripRemainsAProcessedPreview
+[62/129] Testing PhotoSelectTests.EmbeddedPreviewTests/testLargestLinkedPreviewWinsOverThumbnailAndPrimaryPreview
+[63/129] Testing PhotoSelectTests.EmbeddedPreviewTests/testLosslessBayerAndNonEightBitFramesCannotBecomePreview
+[64/129] Testing PhotoSelectTests.EmbeddedPreviewTests/testSonyMakerNoteHeaderAnd32BytePreviewPrefix
+[65/129] Testing PhotoSelectTests.EmbeddedPreviewTests/testTinyOnlyOrTruncatedJPEGIsNeverUsedAsLargePreview
+[66/129] Testing PhotoSelectTests.EmbeddedPreviewTests/testUnknownLayoutRecoveryFindsLargestCompleteProgressiveJPEG
+[67/129] Testing PhotoSelectTests.FolderTreeTests/testDeniedFolderCanBeExpandedAgainAfterAccessChanges
+[68/129] Testing PhotoSelectTests.FolderTreeTests/testDesktopShortcutUsesSystemDesktopLocation
+[69/129] Testing PhotoSelectTests.FolderTreeTests/testGeneralEntriesStaySeparateFromPhotoDecodeList
+[70/129] Testing PhotoSelectTests.FolderTreeTests/testHiddenRefreshPreservesExpandedPathAndSelectedFolder
+[71/129] Testing PhotoSelectTests.FolderTreeTests/testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter
+[72/129] Testing PhotoSelectTests.FolderTreeTests/testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter
+[73/129] Testing PhotoSelectTests.FolderTreeTests/testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache
+[74/129] Testing PhotoSelectTests.FolderTreeTests/testSelectingCachedFolderRevealsCollapsedAncestors
+[75/129] Testing PhotoSelectTests.FolderTreeTests/testUserSelectionDuringRefreshOverridesPendingRestoration
+[76/129] Testing PhotoSelectTests.ImagePipelineTests/testAllEightJPEGOrientationsMatchImageIOReferenceGeometry
+[77/129] Testing PhotoSelectTests.ImagePipelineTests/testARWUsesSameNativeJPEGForDisplayZoomAndThumbnailColor
+[78/129] Testing PhotoSelectTests.ImagePipelineTests/testCancelledQueuedThumbnailDoesNotDecodeBehindVisibleRequests
+[79/129] Testing PhotoSelectTests.ImagePipelineTests/testClearRejectsFinishedOldWorkAndDoesNotRepopulateCache
+[80/129] Testing PhotoSelectTests.ImagePipelineTests/testEmbeddedICCOverridesContradictoryOuterColorHint
+[81/129] Testing PhotoSelectTests.ImagePipelineTests/testJPEGDisplayAndZoomNeverReplaceWithAnotherResolution
+[82/129] Testing PhotoSelectTests.ImagePipelineTests/testMemoryPressureKeepsSelectedBitmapAndActiveForegroundCompletion
+[83/129] Testing PhotoSelectTests.ImagePipelineTests/testOuterAdobeRGBHintIsAppliedBeforeConsistentSRGBConversion
+[84/129] Testing PhotoSelectTests.ImagePipelineTests/testPinnedCurrentAndNeighborsUseBoundedLRUWithoutDiscardingSelectedBitmap
+[85/129] Testing PhotoSelectTests.ImagePipelineTests/testPrefetchForegroundAndFullRequestsCoalesceWithIndependentCancellation
+[86/129] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M3PortraitAdobeRGBPreviewIsStableAndHonest
+[87/129] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M4FullSizeCameraJPEGIsStableAndColorManaged
+[88/129] Testing PhotoSelectTests.ImagePipelineTests/testSimultaneousCacheKeySwapKeepsDecodedPixelsAndPressureBudgetIsPersistent
+[89/129] Testing PhotoSelectTests.PhotoActionsTests/testCorruptTagMetadataIsPreserved
+[90/129] Testing PhotoSelectTests.PhotoActionsTests/testDeletingAnotherPhotoPreservesSelectionAndIndependentPair
+[91/129] Testing PhotoSelectTests.PhotoActionsTests/testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor
+[92/129] Testing PhotoSelectTests.PhotoActionsTests/testImmediateFinishPersistsTagsAndUntaggingAcrossSessions
+[93/129] Testing PhotoSelectTests.PhotoActionsTests/testJSBrandingReadsUnchangedV053TagDocument
+[94/129] Testing PhotoSelectTests.PhotoActionsTests/testNativeMacOSTrashReturnsRecoverableFixture
+[95/129] Testing PhotoSelectTests.PhotoActionsTests/testRapidTagTogglesSerializeAndEndUntagged
+[96/129] Testing PhotoSelectTests.PhotoActionsTests/testTagSurvivesReloadAndDoesNotChangeRawOrJpeg
+[97/129] Testing PhotoSelectTests.PhotoActionsTests/testTagWriteFailureIsReported
+[98/129] Testing PhotoSelectTests.PhotoActionsTests/testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting
+[99/129] Testing PhotoSelectTests.PhotoActionsTests/testTrashFailureKeepsSourceAndHasNoDeleteFallback
+[100/129] Testing PhotoSelectTests.PhotoActionsTests/testTrashMovesOnlyRequestedFileAndKeepsPair
+[101/129] Testing PhotoSelectTests.PhotoActionsTests/testTrashReceiptCapturesDestinationAndExternalSpaceGuidance
+[102/129] Testing PhotoSelectTests.PhotoSelectTests/testCorruptImageReturnsFailure
+[103/129] Testing PhotoSelectTests.PhotoSelectTests/testExtensionsAndRawJpegPair
+[104/129] Testing PhotoSelectTests.PhotoSelectTests/testFolderEnumerationIsNonRecursiveAndKeepsPairs
+[105/129] Testing PhotoSelectTests.PhotoSelectTests/testRetinaOneSourcePixelPerPhysicalPixel
+[106/129] Testing PhotoSelectTests.PhotoSelectTests/testZoomEdgesNeverRevealEmptySpaceForLargeImage
+[107/129] Testing PhotoSelectTests.PhotoSortingTests/testEXIFOriginalDateHasPriorityAndMissingDateHasNoFilesystemFallback
+[108/129] Testing PhotoSelectTests.PhotoSortingTests/testMetadataCacheSurvivesRenameAndInvalidatesChangedBytes
+[109/129] Testing PhotoSelectTests.PhotoSortingTests/testNaturalNameDirectionsAndSwitchResetsAscending
+[110/129] Testing PhotoSelectTests.PhotoSortingTests/testRealSonyARWCaptureMetadata
+[111/129] Testing PhotoSelectTests.PhotoSortingTests/testThreeThousandPhotoDateSizeTiesUnknownDatesAndNonPhotos
+[112/129] Testing PhotoSelectTests.ViewerInteractionTests/testDeactivationCancelsPendingZoom
+[113/129] Testing PhotoSelectTests.ViewerInteractionTests/testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat
+[114/129] Testing PhotoSelectTests.ViewerInteractionTests/testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer
+[115/129] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeCancelsPendingZoomBeforeClosing
+[116/129] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeStillResetsZoomAndCloses
+[117/129] Testing PhotoSelectTests.ViewerInteractionTests/testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements
+[118/129] Testing PhotoSelectTests.ViewerInteractionTests/testLimitedRawFitDoesNotUpscaleAndJpegFitKeepsExistingBehavior
+[119/129] Testing PhotoSelectTests.ViewerInteractionTests/testPressAndReleaseStillSwitchBetweenZoomAndFit
+[120/129] Testing PhotoSelectTests.ViewerInteractionTests/testQuickDoubleClickClosesWithoutEverStartingZoom
+[121/129] Testing PhotoSelectTests.ViewerInteractionTests/testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit
+[122/129] Testing PhotoSelectTests.ViewerInteractionTests/testShortClickReleaseDoesNotCauseDelayedZoom
+[123/129] Testing PhotoSelectTests.ViewerInteractionTests/testZoomUsesActualDecodedPixelsEvenWhenRawMetadataIsLarger
+[124/129] Testing PhotoSelectTests.WindowLayoutTests/testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas
+[125/129] Testing PhotoSelectTests.WindowLayoutTests/testMinimumSizesNeverForceWindowOutsideSmallDisplay
+[126/129] Testing PhotoSelectTests.WindowLayoutTests/testMovedOrDisconnectedDisplayFrameFitsNewScreen
+[127/129] Testing PhotoSelectTests.WindowLayoutTests/testPhotoGridGetsMostWidthAndPreviewHasBoundedSize
+[128/129] Testing PhotoSelectTests.WindowLayoutTests/testUserSidebarWidthCanGrowAndSurvivesResize
+[129/129] Testing PhotoSelectTests.WindowLayoutTests/testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt
+Test Suite 'Selected tests' started at 2026-11-14 13:23:21.546.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-14 13:23:21.548.
+Test Suite 'BrowserUITests' started at 2026-11-14 13:23:21.548.
+Test Case '-[PhotoSelectTests.BrowserUITests testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:23: error: -[PhotoSelectTests.BrowserUITests testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort] : Asynchronous wait failed: Exceeded timeout of 6 seconds, with unfulfilled expectations: "plain single selection".
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:145: error: -[PhotoSelectTests.BrowserUITests testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort] : XCTAssertEqual failed: ("[[0, 4]]") is not equal to ("[[0, 3], [0, 2], [0, 1], [0, 4]]")
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:147: error: -[PhotoSelectTests.BrowserUITests testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort] : XCTAssertEqual failed: ("[[0, 4], [0, 2]]") is not equal to ("[[0, 4], [0, 1], [0, 3]]")
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:149: error: -[PhotoSelectTests.BrowserUITests testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort] : XCTAssertEqual failed: ("3") is not equal to ("4")
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:157: error: -[PhotoSelectTests.BrowserUITests testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort] : XCTAssertEqual failed: ("5") is not equal to ("1")
+Test Case '-[PhotoSelectTests.BrowserUITests testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort]' failed (7.118 seconds).
+Test Suite 'BrowserUITests' failed at 2026-11-14 13:23:28.666.
+	 Executed 1 test, with 5 failures (0 unexpected) in 7.118 (7.119) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-14 13:23:28.666.
+	 Executed 1 test, with 5 failures (0 unexpected) in 7.118 (7.119) seconds
+Test Suite 'Selected tests' failed at 2026-11-14 13:23:28.666.
+	 Executed 1 test, with 5 failures (0 unexpected) in 7.118 (7.121) seconds
+
+Test Suite 'Selected tests' started at 2026-11-14 13:23:28.752.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-14 13:23:28.754.
+Test Suite 'BrowserUITests' started at 2026-11-14 13:23:28.754.
+Test Case '-[PhotoSelectTests.BrowserUITests testMultiSelectionThreeThousandMarqueeOffscreenAndAutoScrollPerformance]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:203: error: -[PhotoSelectTests.BrowserUITests testMultiSelectionThreeThousandMarqueeOffscreenAndAutoScrollPerformance] : Invalid type in JSON write (__SwiftValue) (NSInvalidArgumentException)
+Test Case '-[PhotoSelectTests.BrowserUITests testMultiSelectionThreeThousandMarqueeOffscreenAndAutoScrollPerformance]' failed (3.888 seconds).
+Test Suite 'BrowserUITests' failed at 2026-11-14 13:23:32.642.
+	 Executed 1 test, with 1 failure (1 unexpected) in 3.888 (3.888) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-14 13:23:32.642.
+	 Executed 1 test, with 1 failure (1 unexpected) in 3.888 (3.888) seconds
+Test Suite 'Selected tests' failed at 2026-11-14 13:23:32.642.
+	 Executed 1 test, with 1 failure (1 unexpected) in 3.888 (3.890) seconds
+3005-photo marquee p95 ms: 23.889061999966543, max ms: 26.730888000031428
+
+Test Suite 'Selected tests' started at 2026-11-14 13:24:13.666.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-14 13:24:13.668.
+Test Suite 'BrowserUITests' started at 2026-11-14 13:24:13.668.
+Test Case '-[PhotoSelectTests.BrowserUITests testStandardMenusDisablePhotoActionsUntilFolderHasPhotos]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:1505: error: -[PhotoSelectTests.BrowserUITests testStandardMenusDisablePhotoActionsUntilFolderHasPhotos] : XCTAssertEqual failed: ("["J♡S", "파일", "편집", "보기", "사진", "윈도우"]") is not equal to ("["J♡S", "파일", "보기", "사진", "윈도우"]")
+Test Case '-[PhotoSelectTests.BrowserUITests testStandardMenusDisablePhotoActionsUntilFolderHasPhotos]' failed (0.219 seconds).
+Test Suite 'BrowserUITests' failed at 2026-11-14 13:24:13.887.
+	 Executed 1 test, with 1 failure (0 unexpected) in 0.219 (0.219) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-14 13:24:13.887.
+	 Executed 1 test, with 1 failure (0 unexpected) in 0.219 (0.219) seconds
+Test Suite 'Selected tests' failed at 2026-11-14 13:24:13.887.
+	 Executed 1 test, with 1 failure (0 unexpected) in 0.219 (0.222) seconds
+
+Test Suite 'Selected tests' started at 2026-11-14 13:24:16.481.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-14 13:24:16.483.
+Test Suite 'BrowserUITests' started at 2026-11-14 13:24:16.483.
+Test Case '-[PhotoSelectTests.BrowserUITests testTaggedFilterViewerNavigationUntagTrashAndPersistence]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:23: error: -[PhotoSelectTests.BrowserUITests testTaggedFilterViewerNavigationUntagTrashAndPersistence] : Asynchronous wait failed: Exceeded timeout of 6 seconds, with unfulfilled expectations: "new tag joins active filter".
+Test Case '-[PhotoSelectTests.BrowserUITests testTaggedFilterViewerNavigationUntagTrashAndPersistence]' failed (6.971 seconds).
+Test Suite 'BrowserUITests' failed at 2026-11-14 13:24:23.455.
+	 Executed 1 test, with 1 failure (0 unexpected) in 6.971 (6.972) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-14 13:24:23.455.
+	 Executed 1 test, with 1 failure (0 unexpected) in 6.971 (6.972) seconds
+Test Suite 'Selected tests' failed at 2026-11-14 13:24:23.455.
+	 Executed 1 test, with 1 failure (0 unexpected) in 6.971 (6.974) seconds
+
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: x86_64-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.
