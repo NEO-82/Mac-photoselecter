@@ -154,6 +154,42 @@ final class FilesystemRenameTests: XCTestCase {
         XCTAssertFalse(unavailable.completed)
         XCTAssertTrue(unavailable.files.allSatisfy { $0.state == .original })
         XCTAssertTrue(unavailable.message.contains("NSPOSIXErrorDomain \(ENODEV)"))
+
+        let hiddenRoot = try folder(), metadata = try folder(onVolume: false)
+        let tagFile = metadata.appendingPathComponent("tags.json"), durableTags = TagStore(fileURL: tagFile)
+        for name in ["A.ARW", "B.JPG"] { try Data(name.utf8).write(to: hiddenRoot.appendingPathComponent(name)) }
+        tag(hiddenRoot.appendingPathComponent("A.ARW"), durableTags)
+        let tagBytes = try Data(contentsOf: tagFile)
+        let away = hiddenRoot.deletingLastPathComponent().appendingPathComponent(".J-S-unavailable-" + UUID().uuidString)
+        var disconnected = false
+        let disappearing = try engine(move: { source, destination in
+            try BatchRenameEngine.exclusiveMove(source, destination)
+            if !disconnected {
+                disconnected = true
+                try FileManager.default.moveItem(at: hiddenRoot, to: away)
+                throw POSIXError(.ENODEV)
+            }
+        })
+        defer {
+            if FileManager.default.fileExists(atPath: away.path), !FileManager.default.fileExists(atPath: hiddenRoot.path) {
+                try? FileManager.default.moveItem(at: away, to: hiddenRoot)
+            }
+        }
+        let missing = try execute(disappearing, plan(hiddenRoot), durableTags)
+        XCTAssertFalse(missing.completed); XCTAssertFalse(missing.restored)
+        XCTAssertTrue(missing.mapping.isEmpty); XCTAssertNil(missing.taggedPaths)
+        XCTAssertEqual(missing.files.filter { $0.state == .unknown }.count, 2)
+        XCTAssertEqual(try Data(contentsOf: tagFile), tagBytes, "Unknown locations must not rewrite tags with guessed paths")
+        let pending = try XCTUnwrap(missing.journalURL)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: pending.path))
+        try FileManager.default.moveItem(at: away, to: hiddenRoot)
+        let restored = expectation(description: "recover after path becomes available")
+        var recovered: RenameOutcome?
+        let recovery = BatchRenameEngine(journalDirectory: disappearing.journalDirectory)
+        recovery.recover(pending, folder: hiddenRoot, tagStore: durableTags, lease: FolderLease(hiddenRoot), progress: { _, _, _ in }) { recovered = $0; restored.fulfill() }
+        wait(for: [restored], timeout: 30)
+        XCTAssertTrue(try XCTUnwrap(recovered).restored, recovered?.message ?? "")
+        for name in ["A.ARW", "B.JPG"] { XCTAssertEqual(try Data(contentsOf: hiddenRoot.appendingPathComponent(name)), Data(name.utf8)) }
     }
     func testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange() throws {
         let root = try folder(), photo = root.appendingPathComponent("original.ARW")

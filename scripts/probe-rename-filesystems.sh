@@ -21,7 +21,7 @@ for fs in APFS HFS+ ExFAT; do
     xcrun swift scripts/probe-rename-filesystems.swift "$mount_path" ".build/filesystem-probe-$label.json"
     PHOTOSELECT_RENAME_TEST_VOLUME="$mount_path" PHOTOSELECT_RENAME_TEST_IMAGE="$image" \
         PHOTOSELECT_RENAME_TEST_REPORT="$PWD/.build/filesystem-integration-$label.json" \
-        xcrun swift test --jobs 2 --filter FilesystemRenameTests \
+        xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FilesystemRenameTests \
         --xunit-output ".build/filesystem-$label-results.xml"
     python3 - ".build/filesystem-$label-results.xml" <<'PYTEST'
 import sys, xml.etree.ElementTree as ET
