@@ -283,4 +283,69 @@ final class BatchRenameTests: XCTestCase {
         XCTAssertFalse(result.completed); XCTAssertEqual(try Data(contentsOf: file), Data([4]))
     }
 
+    func testSelectedOnlyOneAndMixedFilesLeaveUnselectedPhotosUnchanged() throws {
+        for count in [1, 3] {
+            let root = try folder(), journals = try folder(), metadata = try folder()
+            let names = ["DSC0012.ARW", "DSC0035.ARW", "DSC0090.JPG", "unselected.ARW", "unselected.JPG"]
+            for (index, name) in names.enumerated() { try Data([UInt8(index), 42]).write(to: root.appendingPathComponent(name)) }
+            let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json")); tag(root.appendingPathComponent(names[0]), store: store)
+            let targets = try entries(root).filter { names.prefix(count).contains($0.url.lastPathComponent) }
+            let plan = try RenamePlan.make(folder: root, photos: targets, orderTitle: "파일 이름순 ↑", settings: RenameSettings(base: "Wedding", separator: "_", start: 1, digits: 3), existingNames: Set(names), selectedOnly: true)
+            let result = try execute(BatchRenameEngine(journalDirectory: journals), plan, store)
+            XCTAssertTrue(result.completed, result.message)
+            for index in 0..<count {
+                let ext = root.appendingPathComponent(names[index]).pathExtension
+                XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(String(format: "Wedding_%03d.", index + 1) + ext)), Data([UInt8(index), 42]))
+            }
+            for index in count..<names.count { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(names[index])), Data([UInt8(index), 42])) }
+            XCTAssertEqual(result.taggedPaths, [TagStore.key(root.appendingPathComponent("Wedding_001.ARW"))])
+        }
+    }
+
+    func testSelectedOnlyConflictWithUnselectedCaseAndUnicodeNames() throws {
+        let root = try folder()
+        try Data([1]).write(to: root.appendingPathComponent("old.ARW"))
+        try Data([2]).write(to: root.appendingPathComponent("WÉDDING_001.arw"))
+        let photos = try entries(root).filter { $0.url.lastPathComponent == "old.ARW" }
+        let plan = try RenamePlan.make(folder: root, photos: photos, orderTitle: "", settings: RenameSettings(base: "We\u{301}dding", separator: "_", start: 1, digits: 3), existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), selectedOnly: true)
+        XCTAssertFalse(plan.valid)
+        XCTAssertTrue(plan.rows[0].issue?.contains("충돌") == true)
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("old.ARW")), Data([1]))
+    }
+
+    func testSelectedPreviewRejectsReplacedAndModifiedFilesBeforeAnyMove() throws {
+        for replace in [false, true] {
+            let root = try folder(), journals = try folder(), metadata = try folder()
+            let original = root.appendingPathComponent("source.JPG")
+            try Data([1]).write(to: original)
+            let plan = try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(), existingNames: ["source.JPG"], selectedOnly: true)
+            if replace { try FileManager.default.removeItem(at: original) }
+            try Data([2, 3, 4]).write(to: original)
+            var moved = false
+            let engine = BatchRenameEngine(journalDirectory: journals, move: { _, _ in moved = true })
+            let result = try execute(engine, plan, TagStore(fileURL: metadata.appendingPathComponent("tags.json")))
+            XCTAssertFalse(result.completed); XCTAssertFalse(moved)
+            XCTAssertEqual(try Data(contentsOf: original), Data([2, 3, 4]))
+            XCTAssertTrue(result.message.contains("변경"))
+        }
+    }
+
+    func testSelectedRenameRollbackRestoresTargetsTagsAndNeverTouchesUnselected() throws {
+        let root = try folder(), journals = try folder(), metadata = try folder()
+        for (index, name) in ["a.ARW", "b.JPG", "unselected.ARW"].enumerated() { try Data([UInt8(index)]).write(to: root.appendingPathComponent(name)) }
+        let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json")); tag(root.appendingPathComponent("a.ARW"), store: store)
+        let selected = try entries(root).filter { $0.url.lastPathComponent != "unselected.ARW" }
+        let plan = try RenamePlan.make(folder: root, photos: selected, orderTitle: "", settings: RenameSettings(), existingNames: ["a.ARW", "b.JPG", "unselected.ARW"], selectedOnly: true)
+        var injected = false
+        let engine = BatchRenameEngine(journalDirectory: journals, move: { source, destination in
+            if !injected && destination.lastPathComponent == "Photo_0002.JPG" { injected = true; throw CocoaError(.fileWriteNoPermission) }
+            try BatchRenameEngine.exclusiveMove(source, destination)
+        })
+        let result = try execute(engine, plan, store)
+        XCTAssertFalse(result.completed); XCTAssertTrue(result.restored, result.message)
+        for (index, name) in ["a.ARW", "b.JPG", "unselected.ARW"].enumerated() { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), Data([UInt8(index)])) }
+        XCTAssertEqual(result.taggedPaths, [TagStore.key(root.appendingPathComponent("a.ARW"))])
+        XCTAssertTrue(try engine.pending(in: root).isEmpty)
+    }
+
 }

@@ -111,6 +111,224 @@ final class BrowserUITests: XCTestCase {
     }
 
     @MainActor
+    private func nativeGridClick(_ grid: PhotoCollectionView, item: Int, flags: NSEvent.ModifierFlags = []) throws {
+        let window = try XCTUnwrap(grid.window)
+        let path = IndexPath(item: item, section: 0)
+        grid.scrollToItems(at: [path], scrollPosition: .centeredVertically)
+        grid.layoutSubtreeIfNeeded()
+        let frame = try XCTUnwrap(grid.collectionViewLayout?.layoutAttributesForItem(at: path)?.frame)
+        let point = grid.convert(NSPoint(x: frame.midX, y: frame.midY), to: nil)
+        let time = ProcessInfo.processInfo.systemUptime
+        let up = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseUp, location: point, modifierFlags: flags,
+            timestamp: time + 0.01, windowNumber: window.windowNumber, context: nil, eventNumber: 1, clickCount: 1, pressure: 0))
+        NSApp.postEvent(up, atStart: true)
+        let down = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDown, location: point, modifierFlags: flags,
+            timestamp: time, windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
+        grid.mouseDown(with: down)
+    }
+
+    @MainActor
+    func testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort() throws {
+        _ = NSApplication.shared
+        let root = try folder(), data = jpegData()
+        for index in 0..<8 { try data.write(to: root.appendingPathComponent("\(index).jpg")) }
+        try Data("document".utf8).write(to: root.appendingPathComponent("notes.txt"))
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: root)
+        defer { browser.close() }; browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("multi-selection folder ready") { grid.numberOfItems(inSection: 0) == 9 && !browser.sorting && preview.imageView.image != nil }
+        try nativeGridClick(grid, item: 1)
+        waitUntil("plain single selection") { browser.selectedPhotoIDs.count == 1 }
+        try nativeGridClick(grid, item: 4, flags: .shift)
+        XCTAssertEqual(grid.selectionIndexPaths, Set((1...4).map { IndexPath(item: $0, section: 0) }))
+        try nativeGridClick(grid, item: 2, flags: .command)
+        XCTAssertEqual(grid.selectionIndexPaths, Set([1, 3, 4].map { IndexPath(item: $0, section: 0) }))
+        try nativeGridClick(grid, item: 6, flags: .command)
+        XCTAssertEqual(browser.selectedPhotoIDs.count, 4)
+        let selected = browser.selectedPhotoIDs
+        let size = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoSort-size" })
+        size.performClick(nil)
+        waitUntil("sort preserves file selection") { !browser.sorting && browser.selectedPhotoIDs == selected }
+        try nativeGridClick(grid, item: 3)
+        XCTAssertEqual(browser.selectedPhotoIDs.count, 1)
+        let commandA = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: .command,
+            timestamp: 0, windowNumber: browser.window!.windowNumber, context: nil, characters: "a", charactersIgnoringModifiers: "a", isARepeat: false, keyCode: 0))
+        grid.keyDown(with: commandA)
+        XCTAssertEqual(browser.selectedPhotoIDs.count, 8)
+        let escape = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [],
+            timestamp: 0, windowNumber: browser.window!.windowNumber, context: nil, characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}", isARepeat: false, keyCode: 53))
+        grid.keyDown(with: escape)
+        XCTAssertTrue(browser.selectedPhotoIDs.isEmpty); XCTAssertTrue(grid.selectionIndexPaths.isEmpty)
+        XCTAssertNotNil(preview.imageView.image, "Clearing browser selection must retain the current preview")
+    }
+
+    @MainActor
+    func testMultiSelectionThreeThousandMarqueeOffscreenAndAutoScrollPerformance() throws {
+        _ = NSApplication.shared
+        let root = try folder(), data = jpegData()
+        for index in 0..<3005 { try data.write(to: root.appendingPathComponent(String(format: "%04d.jpg", index))) }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), initialFolder: root)
+        defer { browser.close() }; browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("3005 photo layout", timeout: 30) { grid.numberOfItems(inSection: 0) == 3005 && !browser.sorting && preview.imageView.image != nil }
+        grid.layoutSubtreeIfNeeded()
+        let last = try XCTUnwrap(grid.collectionViewLayout?.layoutAttributesForItem(at: IndexPath(item: 3004, section: 0)))
+        let navigation = browser.navigationSamples.count
+        for step in 1...60 {
+            grid.updateMarquee(from: .zero, to: NSPoint(x: grid.bounds.maxX, y: last.frame.maxY * CGFloat(step) / 60 + 1), original: [], additive: false, toggle: false)
+        }
+        XCTAssertEqual(browser.selectedPhotoIDs.count, 3005)
+        XCTAssertEqual(grid.selectionIndexPaths.count, 3005)
+        XCTAssertEqual(browser.navigationSamples.count, navigation, "Dragging must not decode/change the main preview")
+        let times = grid.marqueeFrameTimes.sorted(), p95 = times[min(times.count - 1, Int(Double(times.count) * 0.95))]
+        print("3005-photo marquee p95 ms: \(p95), max ms: \(times.last ?? 0)")
+        XCTAssertLessThan(p95, 100, "Main-thread selection geometry must remain bounded, even in Debug CI")
+        let scroll = try XCTUnwrap(grid.enclosingScrollView)
+        let before = scroll.contentView.bounds.origin.y
+        for _ in 0..<20 { _ = grid.scrollMarquee(toward: NSPoint(x: 50, y: grid.visibleRect.maxY + 10)) }
+        XCTAssertGreaterThan(scroll.contentView.bounds.origin.y, before)
+        XCTAssertEqual(browser.selectedPhotoIDs.count, 3005, "Autoscroll cannot drop offscreen selections")
+        let first = try XCTUnwrap(grid.collectionViewLayout?.layoutAttributesForItem(at: IndexPath(item: 0, section: 0)))
+        grid.updateMarquee(from: first.frame.origin, to: NSPoint(x: first.frame.maxX, y: first.frame.maxY), original: grid.photoPaths, additive: false, toggle: true)
+        XCTAssertEqual(browser.selectedPhotoIDs.count, 3004)
+        if let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] {
+            let result: [String: Any] = ["photoCount": 3005, "marqueeP95Ms": p95, "marqueeMaxMs": times.last ?? 0, "previewRequestsDuringDrag": browser.navigationSamples.count - navigation, "offscreenSelected": true, "autoScroll": true]
+            let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("selection-performance.json")
+            try JSONSerialization.data(withJSONObject: result, options: .prettyPrinted).write(to: output)
+        }
+    }
+
+    @MainActor
+    func testSelectedRenameScopeTagFilterMixedFilesAndIdentityPreservation() throws {
+        _ = NSApplication.shared
+        let root = try folder(), metadata = try folder(), data = jpegData()
+        let names = ["01.ARW", "02.JPG", "03.ARW", "04.JPG"]
+        for name in names { try data.write(to: root.appendingPathComponent(name)) }
+        let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json"))
+        for name in ["01.ARW", "04.JPG"] {
+            let done = expectation(description: "seed selected tag")
+            store.toggle(root.appendingPathComponent(name)) { result in XCTAssertEqual(try? result.get(), true); done.fulfill() }
+            wait(for: [done], timeout: 5)
+        }
+        let browser = BrowserController(tagStore: store, initialFolder: root)
+        defer { browser.close() }; browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        waitUntil("rename folder ready") { grid.numberOfItems(inSection: 0) == 4 && !browser.sorting }
+        let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "PhotoBrowserTagFilter" })
+        filter.performClick(nil)
+        waitUntil("tagged photo projection") { grid.numberOfItems(inSection: 0) == 2 }
+        grid.selectAll(nil)
+        XCTAssertEqual(browser.selectedPhotoIDs.count, 2)
+        let identities = browser.selectedPhotoIDs
+        browser.openBatchRename()
+        waitUntil("selected rename sheet") { browser.window?.attachedSheet != nil }
+        let sheet = try XCTUnwrap(browser.window?.attachedSheet)
+        let controller = try XCTUnwrap(sheet.windowController as? BatchRenameWindow)
+        let controls = descendants(try XCTUnwrap(sheet.contentView))
+        let selected = try XCTUnwrap(controls.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "RenameSelectedScope" })
+        let all = try XCTUnwrap(controls.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "RenameAllScope" })
+        XCTAssertEqual(selected.state, .on)
+        waitUntil("only selected preview") { controller.plan?.rows.count == 2 }
+        all.performClick(nil)
+        waitUntil("all-folder scope ignores tag filter") { controller.plan?.rows.count == 4 }
+        selected.performClick(nil)
+        waitUntil("switch back to selected") { controller.plan?.rows.count == 2 }
+        let prefix = try XCTUnwrap(controls.compactMap { $0 as? NSTextField }.first { $0.identifier?.rawValue == "RenameBase" })
+        prefix.stringValue = "Wedding"; controller.controlTextDidChange(Notification(name: NSControl.textDidChangeNotification, object: prefix))
+        let digits = try XCTUnwrap(controls.compactMap { $0 as? NSPopUpButton }.first { $0.identifier?.rawValue == "RenameDigits" })
+        digits.selectItem(withTitle: "3"); NSApp.sendAction(try XCTUnwrap(digits.action), to: digits.target, from: digits)
+        let run = try XCTUnwrap(controls.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "RenameExecute" })
+        waitUntil("selected preview updated") { controller.plan?.rows.first?.proposed == "Wedding_001.ARW" && run.isEnabled }
+        XCTAssertTrue(run.title.contains("2")); run.performClick(nil)
+        waitUntil("selected rename completed", timeout: 15) { !controller.busy && FileManager.default.fileExists(atPath: root.appendingPathComponent("Wedding_002.JPG").path) && !browser.sorting }
+        for name in ["Wedding_001.ARW", "Wedding_002.JPG", "02.JPG", "03.ARW"] { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), data) }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("01.ARW").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("04.JPG").path))
+        XCTAssertEqual(browser.selectedPhotoIDs, identities)
+        let loaded = expectation(description: "selected rename tags preserved")
+        store.load { result in
+            XCTAssertEqual(try? result.get(), Set(["Wedding_001.ARW", "Wedding_002.JPG"].map { TagStore.key(root.appendingPathComponent($0)) })); loaded.fulfill()
+        }
+        wait(for: [loaded], timeout: 5)
+        sheet.performClose(nil)
+    }
+
+    @MainActor
+    func testBulkTrashConfirmationCancelPartialFailureAndSelectionRetention() throws {
+        _ = NSApplication.shared
+        let root = try folder(), trash = try folder(), data = jpegData()
+        for name in ["1.jpg", "2.jpg", "3.jpg"] { try data.write(to: root.appendingPathComponent(name)) }
+        let service = PhotoTrash { url in
+            if url.lastPathComponent == "2.jpg" { throw CocoaError(.fileWriteNoPermission) }
+            try FileManager.default.moveItem(at: url, to: trash.appendingPathComponent(url.lastPathComponent))
+        }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), trashService: service, initialFolder: root)
+        defer { browser.close() }; browser.showWindow(nil)
+        let grid = try XCTUnwrap(descendants(try XCTUnwrap(browser.window?.contentView)).compactMap { $0 as? PhotoCollectionView }.first)
+        waitUntil("bulk trash folder") { grid.numberOfItems(inSection: 0) == 3 && !browser.sorting }
+        grid.selectAll(nil); let ids = browser.selectedPhotoIDs
+        grid.trashCurrent?()
+        let cancelSheet = try XCTUnwrap(browser.window?.attachedSheet)
+        let cancel = try XCTUnwrap(descendants(try XCTUnwrap(cancelSheet.contentView)).compactMap { $0 as? NSButton }.first { $0.title == "취소" })
+        cancel.performClick(nil)
+        waitUntil("cancelled bulk trash") { browser.window?.attachedSheet == nil }
+        XCTAssertEqual(browser.selectedPhotoIDs, ids)
+        XCTAssertEqual(try BrowserEntry.read(root, showHidden: false).filter(\.isPhoto).count, 3)
+        grid.trashCurrent?()
+        let confirmSheet = try XCTUnwrap(browser.window?.attachedSheet)
+        let confirm = try XCTUnwrap(descendants(try XCTUnwrap(confirmSheet.contentView)).compactMap { $0 as? NSButton }.first { $0.title == "3장 휴지통으로 이동" })
+        confirm.performClick(nil)
+        waitUntil("two success one failure") { grid.numberOfItems(inSection: 0) == 1 && browser.window?.attachedSheet != nil }
+        XCTAssertEqual(browser.selectedPhotoIDs.count, 1)
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("2.jpg")), data)
+        for name in ["1.jpg", "3.jpg"] { XCTAssertEqual(try Data(contentsOf: trash.appendingPathComponent(name)), data) }
+        let report = try XCTUnwrap(browser.window?.attachedSheet)
+        let text = try XCTUnwrap(descendants(try XCTUnwrap(report.contentView)).compactMap { $0 as? NSTextView }.first)
+        XCTAssertTrue(text.string.contains("실패 · 2.jpg")); XCTAssertTrue(text.string.contains("완료 · 1.jpg"))
+        let ok = try XCTUnwrap(descendants(try XCTUnwrap(report.contentView)).compactMap { $0 as? NSButton }.first { $0.title == "확인" })
+        ok.performClick(nil)
+    }
+
+    @MainActor
+    func testViewerHeldZoomDeleteIsSingleEvenWithBrowserMultiSelection() throws {
+        _ = NSApplication.shared
+        let root = try folder(), trash = try folder(), data = jpegData()
+        for name in ["1.jpg", "2.jpg"] { try data.write(to: root.appendingPathComponent(name)) }
+        let service = PhotoTrash { url in try FileManager.default.moveItem(at: url, to: trash.appendingPathComponent(url.lastPathComponent)) }
+        let browser = BrowserController(tagStore: TagStore(fileURL: root.appendingPathComponent(".tags.json")), trashService: service, initialFolder: root)
+        defer { browser.close() }; browser.showWindow(nil)
+        let views = descendants(try XCTUnwrap(browser.window?.contentView))
+        let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
+        let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
+        waitUntil("single viewer delete ready") { preview.imageView.image != nil && !browser.sorting }
+        grid.selectAll(nil); XCTAssertEqual(browser.selectedPhotoIDs.count, 2)
+        browser.openSelectedPhoto()
+        let viewer = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
+        defer { viewer.close() }
+        let canvas = try XCTUnwrap(viewer.contentView as? PhotoCanvas)
+        let down = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDown, location: NSPoint(x: 50, y: 50), modifierFlags: [], timestamp: 0,
+            windowNumber: viewer.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
+        let drag = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDragged, location: NSPoint(x: 52, y: 52), modifierFlags: [], timestamp: 0.1,
+            windowNumber: viewer.windowNumber, context: nil, eventNumber: 1, clickCount: 1, pressure: 1))
+        canvas.mouseDown(with: down); canvas.mouseDragged(with: drag)
+        let delete = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+            windowNumber: viewer.windowNumber, context: nil, characters: "\u{7f}", charactersIgnoringModifiers: "\u{7f}", isARepeat: false, keyCode: 51))
+        canvas.keyDown(with: delete)
+        XCTAssertNil(browser.window?.attachedSheet)
+        waitUntil("held viewer single delete") { FileManager.default.fileExists(atPath: trash.appendingPathComponent("1.jpg").path) && preview.filename.stringValue == "2.jpg" }
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("2.jpg")), data)
+        XCTAssertNil(browser.window?.attachedSheet)
+        let up = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseUp, location: NSPoint(x: 50, y: 50), modifierFlags: [], timestamp: 0,
+            windowNumber: viewer.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 0))
+        canvas.mouseUp(with: up)
+    }
+
+    @MainActor
     private func saveBrowserSnapshot(_ window: NSWindow, name: String) throws {
         guard let path = ProcessInfo.processInfo.environment["PHOTOSELECT_UI_SNAPSHOT_PATH"] else { return }
         let content = try XCTUnwrap(window.contentView)
@@ -881,7 +1099,7 @@ final class BrowserUITests: XCTestCase {
             context: nil, characters: "\u{1B}", charactersIgnoringModifiers: "\u{1B}", isARepeat: false, keyCode: 53))
         canvas.keyDown(with: escape)
         XCTAssertFalse(viewerWindow.isVisible)
-        XCTAssertEqual(grid.selectionIndexPaths, [IndexPath(item: 0, section: 0)])
+        XCTAssertTrue(grid.selectionIndexPaths.isEmpty, "Automatic preview is distinct from an explicit browser selection")
         XCTAssertTrue(browser.window?.firstResponder === grid)
     }
 
@@ -914,7 +1132,7 @@ final class BrowserUITests: XCTestCase {
             context: nil, characters: "\u{1B}", charactersIgnoringModifiers: "\u{1B}", isARepeat: false, keyCode: 53))
         canvas.keyDown(with: escape)
         XCTAssertFalse(viewerWindow.isVisible)
-        XCTAssertEqual(grid.selectionIndexPaths, [IndexPath(item: 0, section: 0)])
+        XCTAssertTrue(grid.selectionIndexPaths.isEmpty, "Automatic preview is distinct from an explicit browser selection")
         XCTAssertTrue(browser.window?.firstResponder === grid)
         XCTAssertEqual(try Data(contentsOf: photo), data)
     }
@@ -1156,7 +1374,7 @@ final class BrowserUITests: XCTestCase {
             XCTAssertTrue(preview.imageView.image === originalImage)
             XCTAssertEqual(preview.detail.stringValue, originalDetail)
             XCTAssertEqual(grid.numberOfItems(inSection: 0), 4)
-            XCTAssertEqual(grid.selectionIndexPaths, [IndexPath(item: 3, section: 0)])
+            XCTAssertTrue(grid.selectionIndexPaths.isEmpty, "Outline general-file clicks must not create a photo multi-selection")
         }
     }
 

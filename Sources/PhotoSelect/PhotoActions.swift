@@ -166,25 +166,39 @@ final class PhotoTrash {
     private init(operation: @escaping (URL) throws -> URL?) { self.move = operation }
     static func recordingMove(_ move: @escaping (URL) throws -> URL?) -> PhotoTrash { PhotoTrash(operation: move) }
 
+    private func perform(_ photo: Photo) -> Result<TrashReceipt, Error> {
+        Result {
+            do {
+                let volume = try? photo.url.resourceValues(forKeys: [.volumeIsReadOnlyKey, .volumeIsInternalKey,
+                    .volumeIsRemovableKey, .volumeIsEjectableKey, .volumeNameKey])
+                if volume?.volumeIsReadOnly == true { throw CocoaError(.fileWriteVolumeReadOnly) }
+                let destination = try move(photo.url)
+                return TrashReceipt(originalURL: photo.url, trashURL: destination, volumeName: volume?.volumeName,
+                    isExternalVolume: volume?.volumeIsInternal == false || volume?.volumeIsRemovable == true || volume?.volumeIsEjectable == true)
+            } catch { throw PhotoTrashFailure(sourceURL: photo.url, underlyingError: error) }
+        }
+    }
     func trash(_ photo: Photo, lease: FolderLease, completion: @escaping (Result<TrashReceipt, Error>) -> Void) {
         queue.async {
-            let result: Result<TrashReceipt, Error> = withExtendedLifetime(lease) {
-                Result {
+            let result = withExtendedLifetime(lease) { self.perform(photo) }
+            // Always use OS Trash; no permanent-delete fallback.
+            DispatchQueue.main.async { completion(result) }
+        }
+    }
+    func trashSelection(_ entries: [BrowserEntry], lease: FolderLease,
+                        completion: @escaping ([(URL, Result<TrashReceipt, Error>)]) -> Void) {
+        queue.async {
+            let results = withExtendedLifetime(lease) {
+                entries.map { entry -> (URL, Result<TrashReceipt, Error>) in
                     do {
-                        let volume = try? photo.url.resourceValues(forKeys: [.volumeIsReadOnlyKey, .volumeIsInternalKey,
-                            .volumeIsRemovableKey, .volumeIsEjectableKey, .volumeNameKey])
-                        // Unknown metadata does not imply unsupported Trash: let
-                        // FileManager perform the authoritative filesystem operation.
-                        if volume?.volumeIsReadOnly == true { throw CocoaError(.fileWriteVolumeReadOnly) }
-                        let destination = try self.move(photo.url)
-                        return TrashReceipt(originalURL: photo.url, trashURL: destination, volumeName: volume?.volumeName,
-                            isExternalVolume: volume?.volumeIsInternal == false || volume?.volumeIsRemovable == true || volume?.volumeIsEjectable == true)
-                    } catch { throw PhotoTrashFailure(sourceURL: photo.url, underlyingError: error) }
+                        guard let expected = entry.snapshot, try RenameSourceSnapshot.read(entry.url) == expected else {
+                            throw RenameProblem(message: "선택 이후 파일이 변경됐습니다. 새로고침하여 다시 확인하세요.")
+                        }
+                        return (entry.url, self.perform(Photo(url: entry.url)))
+                    } catch { return (entry.url, .failure(error)) }
                 }
             }
-            // There is deliberately no permanent-delete fallback or home-trash
-            // emulation: external volumes must use their OS-managed Trash.
-            DispatchQueue.main.async { completion(result) }
+            DispatchQueue.main.async { completion(results) }
         }
     }
 

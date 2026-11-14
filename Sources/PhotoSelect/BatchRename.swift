@@ -19,8 +19,10 @@ struct RenamePlan {
     let orderTitle: String
     var rows: [RenamePreview]
     var volumeUUID: String? = nil
+    var selectedOnly = false
+    var snapshots: [String: RenameSourceSnapshot] = [:]
     var valid: Bool {
-        !rows.isEmpty && rows.count <= 10_000 && rows.allSatisfy {
+        !rows.isEmpty && rows.count <= 10_000 && Set(rows.map(\.original)).count == rows.count && rows.allSatisfy {
             $0.issue == nil && Self.leaf($0.original) && Self.leaf($0.proposed) && !$0.proposed.hasPrefix("._") && $0.proposed.utf8.count <= 255 &&
             ($0.original as NSString).pathExtension == ($0.proposed as NSString).pathExtension
         } && Set(rows.map { Self.folded($0.proposed) }).count == rows.count
@@ -32,8 +34,8 @@ struct RenamePlan {
     static func leaf(_ text: String) -> Bool {
         !text.isEmpty && text != "." && text != ".." && !text.contains("/") && !text.contains("\0")
     }
-    static func folded(_ text: String) -> String { text.precomposedStringWithCanonicalMapping.lowercased(with: Locale(identifier: "en_US_POSIX")) }
-    static func make(folder: URL, photos: [BrowserEntry], orderTitle: String, settings: RenameSettings, existingNames: Set<String>) throws -> RenamePlan {
+    static func folded(_ text: String) -> String { text.precomposedStringWithCanonicalMapping.folding(options: [.caseInsensitive], locale: Locale(identifier: "en_US_POSIX")) }
+    static func make(folder: URL, photos: [BrowserEntry], orderTitle: String, settings: RenameSettings, existingNames: Set<String>, selectedOnly: Bool = false) throws -> RenamePlan {
         guard settings.base.utf8.count + settings.separator.utf8.count <= 255,
               !settings.base.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               !(settings.base + settings.separator).contains(where: { "/:\0\n\r".contains($0) }),
@@ -56,7 +58,14 @@ struct RenamePlan {
             if counts[folded(rows[index].proposed), default: 0] > 1 { rows[index].issue = "변경 예정 이름 중복" }
             if occupied.contains(folded(rows[index].proposed)) { rows[index].issue = "기존 폴더/파일과 충돌" }
         }
-        return RenamePlan(folder: folder, orderTitle: orderTitle, rows: rows, volumeUUID: BatchRenameEngine.volume(folder).0)
+        var plan = RenamePlan(folder: folder, orderTitle: orderTitle, rows: rows, volumeUUID: BatchRenameEngine.volume(folder).0)
+        plan.selectedOnly = selectedOnly
+        for entry in photos.filter(isTargetPhoto) {
+            if let snapshot = entry.snapshot ?? (try? RenameSourceSnapshot.read(entry.url)) {
+                plan.snapshots[entry.url.lastPathComponent] = snapshot
+            }
+        }
+        return plan
     }
 }
 
@@ -72,6 +81,26 @@ struct RenameIdentity: Codable, Hashable {
         return RenameIdentity(device: UInt64(UInt32(bitPattern: info.st_dev)), inode: UInt64(info.st_ino))
     }
 }
+// Captured off the main thread, then checked immediately before any move.
+struct RenameSourceSnapshot: Hashable {
+    let identity: RenameIdentity
+    let bytes: Int64, modifiedSeconds: Int64, modifiedNanos: Int64
+    let bornSeconds: Int64, bornNanos: Int64, links: UInt64
+    let changedSeconds: Int64, changedNanos: Int64
+    static func read(_ url: URL) throws -> RenameSourceSnapshot {
+        var info = stat()
+        let status = url.withUnsafeFileSystemRepresentation { path -> Int32 in
+            guard let path else { errno = EINVAL; return -1 }; return lstat(path, &info)
+        }
+        guard status == 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        guard info.st_mode & mode_t(S_IFMT) == mode_t(S_IFREG) else { throw RenameProblem(message: "일반 파일이 아닙니다: " + url.lastPathComponent) }
+        return RenameSourceSnapshot(identity: RenameIdentity(device: UInt64(UInt32(bitPattern: info.st_dev)), inode: UInt64(info.st_ino)),
+            bytes: Int64(info.st_size), modifiedSeconds: Int64(info.st_mtimespec.tv_sec), modifiedNanos: Int64(info.st_mtimespec.tv_nsec),
+            bornSeconds: Int64(info.st_birthtimespec.tv_sec), bornNanos: Int64(info.st_birthtimespec.tv_nsec), links: UInt64(info.st_nlink),
+            changedSeconds: Int64(info.st_ctimespec.tv_sec), changedNanos: Int64(info.st_ctimespec.tv_nsec))
+    }
+}
+
 private final class RenameLock {
     private let descriptor: Int32
     init(directory: URL) throws {
@@ -280,11 +309,18 @@ final class BatchRenameEngine {
         guard try pending(in: plan.folder).isEmpty else { throw RenameProblem(message: "중단된 작업을 먼저 복구하세요.") }
         let entries = try BrowserEntry.read(plan.folder, showHidden: true)
         let current = Set(entries.filter(RenamePlan.isTargetPhoto).map { $0.url.lastPathComponent })
-        guard current == Set(plan.rows.map(\.original)) else { throw RenameProblem(message: "폴더의 사진 목록이 변경됐습니다. 미리보기를 다시 여세요.") }
+        let expected = Set(plan.rows.map(\.original))
+        guard (plan.selectedOnly ? expected.isSubset(of: current) : current == expected) else { throw RenameProblem(message: "폴더의 사진 목록이 변경됐습니다. 미리보기를 다시 여세요.") }
         let names = Set(try FileManager.default.contentsOfDirectory(atPath: plan.folder.path))
         let sourceNames = Set(plan.rows.map(\.original))
         let occupied = Set(names.filter { !sourceNames.contains($0) }.map(RenamePlan.folded))
         guard !plan.rows.contains(where: { occupied.contains(RenamePlan.folded($0.proposed)) }) else { throw RenameProblem(message: "새 파일/폴더와 이름이 충돌합니다. 덮어쓰지 않았습니다.") }
+        for row in plan.rows {
+            guard let snapshot = plan.snapshots[row.original],
+                  try RenameSourceSnapshot.read(plan.folder.appendingPathComponent(row.original)) == snapshot else {
+                throw RenameProblem(message: row.original + ": 미리보기 이후 파일의 식별자나 내용/수정 상태가 변경됐습니다. 다시 확인하세요.")
+            }
+        }
         let id = UUID(); var identities: Set<RenameIdentity> = []
         let items = try plan.rows.filter { $0.original != $0.proposed }.enumerated().map { index, row -> RenameJournal.Item in
             let source = plan.folder.appendingPathComponent(row.original)

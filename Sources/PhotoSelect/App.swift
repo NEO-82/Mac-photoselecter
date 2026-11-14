@@ -64,6 +64,8 @@ enum AppMenus {
         file.addItem(.separator())
         add(file, "창 닫기", #selector(NSWindow.performClose(_:)), key: "w")
 
+        let edit = submenu("편집")
+        add(edit, "모두 선택", #selector(NSText.selectAll(_:)), key: "a")
         let view = submenu("보기")
         add(view, "선택 사진 크게 보기", #selector(BrowserController.openSelectedPhoto), key: "\r", modifiers: [], target: browser)
         add(view, "숨김 파일 표시", #selector(BrowserController.toggleHiddenFiles(_:)), key: ".", modifiers: [.command, .shift], target: browser)

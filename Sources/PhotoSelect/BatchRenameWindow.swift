@@ -1,10 +1,14 @@
 import AppKit
 
 final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTableViewDelegate, NSTextFieldDelegate, NSWindowDelegate {
-    private let folder: URL, photos: [BrowserEntry], existingNames: Set<String>, orderTitle: String
+    private let folder: URL, allPhotos: [BrowserEntry], existingNames: Set<String>, orderTitle: String
     private let engine: BatchRenameEngine, tags: TagStore, lease: FolderLease
     private let recoveryURL: URL?
     private let sourceVolumeUUID: String?
+    private let selectedPhotos: [BrowserEntry]
+    private let selectedScope = NSButton(radioButtonWithTitle: "선택한 파일만 변경", target: nil, action: nil)
+    private let allScope = NSButton(radioButtonWithTitle: "현재 폴더 전체 변경", target: nil, action: nil)
+    private var photos: [BrowserEntry] { selectedScope.state == .on ? selectedPhotos : allPhotos }
     private var stalePreview = false
     private let base = NSTextField(string: "Photo"), separator = NSTextField(string: "_"), start = NSTextField(string: "1"), digits = NSPopUpButton(frame: .zero, pullsDown: false)
     private let summary = NSTextField(wrappingLabelWithString: "")
@@ -23,8 +27,8 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
     var onBusy: (() -> Void)?
     var onComplete: ((RenameOutcome) -> Void)?
     var onClose: (() -> Void)?
-    init(folder: URL, photos: [BrowserEntry], existingNames: Set<String>, orderTitle: String, engine: BatchRenameEngine, tags: TagStore, lease: FolderLease, sourceVolumeUUID: String?, recoveryURL: URL? = nil) {
-        self.folder = folder; self.photos = photos; self.existingNames = existingNames; self.orderTitle = orderTitle
+    init(folder: URL, photos: [BrowserEntry], existingNames: Set<String>, orderTitle: String, engine: BatchRenameEngine, tags: TagStore, lease: FolderLease, sourceVolumeUUID: String?, recoveryURL: URL? = nil, selectedIDs: Set<String> = []) {
+        self.folder = folder; self.allPhotos = photos; self.selectedPhotos = photos.filter { selectedIDs.contains($0.selectionID) }; self.existingNames = existingNames; self.orderTitle = orderTitle
         self.engine = engine; self.tags = tags; self.lease = lease; self.recoveryURL = recoveryURL
         self.sourceVolumeUUID = sourceVolumeUUID
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 850, height: 600), styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
@@ -42,6 +46,9 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
             field.delegate = self; field.font = .systemFont(ofSize: 12); field.textColor = ProTheme.text; field.backgroundColor = ProTheme.canvas
         }
         base.identifier = NSUserInterfaceItemIdentifier("RenameBase")
+        separator.identifier = NSUserInterfaceItemIdentifier("RenameSeparator")
+        start.identifier = NSUserInterfaceItemIdentifier("RenameStart")
+        digits.identifier = NSUserInterfaceItemIdentifier("RenameDigits")
         for value in 1...12 { digits.addItem(withTitle: String(value)) }; digits.selectItem(withTitle: "4")
         digits.target = self; digits.action = #selector(settingsChanged)
         summary.textColor = ProTheme.accent; summary.font = .systemFont(ofSize: 12, weight: .medium)
@@ -57,7 +64,18 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
         run.identifier = NSUserInterfaceItemIdentifier("RenameExecute")
         closeButton.target = self; closeButton.action = #selector(dismiss); closeButton.bezelStyle = .rounded; closeButton.keyEquivalent = "\u{1b}"
         let buttons = NSStackView(views: [NSView(), closeButton, run]); buttons.orientation = .horizontal; buttons.spacing = 10
-        let stack = NSStackView(views: [fields, summary, scroll, progress, outcome, buttons]); stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 12
+        selectedScope.title = "선택한 파일만 변경 (\(selectedPhotos.count)장)"
+        allScope.title = "현재 폴더 전체 변경 (\(allPhotos.count)장)"
+        selectedScope.identifier = NSUserInterfaceItemIdentifier("RenameSelectedScope")
+        allScope.identifier = NSUserInterfaceItemIdentifier("RenameAllScope")
+        selectedScope.isEnabled = !selectedPhotos.isEmpty && recoveryURL == nil
+        allScope.isEnabled = recoveryURL == nil
+        selectedScope.state = selectedPhotos.isEmpty ? .off : .on
+        allScope.state = selectedPhotos.isEmpty ? .on : .off
+        for button in [selectedScope, allScope] { button.target = self; button.action = #selector(scopeChanged(_:)); button.contentTintColor = ProTheme.accent }
+        let scopes = NSStackView(views: [selectedScope, allScope]); scopes.orientation = .vertical; scopes.alignment = .leading; scopes.spacing = 6
+        outcome.stringValue = "실행 전에 전체 폴더의 파일명 충돌과 대상 파일 상태를 확인합니다. 원본 이미지 내용·확장자·태그는 보존합니다."
+        let stack = NSStackView(views: [scopes, fields, summary, scroll, progress, outcome, buttons]); stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 12
         stack.translatesAutoresizingMaskIntoConstraints = false; content.addSubview(stack)
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 16), stack.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -16),
@@ -78,6 +96,12 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     func controlTextDidChange(_ notification: Notification) { rebuild(delay: 0.15) }
+    @objc private func scopeChanged(_ sender: NSButton) {
+        guard !busy, !stalePreview else { return }
+        selectedScope.state = sender === selectedScope ? .on : .off
+        allScope.state = sender === allScope ? .on : .off
+        plan = nil; table.reloadData(); rebuild()
+    }
     @objc private func settingsChanged() { rebuild() }
     private func rebuild(delay: TimeInterval = 0) {
         guard !busy, !stalePreview, recoveryURL == nil else { return }
@@ -88,12 +112,12 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
             plan = nil; summary.stringValue = "시작 번호를 정수로 입력하세요."; table.reloadData(); return
         }
         let settings = RenameSettings(base: base.stringValue, separator: separator.stringValue, start: number, digits: Int(digits.titleOfSelectedItem ?? "4") ?? 4)
-        let folder = self.folder, photos = self.photos, title = orderTitle, names = existingNames, volume = sourceVolumeUUID
+        let folder = self.folder, photos = self.photos, title = orderTitle, names = existingNames, volume = sourceVolumeUUID, selectedOnly = selectedScope.state == .on
         let operation = BlockOperation(); previewOperation = operation
         operation.addExecutionBlock { [weak self, weak operation] in
             guard let operation, !operation.isCancelled else { return }
             let result = Result { () -> (RenamePlan, Bool, Int, Int) in
-                var plan = try RenamePlan.make(folder: folder, photos: photos, orderTitle: title, settings: settings, existingNames: names)
+                var plan = try RenamePlan.make(folder: folder, photos: photos, orderTitle: title, settings: settings, existingNames: names, selectedOnly: selectedOnly)
                 plan.volumeUUID = volume
                 return (plan, plan.valid, plan.changedCount, plan.rows.filter { $0.issue != nil }.count)
             }
@@ -103,6 +127,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
                 case .success(let values):
                     self.plan = values.0
                     self.summary.stringValue = "대상 \(self.photos.count)개 · \(self.orderTitle) · 변경 \(values.2)개 · 충돌 \(values.3)개"
+                    self.run.title = "이름 변경 실행 (\(values.2)장)"
                     self.run.isEnabled = values.1 && values.2 > 0
                 case .failure(let error): self.plan = nil; self.summary.stringValue = error.localizedDescription
                 }
@@ -132,7 +157,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
     }
     @objc private func execute() {
         guard !busy, !stalePreview, recoveryURL != nil || (plan != nil && run.isEnabled) else { return }
-        busy = true; run.isEnabled = false; closeButton.isEnabled = false
+        busy = true; selectedScope.isEnabled = false; allScope.isEnabled = false; run.isEnabled = false; closeButton.isEnabled = false
         for field in [base, separator, start] { field.isEnabled = false }; digits.isEnabled = false
         onBusy?()
         let update: BatchRenameEngine.Progress = { [weak self] done, total, phase in
@@ -168,6 +193,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
     }
     func invalidatePreviewForDeviceChange() {
         guard !busy else { return }
+        selectedScope.isEnabled = false; allScope.isEnabled = false
         stalePreview = true; previewGeneration = UUID(); previewOperation?.cancel(); delayedPreview?.cancel()
         run.isEnabled = false
         for field in [base, separator, start] { field.isEnabled = false }; digits.isEnabled = false

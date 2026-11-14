@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.6.0'
+        default: '0.7.0'
         type: string
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.6.0' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.7.0' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
   PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
@@ -80,6 +80,19 @@ jobs:
           xcrun swift scripts/verify-app-icon.swift Resources/AppIcon.png "$icon_mount/J♡S.app" .build
           hdiutil detach "$icon_mount"
           trap - EXIT
+      - name: Measure Release selection performance on 3005 photos
+        id: selection
+        run: |
+          set -o pipefail
+          xcrun swift test --configuration release --jobs 2 --parallel --num-workers 1 \
+            --filter 'BrowserUITests.testMultiSelectionThreeThousand' \
+            --xunit-output .build/selection-performance-results.xml 2>&1 | tee -a "$RUNNER_TEMP/PhotoSelect-build.log"
+          python3 - <<'PYTEST'
+          import xml.etree.ElementTree as ET
+          cases = list(ET.parse('.build/selection-performance-results.xml').getroot().iter('testcase'))
+          assert len(cases) == 1
+          assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
+          PYTEST
       - name: Upload personal-test installer
         if: always()
         uses: actions/upload-artifact@v4
@@ -97,6 +110,7 @@ jobs:
             .build/*results.xml
             .build/about-panel.png
             .build/arw-*.json
+            .build/selection-performance.json
             .build/icon-validation.json
             .build/finder-icon.png
           if-no-files-found: error
@@ -104,5 +118,5 @@ jobs:
       - name: Save installer and build evidence on the delivery branch
         if: always() && github.ref_name == 'codex/macos-installer-download'
         env:
-          PACKAGE_OUTCOME: ${{ steps.package.outcome }}
+          PACKAGE_OUTCOME: ${{ steps.package.outcome == 'success' && steps.selection.outcome == 'success' && 'success' || 'failure' }}
         run: bash scripts/publish-installer-result.sh

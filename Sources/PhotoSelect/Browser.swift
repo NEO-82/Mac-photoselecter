@@ -5,7 +5,20 @@ final class PhotoCollectionView: NSCollectionView {
     var openCurrent: (() -> Void)?
     var trashCurrent: (() -> Void)?
     var toggleTag: (() -> Void)?
+    var clearSelection: (() -> Void)?
+    var photoPaths: Set<IndexPath> = []
+    private(set) var interactionPath: IndexPath?
+    var marqueeChanged: ((Set<IndexPath>, Bool) -> Void)?
+    private(set) var isMarqueeTracking = false
+    private(set) var marqueeRect: NSRect?
+    private(set) var marqueeFrameTimes: [Double] = []
+    override func selectAll(_ sender: Any?) {
+        selectionIndexPaths = photoPaths
+        marqueeChanged?(selectionIndexPaths, true)
+    }
     override func keyDown(with event: NSEvent) {
+        if event.keyCode == 53 { selectionIndexPaths = []; clearSelection?(); return }
+        if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers?.lowercased() == "a" { selectAll(nil); return }
         if event.keyCode == 36 || event.keyCode == 76 {
             if !event.isARepeat { openCurrent?() }; return
         }
@@ -14,6 +27,71 @@ final class PhotoCollectionView: NSCollectionView {
         switch action {
         case .trash: trashCurrent?()
         case .toggleTag: toggleTag?()
+        }
+    }
+    // Item clicks retain AppKit's Shift anchor, Command toggle and keyboard
+    // semantics. Only empty-space marquee tracking is handled here.
+    override func mouseDown(with event: NSEvent) {
+        let origin = convert(event.locationInWindow, from: nil)
+        interactionPath = indexPathForItem(at: origin)
+        guard indexPathForItem(at: origin) == nil, event.clickCount == 1, let window else {
+            super.mouseDown(with: event); return
+        }
+        window.makeFirstResponder(self)
+        isMarqueeTracking = true
+        let original = selectionIndexPaths
+        let additive = event.modifierFlags.contains(.shift)
+        let toggle = event.modifierFlags.contains(.command)
+        if !additive && !toggle { selectionIndexPaths = []; marqueeChanged?([], false) }
+        var last = event
+        NSEvent.startPeriodicEvents(afterDelay: 0.05, withPeriod: 1.0 / 30)
+        defer {
+            NSEvent.stopPeriodicEvents(); isMarqueeTracking = false; marqueeRect = nil; needsDisplay = true
+            marqueeChanged?(selectionIndexPaths, true)
+        }
+        while let next = window.nextEvent(matching: [.leftMouseDragged, .leftMouseUp, .periodic]) {
+            if next.type == .leftMouseUp { break }
+            if next.type != .periodic { last = next }
+            let point = convert(last.locationInWindow, from: nil)
+            _ = scrollMarquee(toward: point)
+            updateMarquee(from: origin, to: convert(last.locationInWindow, from: nil), original: original, additive: additive, toggle: toggle)
+        }
+    }
+    @discardableResult
+    func scrollMarquee(toward point: NSPoint) -> Bool {
+        guard let scroll = enclosingScrollView else { return false }
+        let clip = scroll.contentView, visible = visibleRect
+        let band: CGFloat = 36
+        var dy: CGFloat = 0
+        if point.y < visible.minY + band { dy = -min(28, visible.minY + band - point.y) }
+        else if point.y > visible.maxY - band { dy = min(28, point.y - visible.maxY + band) }
+        guard dy != 0 else { return false }
+        var rect = clip.bounds; rect.origin.y += isFlipped ? dy : -dy
+        let next = clip.constrainBoundsRect(rect)
+        guard next.origin != clip.bounds.origin else { return false }
+        clip.scroll(to: next.origin); scroll.reflectScrolledClipView(clip)
+        return true
+    }
+    func updateMarquee(from origin: NSPoint, to point: NSPoint, original: Set<IndexPath>, additive: Bool, toggle: Bool) {
+        let started = ProcessInfo.processInfo.systemUptime
+        let rect = NSRect(x: min(origin.x, point.x), y: min(origin.y, point.y), width: abs(point.x - origin.x), height: abs(point.y - origin.y))
+        let old = marqueeRect ?? .zero; marqueeRect = rect
+        // Query layout geometry, including offscreen items. Never create cells
+        // or decode images to decide whether an item intersects the marquee.
+        let hits = Set((collectionViewLayout?.layoutAttributesForElements(in: rect) ?? [])
+            .filter { $0.representedElementCategory == .item && $0.frame.intersects(rect) }
+            .map(\.indexPath)).intersection(photoPaths)
+        let paths = toggle ? original.symmetricDifference(hits) : additive ? original.union(hits) : hits
+        if selectionIndexPaths != paths { selectionIndexPaths = paths; marqueeChanged?(paths, false) }
+        setNeedsDisplay(old.union(rect).insetBy(dx: -2, dy: -2))
+        marqueeFrameTimes.append((ProcessInfo.processInfo.systemUptime - started) * 1000)
+        if marqueeFrameTimes.count > 128 { marqueeFrameTimes.removeFirst() }
+    }
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        if let rect = marqueeRect {
+            ProTheme.accent.withAlphaComponent(0.12).setFill(); NSBezierPath(rect: rect).fill()
+            ProTheme.accent.setStroke(); let border = NSBezierPath(rect: rect); border.lineWidth = 1; border.stroke()
         }
     }
 }
@@ -41,6 +119,13 @@ private final class SortButtonCell: NSButtonCell {
 final class ThumbnailItem: NSCollectionViewItem {
     var request: Operation?
     var representedURL: URL?
+    var isCurrent = false { didSet { updateSelectionAppearance() } }
+    private func updateSelectionAppearance() {
+        (view as? ProSurfaceView)?.fillColor = isSelected ? ProTheme.selection : .clear
+        view.wantsLayer = true; view.layer?.cornerRadius = 8
+        view.layer?.borderWidth = isCurrent ? 2 : 0
+        view.layer?.borderColor = ProTheme.accent.cgColor
+    }
     let tagMarker = TagMarkerView()
     override func loadView() {
         let container = ProSurfaceView(); container.fillColor = .clear; container.cornerRadius = 8
@@ -69,11 +154,11 @@ final class ThumbnailItem: NSCollectionViewItem {
     }
     override func prepareForReuse() {
         super.prepareForReuse(); request?.cancel(); request = nil; representedURL = nil
-        imageView?.image = nil; tagMarker.isHidden = true; view.toolTip = nil
+        imageView?.image = nil; tagMarker.isHidden = true; view.toolTip = nil; isCurrent = false
     }
     override var isSelected: Bool {
         didSet {
-            (view as? ProSurfaceView)?.fillColor = isSelected ? ProTheme.selection : .clear
+            updateSelectionAppearance()
         }
     }
 }
@@ -172,7 +257,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var renamePreparation: Operation?
     private var pendingExit: (() -> Void)?
     private var folderLoading = false
-    private var fileManagementActive: Bool { preparingRename || renameWindow != nil }
+    private var fileManagementActive: Bool { preparingRename || renameWindow != nil || confirmingTrash || bulkTrashActive }
     private let trashButton = NSButton(title: "휴지통", target: nil, action: nil)
     private let taggedOnlyButton = NSButton(checkboxWithTitle: "태그된 사진만 보기", target: nil, action: nil)
     private var allEntries: [BrowserEntry] = []
@@ -193,6 +278,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var list = PhotoList()
     private var entries: [BrowserEntry] = []
     private var selectedURL: URL?
+    private(set) var selectedPhotoIDs: Set<String> = []
+    private var selectionPaths: Set<IndexPath> = []
+    private var photoIndexByID: [String: IndexPath] = [:]
+    private var pendingGridFocus = false
+    private var applyingGridInput = false
+    private var confirmingTrash = false
+    private var bulkTrashActive = false
     private var lease: FolderLease?
     private var currentFolder: URL?
     private var generation = UUID()
@@ -286,12 +378,14 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         grid.collectionViewLayout = layout; grid.dataSource = self; grid.delegate = self
         grid.autoresizingMask = [.width]
         grid.backgroundColors = [ProTheme.canvas]
-        grid.isSelectable = true; grid.allowsMultipleSelection = false
+        grid.isSelectable = true; grid.allowsMultipleSelection = true
         grid.register(ThumbnailItem.self, forItemWithIdentifier: NSUserInterfaceItemIdentifier("thumbnail"))
         let doubleClick = NSClickGestureRecognizer(target: self, action: #selector(openPhoto(_:)))
         doubleClick.numberOfClicksRequired = 2; grid.addGestureRecognizer(doubleClick)
         grid.openCurrent = { [weak self] in self?.openSelectedPhoto() }
-        grid.trashCurrent = { [weak self] in self?.trashCurrentPhoto() }
+        grid.trashCurrent = { [weak self] in self?.trashBrowserSelection() }
+        grid.clearSelection = { [weak self] in self?.setGridSelection([], updatePreview: false) }
+        grid.marqueeChanged = { [weak self] paths, finished in self?.setGridSelection(paths, updatePreview: finished) }
         grid.toggleTag = { [weak self] in self?.toggleCurrentTag() }
         let photoScroll = NSScrollView(); photoScroll.hasVerticalScroller = true; photoScroll.documentView = grid
         photoScroll.backgroundColor = ProTheme.canvas
@@ -501,6 +595,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         if currentFolder.map(TagStore.key) == TagStore.key(url.deletingLastPathComponent()), !folderLoading,
            let index = allEntries.firstIndex(where: { TagStore.key($0.url) == TagStore.key(url) }) {
             selectedURL = allEntries[index].url
+            selectedPhotoIDs = [allEntries[index].selectionID]
             applyTagFilter()
             if let index = list.selectedIndex { showPhoto(index) }
             return
@@ -565,7 +660,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     @objc func trashFromMenu() {
         guard acceptsPhotoMenuEvent() else { return }
-        trashCurrentPhoto()
+        if NSApp.keyWindow === viewer?.window { trashCurrentPhoto() }
+        else { trashBrowserSelection() }
     }
     private func acceptsPhotoMenuEvent() -> Bool {
         guard let event = NSApp.currentEvent, event.type == .keyDown else { return true }
@@ -596,7 +692,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     func finishPendingTagWrites(completion: @escaping () -> Void) {
         finishingTagWrites = true
-        if renameBusy { pendingExit = completion; updateBadges(); return }
+        if renameBusy || bulkTrashActive { pendingExit = completion; updateBadges(); return }
         renamePreparation?.cancel()
         imageGeneration = UUID(); pipeline.clear(); thumbnails.clear()
         sortRequest?.cancel(); sortGeneration = UUID()
@@ -604,6 +700,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         tagStore.finishPendingWrites(completion: completion)
     }
     private func loadFolder(_ url: URL, lease: FolderLease, preserving: URL? = nil, preserveImages: Bool = false) {
+        if currentFolder.map(TagStore.key) != TagStore.key(url) { selectedPhotoIDs = [] }
         let requestedFile = finderSelection
         finderSelection = nil
         let preserving = requestedFile ?? preserving
@@ -629,6 +726,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 case .success(let urls):
                     self.folderLoading = false; self.allEntries = urls
                     self.selectedURL = urls.first { TagStore.key($0.url) == preserving.map(TagStore.key) }?.url
+                    if requestedFile != nil, let entry = urls.first(where: { $0.url == self.selectedURL && $0.isPhoto }) {
+                        self.selectedPhotoIDs = [entry.selectionID]
+                    }
                     self.applyCurrentSort()
                 case .failure(let error):
                     self.folderLoading = false; self.updateBadges()
@@ -645,11 +745,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             }
         }
     }
-    func windowShouldClose(_ sender: NSWindow) -> Bool { !fileManagementActive }
+    func windowShouldClose(_ sender: NSWindow) -> Bool { !fileManagementActive && !isTrashing }
     @objc func openBatchRename() {
         guard !fileManagementActive, !sorting, !isTrashing, !finishingTagWrites, let folder = currentFolder, let lease else { return }
         preparingRename = true; updateBadges(); let token = generation
         let order = appliedSortOrder, volume = BatchRenameEngine.volume(folder).0
+        let selectedIDs = selectedPhotoIDs
         setStatus("현재 폴더의 전체 사진 미리보기 준비 중…")
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
@@ -665,14 +766,14 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 case .success(let value):
                     if let journal = value.0 {
                         self.preparingRename = false
-                        self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal)
+                        self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal, selectedIDs: [])
                     } else {
                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
                             self.preparingRename = false
                             let photos = sorted.filter(RenamePlan.isTargetPhoto)
                             guard !photos.isEmpty else { self.updateBadges(); self.batchError("현재 폴더에 변경할 사진이 없습니다."); return }
-                            self.presentRename(folder: folder, photos: photos, names: value.2, orderTitle: order.title, lease: lease, volume: volume, recovery: nil)
+                            self.presentRename(folder: folder, photos: photos, names: value.2, orderTitle: order.title, lease: lease, volume: volume, recovery: nil, selectedIDs: selectedIDs)
                         }
                     }
                 }
@@ -685,8 +786,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         alert.addButton(withTitle: "확인")
         if let window { alert.beginSheetModal(for: window) }
     }
-    private func presentRename(folder: URL, photos: [BrowserEntry], names: Set<String>, orderTitle: String, lease: FolderLease, volume: String?, recovery: URL?) {
-        let controller = BatchRenameWindow(folder: folder, photos: photos, existingNames: names, orderTitle: orderTitle, engine: renameEngine, tags: tagStore, lease: lease, sourceVolumeUUID: volume, recoveryURL: recovery)
+    private func presentRename(folder: URL, photos: [BrowserEntry], names: Set<String>, orderTitle: String, lease: FolderLease, volume: String?, recovery: URL?, selectedIDs: Set<String>) {
+        let controller = BatchRenameWindow(folder: folder, photos: photos, existingNames: names, orderTitle: orderTitle, engine: renameEngine, tags: tagStore, lease: lease, sourceVolumeUUID: volume, recoveryURL: recovery, selectedIDs: selectedIDs)
         renameWindow = controller; updateBadges()
         controller.onBusy = { [weak self] in
             guard let self else { return }
@@ -699,6 +800,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             if let paths = result.taggedPaths { self.taggedPaths = paths }
             if let pending = self.pendingExit { self.pendingExit = nil; self.finishPendingTagWrites(completion: pending); return }
             let selected = self.selectedURL.flatMap { old in result.mapping.first { TagStore.key($0.key) == TagStore.key(old) }?.value ?? old }
+            self.selectedPhotoIDs = Set(self.allEntries.filter { self.selectedPhotoIDs.contains($0.selectionID) }.map { entry in
+                let newURL = result.mapping.first { TagStore.key($0.key) == TagStore.key(entry.url) }?.value ?? entry.url
+                return BrowserEntry(url: newURL, isDirectory: entry.isDirectory, snapshot: entry.snapshot).selectionID
+            })
             self.pipeline.remapFiles(result.mapping); self.thumbnails.remapFiles(result.mapping)
             self.sortMetadata.remapFiles(result.mapping)
             self.tree.refresh(url: folder)
@@ -743,6 +848,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         entries = taggedOnlyButton.state == .on
             ? allEntries.filter { $0.isPhoto && taggedPaths.contains(TagStore.key($0.url)) }
             : allEntries
+        photoIndexByID = [:]; grid.photoPaths = []
+        for (index, entry) in entries.enumerated() where entry.isPhoto {
+            let path = IndexPath(item: index, section: 0)
+            photoIndexByID[entry.selectionID] = path; grid.photoPaths.insert(path)
+        }
+        selectedPhotoIDs.formIntersection(Set(photoIndexByID.keys))
+        selectionPaths = Set(selectedPhotoIDs.compactMap { photoIndexByID[$0] })
         list.replace(with: entries.filter(\.isPhoto).map { Photo(url: $0.url) })
         if list.photos.isEmpty { viewer?.close() }
         if let index = list.photos.firstIndex(where: { $0.url == previousURL }) {
@@ -766,27 +878,66 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             request?.cancel(); imageGeneration = UUID(); displayed = nil; previewError = nil
             viewer?.close(); preview.clear(); updateBadges()
         }
-        setStatus(taggedOnlyButton.state == .on ? "태그된 사진만 보기" : "모든 항목")
+        updateSelectionStatus()
     }
     private func synchronizeGrid(reload: Bool = false) {
+        guard !applyingGridInput else { return }
         syncingSelection = true
         if reload { grid.reloadData() }
+        if grid.selectionIndexPaths != selectionPaths { grid.selectionIndexPaths = selectionPaths }
         if let index = entries.firstIndex(where: { $0.url == selectedURL }) {
-            let path = IndexPath(item: index, section: 0)
-            grid.selectionIndexPaths = [path]
-            grid.scrollToItems(at: [path], scrollPosition: .centeredVertically)
-        } else { grid.selectionIndexPaths = [] }
+            grid.scrollToItems(at: [IndexPath(item: index, section: 0)], scrollPosition: .centeredVertically)
+        }
         syncingSelection = false
     }
     func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int { entries.count }
     func collectionView(_ collectionView: NSCollectionView, didSelectItemsAt indexPaths: Set<IndexPath>) {
-        guard !syncingSelection, let path = indexPaths.first, entries.indices.contains(path.item),
-              entries[path.item].url != selectedURL else { return }
-        selectEntry(at: path.item)
+        guard !syncingSelection else { return }
+        if let path = indexPaths.sorted().last, entries.indices.contains(path.item), !entries[path.item].isPhoto {
+            applyingGridInput = true; selectEntry(at: path.item); applyingGridInput = false
+        }
+        let paths = grid.selectionIndexPaths.union(indexPaths)
+        if paths != grid.selectionIndexPaths {
+            syncingSelection = true; grid.selectionIndexPaths = paths; syncingSelection = false
+        }
+        setGridSelection(paths, updatePreview: true, focus: grid.interactionPath ?? indexPaths.sorted().last)
+    }
+    func collectionView(_ collectionView: NSCollectionView, didDeselectItemsAt indexPaths: Set<IndexPath>) {
+        guard !syncingSelection else { return }
+        setGridSelection(grid.selectionIndexPaths, updatePreview: false)
+    }
+    private func setGridSelection(_ paths: Set<IndexPath>, updatePreview: Bool, focus: IndexPath? = nil) {
+        guard !fileManagementActive else { return }
+        selectionPaths = paths.intersection(grid.photoPaths)
+        selectedPhotoIDs = Set(selectionPaths.compactMap { entries.indices.contains($0.item) ? entries[$0.item].selectionID : nil })
+        updateBadges(); updateSelectionStatus()
+        guard updatePreview, !grid.isMarqueeTracking, !pendingGridFocus else { return }
+        pendingGridFocus = true; let token = generation
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }; self.pendingGridFocus = false
+            guard self.generation == token, !self.fileManagementActive else { return }
+            let current = self.entries.firstIndex { $0.url == self.selectedURL }.map { IndexPath(item: $0, section: 0) }
+            let path = focus.flatMap { self.selectionPaths.contains($0) ? $0 : nil } ?? current.flatMap { self.selectionPaths.contains($0) ? $0 : nil } ?? self.selectionPaths.sorted().first
+            guard let path, self.entries.indices.contains(path.item), self.entries[path.item].url != self.selectedURL else { return }
+            self.applyingGridInput = true
+            self.selectEntry(at: path.item)
+            self.applyingGridInput = false
+            if self.selectionPaths.count == 1,
+               let frame = self.grid.collectionViewLayout?.layoutAttributesForItem(at: path)?.frame,
+               !self.grid.visibleRect.intersects(frame) {
+                self.grid.scrollToItems(at: [path], scrollPosition: .centeredVertically)
+            }
+            self.updateSelectionStatus()
+        }
+    }
+    private func updateSelectionStatus() {
+        if !selectedPhotoIDs.isEmpty { setStatus("\(selectedPhotoIDs.count)장 선택") }
+        else { setStatus("모든 항목") }
     }
     func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt path: IndexPath) -> NSCollectionViewItem {
         let item = collectionView.makeItem(withIdentifier: NSUserInterfaceItemIdentifier("thumbnail"), for: path) as! ThumbnailItem
         let entry = entries[path.item]
+        item.isCurrent = entry.url == selectedURL
         let photo = Photo(url: entry.url); let token = generation
         item.request?.cancel(); item.request = nil
         item.imageView?.imageScaling = entry.isPhoto ? .scaleProportionallyUpOrDown : .scaleProportionallyDown
@@ -916,7 +1067,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         }
         // Apply the cached frame before grid layout, cache pinning or speculative work.
         synchronizeGrid(); updateBadges()
-        setStatus("\(currentFolder?.path ?? "") — \(entries.count)개 항목 · 1장 선택")
+        updateSelectionStatus()
         prepareNeighbors()
     }
     private func neighborPhotos(_ index: Int) -> [Photo] {
@@ -957,6 +1108,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         tagButton.state = tagged ? .on : .off
         preview.tagMarker.isHidden = !tagged || loading || previewError != nil; viewer?.tagMarker.isHidden = preview.tagMarker.isHidden
         for case let item as ThumbnailItem in grid.visibleItems() {
+            item.isCurrent = item.representedURL == selectedURL
             item.tagMarker.isHidden = !(item.representedURL.map { taggedPaths.contains(TagStore.key($0)) } ?? false)
         }
     }
@@ -972,6 +1124,57 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 else { self.updateBadges() }
                 self.setStatus("\(photo.url.lastPathComponent) · \(tagged ? "태그 지정됨" : "태그 해제됨")")
             case .failure(let error): self.reportActionError("태그 저장 실패: \(error.localizedDescription)", target: photo.url)
+            }
+        }
+    }
+    private func trashBrowserSelection() {
+        guard !isTrashing, !fileManagementActive, !finishingTagWrites, let lease else { return }
+        let targets = entries.filter { $0.isPhoto && selectedPhotoIDs.contains($0.selectionID) }
+        guard targets.count > 1 else {
+            if let target = targets.first, let index = list.photos.firstIndex(where: { $0.url == target.url }) { showPhoto(index) }
+            trashCurrentPhoto(); return
+        }
+        guard let window else { return }
+        let alert = NSAlert()
+        alert.messageText = "선택한 사진 \(targets.count)장을 휴지통으로 옮길까요?"
+        alert.informativeText = "원본을 macOS 휴지통으로 옮깁니다. 휴지통을 지원하지 않는 저장장치에서는 실패를 알리며 영구 삭제하지 않습니다."
+        alert.addButton(withTitle: "취소"); alert.addButton(withTitle: "\(targets.count)장 휴지통으로 이동")
+        confirmingTrash = true; updateBadges()
+        alert.beginSheetModal(for: window) { [weak self] response in
+            guard let self else { return }
+            self.confirmingTrash = false; self.updateBadges()
+            guard response == .alertSecondButtonReturn else { return }
+            self.bulkTrashActive = true; self.isTrashing = true; self.updateBadges()
+            let token = self.generation
+            self.trashService.trashSelection(targets, lease: lease) { [weak self] results in
+                guard let self else { return }
+                self.isTrashing = false; self.bulkTrashActive = false
+                if let pending = self.pendingExit { self.pendingExit = nil; self.finishPendingTagWrites(completion: pending); return }
+                guard self.generation == token else { self.updateBadges(); return }
+                let succeeded = Set(results.compactMap { url, result -> String? in
+                    if case .success = result { return TagStore.key(url) }; return nil
+                })
+                let failures = results.compactMap { url, result -> String? in
+                    if case .failure(let error) = result { return url.lastPathComponent + ": " + PhotoTrash.errorMessage(for: error) }; return nil
+                }
+                self.allEntries.removeAll { succeeded.contains(TagStore.key($0.url)) }
+                if let folder = self.currentFolder { self.tree.refresh(url: folder) }
+                self.applyTagFilter()
+                let message = "휴지통 이동 완료 \(succeeded.count)장 · 실패 \(failures.count)장"
+                self.setStatus(message, error: !failures.isEmpty)
+                if !failures.isEmpty, let window = self.window {
+                    let report = NSAlert(); report.messageText = message
+                    report.informativeText = "실패한 파일은 선택을 유지합니다. 파일별 결과를 확인하세요."
+                    let text = NSTextView(frame: NSRect(x: 0, y: 0, width: 540, height: 200)); text.isEditable = false
+                    text.string = results.map { url, result in
+                        switch result {
+                        case .success: return "완료 · " + url.lastPathComponent
+                        case .failure(let error): return "실패 · " + url.lastPathComponent + " — " + PhotoTrash.errorMessage(for: error)
+                        }
+                    }.joined(separator: "\n")
+                    let scroll = NSScrollView(frame: text.frame); scroll.documentView = text; scroll.hasVerticalScroller = true
+                    report.accessoryView = scroll; report.addButton(withTitle: "확인"); report.beginSheetModal(for: window)
+                }
             }
         }
     }

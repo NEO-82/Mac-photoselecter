@@ -14,12 +14,23 @@ struct BrowserEntry {
     let isDirectory: Bool
     var fileBytes: Int64? = nil
     var capturedAt: Date? = nil
+    var snapshot: RenameSourceSnapshot? = nil
+    var selectionID: String {
+        if let snapshot {
+            let id = snapshot.identity
+            let key = "file:\(id.device):\(id.inode):\(snapshot.bornSeconds):\(snapshot.bornNanos)"
+            // Distinguish hard-link directory entries; they may not be silently
+            // grouped as a RAW/JPEG pair or selected in place of one another.
+            return snapshot.links > 1 ? key + ":" + TagStore.key(url) : key
+        }
+        return "path:" + TagStore.key(url)
+    }
     var isPhoto: Bool { !isDirectory && (Photo.accepts(url) || ["png", "heic", "heif", "tif", "tiff", "gif", "bmp"].contains(url.pathExtension.lowercased())) }
     static func read(_ folder: URL, showHidden: Bool) throws -> [BrowserEntry] {
         try FolderReader.entries(folder, directories: false, allFiles: true, showHidden: showHidden)
             .map { url in
                 let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey])
-                return BrowserEntry(url: url, isDirectory: values?.isDirectory == true, fileBytes: values?.fileSize.map(Int64.init))
+                return BrowserEntry(url: url, isDirectory: values?.isDirectory == true, fileBytes: values?.fileSize.map(Int64.init), snapshot: try? RenameSourceSnapshot.read(url))
             }
             .sorted {
                 if $0.isDirectory != $1.isDirectory { return $0.isDirectory }
