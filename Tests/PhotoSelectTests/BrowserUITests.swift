@@ -89,6 +89,10 @@ final class BrowserUITests: XCTestCase {
             preview.filename.stringValue == raw.lastPathComponent && preview.imageView.image != nil
         }
         XCTAssertTrue(preview.detail.stringValue.contains("ARW 내장 JPEG"))
+        let count = browser.navigationSamples.count
+        browser.openFinderFile(raw)
+        waitUntil("same-folder Finder open reuses RAW cache") { browser.navigationSamples.count > count }
+        XCTAssertEqual(browser.navigationSamples.last?["cacheHit"], 1)
     }
 
     @MainActor

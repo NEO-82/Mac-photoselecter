@@ -498,8 +498,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         guard url.isFileURL, url.pathExtension.lowercased() == "arw" else { return }
         taggedOnlyButton.state = .off
         if url.lastPathComponent.hasPrefix(".") { tree.showHidden = true }
-        if currentFolder == url.deletingLastPathComponent(), !folderLoading,
-           let index = allEntries.firstIndex(where: { $0.url == url }) {
+        if currentFolder.map(TagStore.key) == TagStore.key(url.deletingLastPathComponent()), !folderLoading,
+           let index = allEntries.firstIndex(where: { TagStore.key($0.url) == TagStore.key(url) }) {
             selectedURL = allEntries[index].url
             applyTagFilter()
             if let index = list.selectedIndex { showPhoto(index) }
