@@ -6,13 +6,13 @@ Building for debugging...
 [1/11] Write sources
 [4/11] Write PhotoSelect-entitlement.plist
 [5/11] Write swift-version--79AA4F9932D1E87A.txt
-[7/18] Emitting module PhotoSelect
-[8/18] Compiling PhotoSelect App.swift
-[9/18] Compiling PhotoSelect BatchRename.swift
-[10/18] Compiling PhotoSelect BatchRenameWindow.swift
-[11/18] Compiling PhotoSelect Browser.swift
-[12/18] Compiling PhotoSelect EmbeddedPreview.swift
-[13/18] Compiling PhotoSelect FolderTree.swift
+[7/18] Compiling PhotoSelect App.swift
+[8/18] Compiling PhotoSelect BatchRename.swift
+[9/18] Compiling PhotoSelect BatchRenameWindow.swift
+[10/18] Compiling PhotoSelect Browser.swift
+[11/18] Compiling PhotoSelect EmbeddedPreview.swift
+[12/18] Compiling PhotoSelect FolderTree.swift
+[13/18] Emitting module PhotoSelect
 [14/23] Compiling PhotoSelect ImagePipeline.swift
 [15/23] Compiling PhotoSelect PhotoActions.swift
 [16/23] Compiling PhotoSelect PhotoModel.swift
@@ -23,48 +23,166 @@ Building for debugging...
 [20/23] Applying PhotoSelect
 [22/29] Emitting module PhotoSelectTests
 [23/29] Compiling PhotoSelectTests BatchRenameTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:55:60: error: cannot find type 'PhotoGridView' in scope
-  53 |         let views = descendants(try XCTUnwrap(window?.contentView))
-  54 |         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
-  55 |         let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoGridView }.first)
-     |                                                            `- error: cannot find type 'PhotoGridView' in scope
-  56 |         let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.title == "태그된 사진만 보기" })
-  57 |         filter.state = .on
 [24/29] Compiling PhotoSelectTests BrowserUITests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:55:60: error: cannot find type 'PhotoGridView' in scope
-  53 |         let views = descendants(try XCTUnwrap(window?.contentView))
-  54 |         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
-  55 |         let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoGridView }.first)
-     |                                                            `- error: cannot find type 'PhotoGridView' in scope
-  56 |         let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.title == "태그된 사진만 보기" })
-  57 |         filter.state = .on
 [25/29] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:55:60: error: cannot find type 'PhotoGridView' in scope
-  53 |         let views = descendants(try XCTUnwrap(window?.contentView))
-  54 |         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
-  55 |         let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoGridView }.first)
-     |                                                            `- error: cannot find type 'PhotoGridView' in scope
-  56 |         let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.title == "태그된 사진만 보기" })
-  57 |         filter.state = .on
 [26/29] Compiling PhotoSelectTests FolderTreeTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:55:60: error: cannot find type 'PhotoGridView' in scope
-  53 |         let views = descendants(try XCTUnwrap(window?.contentView))
-  54 |         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
-  55 |         let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoGridView }.first)
-     |                                                            `- error: cannot find type 'PhotoGridView' in scope
-  56 |         let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.title == "태그된 사진만 보기" })
-  57 |         filter.state = .on
 [27/29] Compiling PhotoSelectTests ImagePipelineTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:55:60: error: cannot find type 'PhotoGridView' in scope
-  53 |         let views = descendants(try XCTUnwrap(window?.contentView))
-  54 |         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
-  55 |         let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoGridView }.first)
-     |                                                            `- error: cannot find type 'PhotoGridView' in scope
-  56 |         let filter = try XCTUnwrap(views.compactMap { $0 as? NSButton }.first { $0.title == "태그된 사진만 보기" })
-  57 |         filter.state = .on
 [28/34] Compiling PhotoSelectTests PhotoActionsTests.swift
 [29/34] Compiling PhotoSelectTests PhotoSelectTests.swift
 [30/34] Compiling PhotoSelectTests PhotoSortingTests.swift
 [31/34] Compiling PhotoSelectTests ViewerInteractionTests.swift
 [32/34] Compiling PhotoSelectTests WindowLayoutTests.swift
-error: fatalError
+[33/36] Compiling PhotoSelectPackageTests runner.swift
+[34/36] Emitting module PhotoSelectPackageTests
+[34/36] Write Objects.LinkFileList
+[35/36] Linking PhotoSelectPackageTests
+Build complete! (157.72s)
+[1/119] Testing PhotoSelectTests.BatchRenameTests/testAppleDoubleMetadataIsNotTreatedAsARWPhoto
+[2/119] Testing PhotoSelectTests.BatchRenameTests/testChangedVolumeRefusesBeforeAnyRename
+[3/119] Testing PhotoSelectTests.BatchRenameTests/testCommittedRecoveryReplaysTagsIdempotentlyAcrossNameSwap
+[4/119] Testing PhotoSelectTests.BatchRenameTests/testCommitUpdatesOnlyTargetsAndTagsWithoutChangingPhotoBytes
+[5/119] Testing PhotoSelectTests.BatchRenameTests/testConflictPermissionErrorAndChangedFolderNeverOverwrite
+[6/119] Testing PhotoSelectTests.BatchRenameTests/testCycleUsesTemporaryNamesAndTagMappingIsSimultaneous
+[7/119] Testing PhotoSelectTests.BatchRenameTests/testExclusiveMoveAndTraversalValidationProtectForeignFiles
+[8/119] Testing PhotoSelectTests.BatchRenameTests/testForeignFileCreatedDuringFailureIsNeverOverwrittenOnRollback
+[9/119] Testing PhotoSelectTests.BatchRenameTests/testHardLinkAliasesAndCorruptTagStoreRefuseBeforeFileChanges
+[10/119] Testing PhotoSelectTests.BatchRenameTests/testInterruptedDriveOperationKeepsJournalAndCanRecoverLater
+[11/119] Testing PhotoSelectTests.BatchRenameTests/testMiddleCommitFailureRollsBackOriginalNamesAndTags
+[12/119] Testing PhotoSelectTests.BatchRenameTests/testTagWriteFailureRestoresFilesAndRetainsJournalUntilTagsAreWritable
+[13/119] Testing PhotoSelectTests.BatchRenameTests/testThreeThousandActualRenamesWithOneThousandTagsPreserveEveryFile
+[14/119] Testing PhotoSelectTests.BatchRenameTests/testThreeThousandPreviewUsesSortedOrderIndependentExtensionsAndContinuousNumbers
+[15/119] Testing PhotoSelectTests.BrowserUITests/testAboutMenuShowsSeoaCreditsInRoseOnNativePanel
+[16/119] Testing PhotoSelectTests.BrowserUITests/testBatchRenamePreviewWhileTaggedFilterIncludesEveryPhotoAndKeepsTags
+[17/119] Testing PhotoSelectTests.BrowserUITests/testBrowserStartsWithTreeGridAndPreviewColumns
+[18/119] Testing PhotoSelectTests.BrowserUITests/testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized
+[19/119] Testing PhotoSelectTests.BrowserUITests/testDeviceChangeInvalidatesRenamePreviewAndAllowsReopening
+[20/119] Testing PhotoSelectTests.BrowserUITests/testDeviceChangeNotificationRetainsErrorWhenReopeningViewer
+[21/119] Testing PhotoSelectTests.BrowserUITests/testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch
+[22/119] Testing PhotoSelectTests.BrowserUITests/testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns
+[23/119] Testing PhotoSelectTests.BrowserUITests/testFinderOpenRealSonyPreview
+[24/119] Testing PhotoSelectTests.BrowserUITests/testFinderOpenSelectsARWLoadsParentAndReusesWindow
+[25/119] Testing PhotoSelectTests.BrowserUITests/testFinderRapidFolderOpenKeepsLatestSelection
+[26/119] Testing PhotoSelectTests.BrowserUITests/testInitialBrowserFrameFitsActualAvailableScreen
+[27/119] Testing PhotoSelectTests.BrowserUITests/testLargeFolders2000And3000UseLazyThumbnailsAndBoundedDisplayWork
+[28/119] Testing PhotoSelectTests.BrowserUITests/testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded
+[29/119] Testing PhotoSelectTests.BrowserUITests/testMixedBrowserFolderNavigationFilePreviewAndCreditLayout
+[30/119] Testing PhotoSelectTests.BrowserUITests/testNativeMenuCommandsNavigateAndTagCurrentPhoto
+[31/119] Testing PhotoSelectTests.BrowserUITests/testNavigationKeepsLastFrameRejectsStaleCompletionAndSurvivesFailure
+[32/119] Testing PhotoSelectTests.BrowserUITests/testPresentingVisibleViewerKeepsManualWindowSize
+[33/119] Testing PhotoSelectTests.BrowserUITests/testPreviewFilenameIsBelowImage
+[34/119] Testing PhotoSelectTests.BrowserUITests/testRealA7M4NavigationBenchmark
+[35/119] Testing PhotoSelectTests.BrowserUITests/testRealA7M4PreviewStaysIdenticalDuringHeldZoomAndCachedNavigation
+[36/119] Testing PhotoSelectTests.BrowserUITests/testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList
+[37/119] Testing PhotoSelectTests.BrowserUITests/testSelectingThumbnailChangesRightPreview
+[38/119] Testing PhotoSelectTests.BrowserUITests/testSoftRomanticPaletteRendersInDarkAndLightAppearances
+[39/119] Testing PhotoSelectTests.BrowserUITests/testSortButtonsKeepSelectionAndViewerOrderWithoutTouchingTags
+[40/119] Testing PhotoSelectTests.BrowserUITests/testStandardMenusDisablePhotoActionsUntilFolderHasPhotos
+[41/119] Testing PhotoSelectTests.BrowserUITests/testTagBadgeReturnsAfterClosingAndRecreatingBrowser
+[42/119] Testing PhotoSelectTests.BrowserUITests/testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths
+[43/119] Testing PhotoSelectTests.BrowserUITests/testTaggedFilterViewerNavigationUntagTrashAndPersistence
+[44/119] Testing PhotoSelectTests.BrowserUITests/testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge
+[45/119] Testing PhotoSelectTests.BrowserUITests/testViewerDoubleClickReturnsToSamePhotoAndFolder
+[46/119] Testing PhotoSelectTests.BrowserUITests/testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll
+[47/119] Testing PhotoSelectTests.BrowserUITests/testViewerStartsAsMaximizedWindowInsideVisibleScreen
+[48/119] Testing PhotoSelectTests.EmbeddedPreviewTests/testAdobeRGBHintUsesOuterExifInteropWhenJPEGHasNoExif
+[49/119] Testing PhotoSelectTests.EmbeddedPreviewTests/testCFASensorStripIsNotScannedOrSelectedOverCameraPreview
+[50/119] Testing PhotoSelectTests.EmbeddedPreviewTests/testCyclicIFDAndOversizedOffsetsAreBounded
+[51/119] Testing PhotoSelectTests.EmbeddedPreviewTests/testEightBitYCbCrJPEGStripRemainsAProcessedPreview
+[52/119] Testing PhotoSelectTests.EmbeddedPreviewTests/testLargestLinkedPreviewWinsOverThumbnailAndPrimaryPreview
+[53/119] Testing PhotoSelectTests.EmbeddedPreviewTests/testLosslessBayerAndNonEightBitFramesCannotBecomePreview
+[54/119] Testing PhotoSelectTests.EmbeddedPreviewTests/testSonyMakerNoteHeaderAnd32BytePreviewPrefix
+[55/119] Testing PhotoSelectTests.EmbeddedPreviewTests/testTinyOnlyOrTruncatedJPEGIsNeverUsedAsLargePreview
+[56/119] Testing PhotoSelectTests.EmbeddedPreviewTests/testUnknownLayoutRecoveryFindsLargestCompleteProgressiveJPEG
+[57/119] Testing PhotoSelectTests.FolderTreeTests/testDeniedFolderCanBeExpandedAgainAfterAccessChanges
+[58/119] Testing PhotoSelectTests.FolderTreeTests/testDesktopShortcutUsesSystemDesktopLocation
+[59/119] Testing PhotoSelectTests.FolderTreeTests/testGeneralEntriesStaySeparateFromPhotoDecodeList
+[60/119] Testing PhotoSelectTests.FolderTreeTests/testHiddenRefreshPreservesExpandedPathAndSelectedFolder
+[61/119] Testing PhotoSelectTests.FolderTreeTests/testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter
+[62/119] Testing PhotoSelectTests.FolderTreeTests/testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter
+[63/119] Testing PhotoSelectTests.FolderTreeTests/testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache
+[64/119] Testing PhotoSelectTests.FolderTreeTests/testSelectingCachedFolderRevealsCollapsedAncestors
+[65/119] Testing PhotoSelectTests.FolderTreeTests/testUserSelectionDuringRefreshOverridesPendingRestoration
+[66/119] Testing PhotoSelectTests.ImagePipelineTests/testAllEightJPEGOrientationsMatchImageIOReferenceGeometry
+[67/119] Testing PhotoSelectTests.ImagePipelineTests/testARWUsesSameNativeJPEGForDisplayZoomAndThumbnailColor
+[68/119] Testing PhotoSelectTests.ImagePipelineTests/testCancelledQueuedThumbnailDoesNotDecodeBehindVisibleRequests
+[69/119] Testing PhotoSelectTests.ImagePipelineTests/testClearRejectsFinishedOldWorkAndDoesNotRepopulateCache
+[70/119] Testing PhotoSelectTests.ImagePipelineTests/testEmbeddedICCOverridesContradictoryOuterColorHint
+[71/119] Testing PhotoSelectTests.ImagePipelineTests/testJPEGDisplayAndZoomNeverReplaceWithAnotherResolution
+[72/119] Testing PhotoSelectTests.ImagePipelineTests/testMemoryPressureKeepsSelectedBitmapAndActiveForegroundCompletion
+[73/119] Testing PhotoSelectTests.ImagePipelineTests/testOuterAdobeRGBHintIsAppliedBeforeConsistentSRGBConversion
+[74/119] Testing PhotoSelectTests.ImagePipelineTests/testPinnedCurrentAndNeighborsUseBoundedLRUWithoutDiscardingSelectedBitmap
+[75/119] Testing PhotoSelectTests.ImagePipelineTests/testPrefetchForegroundAndFullRequestsCoalesceWithIndependentCancellation
+[76/119] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M3PortraitAdobeRGBPreviewIsStableAndHonest
+[77/119] Testing PhotoSelectTests.ImagePipelineTests/testRealSonyA7M4FullSizeCameraJPEGIsStableAndColorManaged
+[78/119] Testing PhotoSelectTests.ImagePipelineTests/testSimultaneousCacheKeySwapKeepsDecodedPixelsAndPressureBudgetIsPersistent
+[79/119] Testing PhotoSelectTests.PhotoActionsTests/testCorruptTagMetadataIsPreserved
+[80/119] Testing PhotoSelectTests.PhotoActionsTests/testDeletingAnotherPhotoPreservesSelectionAndIndependentPair
+[81/119] Testing PhotoSelectTests.PhotoActionsTests/testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor
+[82/119] Testing PhotoSelectTests.PhotoActionsTests/testImmediateFinishPersistsTagsAndUntaggingAcrossSessions
+[83/119] Testing PhotoSelectTests.PhotoActionsTests/testJSBrandingReadsUnchangedV053TagDocument
+[84/119] Testing PhotoSelectTests.PhotoActionsTests/testNativeMacOSTrashReturnsRecoverableFixture
+[85/119] Testing PhotoSelectTests.PhotoActionsTests/testRapidTagTogglesSerializeAndEndUntagged
+[86/119] Testing PhotoSelectTests.PhotoActionsTests/testTagSurvivesReloadAndDoesNotChangeRawOrJpeg
+[87/119] Testing PhotoSelectTests.PhotoActionsTests/testTagWriteFailureIsReported
+[88/119] Testing PhotoSelectTests.PhotoActionsTests/testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting
+[89/119] Testing PhotoSelectTests.PhotoActionsTests/testTrashFailureKeepsSourceAndHasNoDeleteFallback
+[90/119] Testing PhotoSelectTests.PhotoActionsTests/testTrashMovesOnlyRequestedFileAndKeepsPair
+[91/119] Testing PhotoSelectTests.PhotoActionsTests/testTrashReceiptCapturesDestinationAndExternalSpaceGuidance
+[92/119] Testing PhotoSelectTests.PhotoSelectTests/testCorruptImageReturnsFailure
+[93/119] Testing PhotoSelectTests.PhotoSelectTests/testExtensionsAndRawJpegPair
+[94/119] Testing PhotoSelectTests.PhotoSelectTests/testFolderEnumerationIsNonRecursiveAndKeepsPairs
+[95/119] Testing PhotoSelectTests.PhotoSelectTests/testRetinaOneSourcePixelPerPhysicalPixel
+[96/119] Testing PhotoSelectTests.PhotoSelectTests/testZoomEdgesNeverRevealEmptySpaceForLargeImage
+[97/119] Testing PhotoSelectTests.PhotoSortingTests/testEXIFOriginalDateHasPriorityAndMissingDateHasNoFilesystemFallback
+[98/119] Testing PhotoSelectTests.PhotoSortingTests/testMetadataCacheSurvivesRenameAndInvalidatesChangedBytes
+[99/119] Testing PhotoSelectTests.PhotoSortingTests/testNaturalNameDirectionsAndSwitchResetsAscending
+[100/119] Testing PhotoSelectTests.PhotoSortingTests/testRealSonyARWCaptureMetadata
+[101/119] Testing PhotoSelectTests.PhotoSortingTests/testThreeThousandPhotoDateSizeTiesUnknownDatesAndNonPhotos
+[102/119] Testing PhotoSelectTests.ViewerInteractionTests/testDeactivationCancelsPendingZoom
+[103/119] Testing PhotoSelectTests.ViewerInteractionTests/testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat
+[104/119] Testing PhotoSelectTests.ViewerInteractionTests/testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer
+[105/119] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeCancelsPendingZoomBeforeClosing
+[106/119] Testing PhotoSelectTests.ViewerInteractionTests/testEscapeStillResetsZoomAndCloses
+[107/119] Testing PhotoSelectTests.ViewerInteractionTests/testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements
+[108/119] Testing PhotoSelectTests.ViewerInteractionTests/testLimitedRawFitDoesNotUpscaleAndJpegFitKeepsExistingBehavior
+[109/119] Testing PhotoSelectTests.ViewerInteractionTests/testPressAndReleaseStillSwitchBetweenZoomAndFit
+[110/119] Testing PhotoSelectTests.ViewerInteractionTests/testQuickDoubleClickClosesWithoutEverStartingZoom
+[111/119] Testing PhotoSelectTests.ViewerInteractionTests/testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit
+[112/119] Testing PhotoSelectTests.ViewerInteractionTests/testShortClickReleaseDoesNotCauseDelayedZoom
+[113/119] Testing PhotoSelectTests.ViewerInteractionTests/testZoomUsesActualDecodedPixelsEvenWhenRawMetadataIsLarger
+[114/119] Testing PhotoSelectTests.WindowLayoutTests/testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas
+[115/119] Testing PhotoSelectTests.WindowLayoutTests/testMinimumSizesNeverForceWindowOutsideSmallDisplay
+[116/119] Testing PhotoSelectTests.WindowLayoutTests/testMovedOrDisconnectedDisplayFrameFitsNewScreen
+[117/119] Testing PhotoSelectTests.WindowLayoutTests/testPhotoGridGetsMostWidthAndPreviewHasBoundedSize
+[118/119] Testing PhotoSelectTests.WindowLayoutTests/testUserSidebarWidthCanGrowAndSurvivesResize
+[119/119] Testing PhotoSelectTests.WindowLayoutTests/testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt
+Test Suite 'Selected tests' started at 2026-11-14 08:10:42.838.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-14 08:10:42.841.
+Test Suite 'BrowserUITests' started at 2026-11-14 08:10:42.841.
+Test Case '-[PhotoSelectTests.BrowserUITests testFinderOpenSelectsARWLoadsParentAndReusesWindow]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:63: error: -[PhotoSelectTests.BrowserUITests testFinderOpenSelectsARWLoadsParentAndReusesWindow] : XCTAssertEqual failed: ("Optional("/private/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/FA200959-1294-4AE1-BDF1-1EC230B5AD85/A.ARW")") is not equal to ("Optional("/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/FA200959-1294-4AE1-BDF1-1EC230B5AD85/A.ARW")")
+Test Case '-[PhotoSelectTests.BrowserUITests testFinderOpenSelectsARWLoadsParentAndReusesWindow]' failed (2.058 seconds).
+Test Suite 'BrowserUITests' failed at 2026-11-14 08:10:44.900.
+	 Executed 1 test, with 1 failure (0 unexpected) in 2.058 (2.059) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-14 08:10:44.900.
+	 Executed 1 test, with 1 failure (0 unexpected) in 2.058 (2.059) seconds
+Test Suite 'Selected tests' failed at 2026-11-14 08:10:44.900.
+	 Executed 1 test, with 1 failure (0 unexpected) in 2.058 (2.062) seconds
+
+Test Suite 'Selected tests' started at 2026-11-14 08:10:45.050.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-14 08:10:45.054.
+Test Suite 'BrowserUITests' started at 2026-11-14 08:10:45.054.
+Test Case '-[PhotoSelectTests.BrowserUITests testFinderRapidFolderOpenKeepsLatestSelection]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:106: error: -[PhotoSelectTests.BrowserUITests testFinderRapidFolderOpenKeepsLatestSelection] : XCTAssertEqual failed: ("Optional("/private/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/476859CC-175F-4F51-A429-ADD93529B78F/second.ARW")") is not equal to ("Optional("/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/476859CC-175F-4F51-A429-ADD93529B78F/second.ARW")")
+Test Case '-[PhotoSelectTests.BrowserUITests testFinderRapidFolderOpenKeepsLatestSelection]' failed (0.761 seconds).
+Test Suite 'BrowserUITests' failed at 2026-11-14 08:10:45.816.
+	 Executed 1 test, with 1 failure (0 unexpected) in 0.761 (0.761) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-14 08:10:45.816.
+	 Executed 1 test, with 1 failure (0 unexpected) in 0.761 (0.762) seconds
+Test Suite 'Selected tests' failed at 2026-11-14 08:10:45.816.
+	 Executed 1 test, with 1 failure (0 unexpected) in 0.761 (0.766) seconds
+
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: x86_64-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.
