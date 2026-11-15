@@ -5,10 +5,8 @@ cd "$(dirname "$0")/.."
 base="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/js-filesystem-probe.XXXXXX")"
 mount_path=""
 image=""
-detach_owned_image() {
-    [[ -n "$image" ]] || return 0
-    local device
-    if ! device="$(hdiutil info -plist | python3 -c '
+owned_image_device() {
+    hdiutil info -plist | python3 -c '
 import os, plistlib, sys
 images = plistlib.loads(sys.stdin.buffer.read()).get("images", [])
 for item in images:
@@ -17,14 +15,23 @@ for item in images:
         if entities:
             print(entities[0].get("dev-entry", ""))
         break
-' "$image")"; then return 1; fi
+' "$image"
+}
+detach_owned_image() {
+    [[ -n "$image" ]] || return 0
+    local device
+    device="$(owned_image_device)" || return 1
     if [[ -n "$device" ]]; then
         # Spotlight or the test runner can briefly retain a just-remounted
         # image. Retry, then force only this script's disposable image device.
         # Never apply this fallback to a physical or user-selected volume.
         if hdiutil detach "$device"; then return 0; fi
         sleep 2
+        device="$(owned_image_device)" || return 1
+        [[ -n "$device" ]] || return 0
         if hdiutil detach "$device"; then return 0; fi
+        device="$(owned_image_device)" || return 1
+        [[ -n "$device" ]] || return 0
         [[ "$image" == "$base/"*.sparseimage && -f "$image" && "$device" =~ ^/dev/disk[0-9]+$ ]] || return 1
         echo "Detaching busy disposable test image only: $image ($device)"
         hdiutil detach -force "$device"

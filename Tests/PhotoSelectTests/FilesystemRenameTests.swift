@@ -231,25 +231,55 @@ final class FilesystemRenameTests: XCTestCase {
             guard imageURL.pathExtension == "sparseimage", imageURL.deletingLastPathComponent() == mountURL.deletingLastPathComponent(),
                   mountURL.lastPathComponent.hasPrefix("mount-"),
                   try imageURL.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else { throw RenameProblem(message: "Disposable image provenance missing") }
-            try runHdiutil(["detach", mount])
+            guard let device = try disposableImageDevice(imageURL) else {
+                throw RenameProblem(message: "Disposable image attachment missing before remount test")
+            }
+            do { try runHdiutil(["detach", device]) }
+            catch {
+                // A busy detach can unmount the volume but leave its disk image
+                // attached. The old mount path then no longer identifies it.
+                // Re-resolve only the proven test image before forcing a detach.
+                if let remaining = try disposableImageDevice(imageURL) {
+                    try runHdiutil(["detach", "-force", remaining])
+                }
+            }
+            guard try disposableImageDevice(imageURL) == nil else {
+                throw RenameProblem(message: "Disposable image remains attached")
+            }
             try runHdiutil(["attach", "-nobrowse", "-mountpoint", mount, image])
             print("Verified disposable-image detach/reattach: \(mountURL.lastPathComponent)")
         }
     }
+    private func disposableImageDevice(_ image: URL) throws -> String? {
+        let process = Process(), output = Pipe()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
+        process.arguments = ["info", "-plist"]; process.standardOutput = output
+        try process.run()
+        let bytes = output.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard process.terminationStatus == 0,
+              let plist = try PropertyListSerialization.propertyList(from: bytes, format: nil) as? [String: Any],
+              let images = plist["images"] as? [[String: Any]] else {
+            throw RenameProblem(message: "Cannot inspect disposable image attachments")
+        }
+        let matches = images.filter { entry in
+            guard let path = entry["image-path"] as? String else { return false }
+            return URL(fileURLWithPath: path).resolvingSymlinksInPath() == image.resolvingSymlinksInPath()
+        }
+        guard matches.count <= 1 else { throw RenameProblem(message: "Ambiguous disposable image attachment") }
+        guard let match = matches.first else { return nil }
+        guard let entities = match["system-entities"] as? [[String: Any]],
+              let device = entities.first?["dev-entry"] as? String,
+              device.hasPrefix("/dev/disk"),
+              !device.dropFirst("/dev/disk".count).isEmpty,
+              device.dropFirst("/dev/disk".count).allSatisfy(\.isNumber) else {
+            throw RenameProblem(message: "Disposable image device provenance missing")
+        }
+        return device
+    }
     private func runHdiutil(_ args: [String]) throws {
         let process = Process(); process.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil"); process.arguments = args
         try process.run(); process.waitUntilExit()
-        if process.terminationStatus != 0, args.first == "detach", args.count == 2,
-           args[1] == ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_VOLUME"],
-           ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"]?.hasSuffix(".sparseimage") == true {
-            // Provenance is checked by remountDisposableImageIfRequested. Only
-            // the disposable test image may be forced; never a physical disk.
-            let force = Process(); force.executableURL = process.executableURL
-            force.arguments = ["detach", "-force", args[1]]
-            try force.run(); force.waitUntilExit()
-            guard force.terminationStatus == 0 else { throw RenameProblem(message: "Disposable image forced detach failed") }
-            return
-        }
         guard process.terminationStatus == 0 else { throw RenameProblem(message: "Disposable image test hdiutil failed: \(args[0])") }
     }
     func testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess() throws {
