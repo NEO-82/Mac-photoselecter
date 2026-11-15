@@ -1,632 +1,734 @@
 {
-  "cacheBudgetBytes" : 1610612736,
-  "cacheHitApplyMaxMs" : 15.87428900006671,
+  "architecture" : "arm64",
+  "cacheBudgetBytes" : 939524096,
+  "cacheHitApplyMaxMs" : 11.000958333283961,
   "configuration" : "Release",
-  "drawnFrames" : 113,
+  "drawnFrames" : 108,
   "emptyDrawsAfterFirstImage" : 0,
-  "firstFolderToImageMs" : 4671.1107210001046,
+  "firstFolderToImageMs" : 1409.0246250000291,
   "fixture" : "12 distinct paths hard-linked to one real Sony A7M4 file; same pixel contents",
-  "limitation" : "Intel macOS CI; warm OS file cache; draw callback timing, not GPU presentation or M1 Pro\/SSD comparison",
+  "limitation" : "macOS CI; warm OS file cache; draw callback timing, not GPU presentation or a physical user SSD comparison",
   "navigationRequests" : [
     {
       "cacheHit" : 0,
       "index" : 0,
-      "requestToApplyMs" : 1140.6089049999082
+      "requestToApplyMs" : 456.46954166670639
     },
     {
       "cacheHit" : 1,
       "index" : 1,
-      "requestToApplyMs" : 6.5890529999705905
-    },
-    {
-      "cacheHit" : 0,
-      "index" : 2,
-      "requestToApplyMs" : 3040.4184090000399
-    },
-    {
-      "cacheHit" : 0,
-      "index" : 3,
-      "requestToApplyMs" : 499.54341400007252
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 4,
-      "requestToApplyMs" : 15.87428900006671
-    },
-    {
-      "cacheHit" : 0,
-      "index" : 5,
-      "requestToApplyMs" : 1663.8624330000766
-    },
-    {
-      "cacheHit" : 0,
-      "index" : 6,
-      "requestToApplyMs" : 2041.436671999918
-    },
-    {
-      "cacheHit" : 0,
-      "index" : 7,
-      "requestToApplyMs" : 619.35725199987246
-    },
-    {
-      "cacheHit" : 0,
-      "index" : 8,
-      "requestToApplyMs" : 496.9410969999899
-    },
-    {
-      "cacheHit" : 0,
-      "index" : 9,
-      "requestToApplyMs" : 1531.2710849998439
-    },
-    {
-      "cacheHit" : 0,
-      "index" : 10,
-      "requestToApplyMs" : 1607.9463559999567
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 9,
-      "requestToApplyMs" : 4.0601189998596965
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 8,
-      "requestToApplyMs" : 3.7923909999335592
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 7,
-      "requestToApplyMs" : 3.770498999983829
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 6,
-      "requestToApplyMs" : 2.8040940001119452
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 5,
-      "requestToApplyMs" : 2.6719099998899765
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 4,
-      "requestToApplyMs" : 3.0281619999641407
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 3,
-      "requestToApplyMs" : 2.7535040001112066
+      "requestToApplyMs" : 2.1919166666748424
     },
     {
       "cacheHit" : 1,
       "index" : 2,
-      "requestToApplyMs" : 3.1495179998728418
+      "requestToApplyMs" : 2.1240833333422415
     },
     {
-      "cacheHit" : 1,
-      "index" : 1,
-      "requestToApplyMs" : 4.4128040001396585
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 0,
-      "requestToApplyMs" : 3.2365779998144717
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 1,
-      "requestToApplyMs" : 8.6889930000779714
-    },
-    {
-      "cacheHit" : 1,
-      "index" : 2,
-      "requestToApplyMs" : 5.4651479999847652
-    },
-    {
-      "cacheHit" : 1,
+      "cacheHit" : 0,
       "index" : 3,
-      "requestToApplyMs" : 3.6576249999598076
+      "requestToApplyMs" : 793.70970833338106
     },
     {
       "cacheHit" : 1,
       "index" : 4,
-      "requestToApplyMs" : 7.545226000047478
+      "requestToApplyMs" : 3.9530000000240761
     },
     {
       "cacheHit" : 1,
       "index" : 5,
-      "requestToApplyMs" : 5.1949960000001738
+      "requestToApplyMs" : 2.1073333333561095
     },
     {
-      "cacheHit" : 1,
+      "cacheHit" : 0,
       "index" : 6,
-      "requestToApplyMs" : 6.7563119998794718
+      "requestToApplyMs" : 1025.8456666666689
     },
     {
       "cacheHit" : 1,
       "index" : 7,
-      "requestToApplyMs" : 5.6562560000656958
+      "requestToApplyMs" : 2.580500000021857
     },
     {
       "cacheHit" : 1,
       "index" : 8,
-      "requestToApplyMs" : 3.6491779999323626
+      "requestToApplyMs" : 1.4515833332779948
     },
     {
-      "cacheHit" : 1,
+      "cacheHit" : 0,
       "index" : 9,
-      "requestToApplyMs" : 7.6075440001659445
+      "requestToApplyMs" : 904.40645833325561
     },
     {
       "cacheHit" : 1,
       "index" : 10,
-      "requestToApplyMs" : 2.2842199998649448
+      "requestToApplyMs" : 2.5336250000691507
     },
     {
       "cacheHit" : 1,
       "index" : 9,
-      "requestToApplyMs" : 2.5454410001657379
+      "requestToApplyMs" : 1.1455833333684495
     },
     {
       "cacheHit" : 1,
       "index" : 8,
-      "requestToApplyMs" : 2.4723069998344727
+      "requestToApplyMs" : 1.1049166666907695
     },
     {
       "cacheHit" : 1,
       "index" : 7,
-      "requestToApplyMs" : 2.5818550000167306
+      "requestToApplyMs" : 0.75562500001069566
     },
     {
       "cacheHit" : 1,
       "index" : 6,
-      "requestToApplyMs" : 2.4658449999606091
+      "requestToApplyMs" : 0.72295833331281756
     },
     {
       "cacheHit" : 1,
       "index" : 5,
-      "requestToApplyMs" : 2.4500800000168965
+      "requestToApplyMs" : 0.72820833338482771
     },
     {
       "cacheHit" : 1,
       "index" : 4,
-      "requestToApplyMs" : 2.2172510000473267
+      "requestToApplyMs" : 0.72216666660551709
     },
     {
-      "cacheHit" : 1,
+      "cacheHit" : 0,
       "index" : 3,
-      "requestToApplyMs" : 2.2954599999138736
+      "requestToApplyMs" : 1763.518124999905
     },
     {
       "cacheHit" : 1,
       "index" : 2,
-      "requestToApplyMs" : 2.0747880000726582
+      "requestToApplyMs" : 9.374208333383649
     },
     {
       "cacheHit" : 1,
       "index" : 1,
-      "requestToApplyMs" : 2.1967909999602853
+      "requestToApplyMs" : 4.6152500000289365
+    },
+    {
+      "cacheHit" : 0,
+      "index" : 0,
+      "requestToApplyMs" : 975.64741666667487
     },
     {
       "cacheHit" : 1,
+      "index" : 1,
+      "requestToApplyMs" : 6.1567916666263045
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 2,
+      "requestToApplyMs" : 3.2168333333402188
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 3,
+      "requestToApplyMs" : 1.1225416666320598
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 4,
+      "requestToApplyMs" : 0.78858333336029318
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 5,
+      "requestToApplyMs" : 0.7940833332895636
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 6,
+      "requestToApplyMs" : 0.99599999998645217
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 7,
+      "requestToApplyMs" : 0.96683333333658084
+    },
+    {
+      "cacheHit" : 0,
+      "index" : 8,
+      "requestToApplyMs" : 1437.1081666666896
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 9,
+      "requestToApplyMs" : 11.000958333283961
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 10,
+      "requestToApplyMs" : 2.1407916666476012
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 9,
+      "requestToApplyMs" : 3.9634583333736373
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 8,
+      "requestToApplyMs" : 1.3172083333756746
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 7,
+      "requestToApplyMs" : 2.0660833332613038
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 6,
+      "requestToApplyMs" : 2.2463749999133142
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 5,
+      "requestToApplyMs" : 1.4533333333019982
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 4,
+      "requestToApplyMs" : 1.3658749999194697
+    },
+    {
+      "cacheHit" : 1,
+      "index" : 3,
+      "requestToApplyMs" : 1.7331666666677847
+    },
+    {
+      "cacheHit" : 0,
       "index" : 0,
-      "requestToApplyMs" : 2.1973069999603467
+      "requestToApplyMs" : 1587.462749999986
     }
   ],
-  "physicalMemoryBytes" : 15032385536,
+  "osVersion" : "Version 27.0.1 (Build 26A434)",
+  "physicalMemoryBytes" : 7516192768,
   "pipeline" : {
-    "hits" : 125,
-    "misses" : 39,
-    "residentBitmapBytes" : 1571586048,
+    "hits" : 106,
+    "misses" : 59,
+    "residentBitmapBytes" : 1047724032,
     "stages" : [
       {
         "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 18.852279999919119,
-        "rasterizeIncludingDeferredJPEGMs" : 1017.6773630000753,
-        "sourceReadExtractMs" : 38.809999000022799
+        "imageIOCreateMs" : 3.75987500001429,
+        "rasterizeIncludingDeferredJPEGMs" : 355.70587500001238,
+        "sourceReadExtractMs" : 33.052916666747478
       },
       {
-        "queueWaitMs" : 0.091076999979122775,
-        "totalDecodeMs" : 1085.0721730000714
-      },
-      {
-        "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 19.523222000088936,
-        "rasterizeIncludingDeferredJPEGMs" : 1067.0748610000373,
-        "sourceReadExtractMs" : 39.072552999869004
-      },
-      {
-        "queueWaitMs" : 0.12222999998812156,
-        "totalDecodeMs" : 1136.1850979999417
+        "queueWaitMs" : 4.0747499999724823,
+        "totalDecodeMs" : 394.48016666665353
       },
       {
         "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.19333099999130354,
-        "rasterizeIncludingDeferredJPEGMs" : 5099.4451080000545,
-        "sourceReadExtractMs" : 8.3512349999637081
+        "imageIOCreateMs" : 9.1838750000761138,
+        "rasterizeIncludingDeferredJPEGMs" : 409.33804166672871,
+        "sourceReadExtractMs" : 33.74662500004888
       },
       {
-        "queueWaitMs" : 1085.2165240000886,
-        "totalDecodeMs" : 5192.2706699999708
-      },
-      {
-        "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.427430999934586,
-        "rasterizeIncludingDeferredJPEGMs" : 10487.031629000057,
-        "sourceReadExtractMs" : 9.3716940000376781
-      },
-      {
-        "queueWaitMs" : 2087.8709950000029,
-        "totalDecodeMs" : 10518.933118999939
+        "queueWaitMs" : 1.6246666666575038,
+        "totalDecodeMs" : 453.75595833331772
       },
       {
         "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.79788999983065878,
-        "rasterizeIncludingDeferredJPEGMs" : 3317.0202760002212,
-        "sourceReadExtractMs" : 14.213091999863536
+        "imageIOCreateMs" : 0.13512500004253525,
+        "rasterizeIncludingDeferredJPEGMs" : 436.5362499999037,
+        "sourceReadExtractMs" : 4.0963333333365881
       },
       {
-        "queueWaitMs" : 12600.359413999968,
-        "totalDecodeMs" : 3352.7748960000281
-      },
-      {
-        "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.32326800010196166,
-        "rasterizeIncludingDeferredJPEGMs" : 1659.5069489999332,
-        "sourceReadExtractMs" : 14.987381000082678
-      },
-      {
-        "queueWaitMs" : 3836.0670609999943,
-        "totalDecodeMs" : 1684.590801000013
+        "queueWaitMs" : 428.93779166661261,
+        "totalDecodeMs" : 443.35399999999936
       },
       {
         "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.3422820000196225,
-        "rasterizeIncludingDeferredJPEGMs" : 4903.4857310000461,
-        "sourceReadExtractMs" : 10.804672999938703
+        "imageIOCreateMs" : 0.17745833338267403,
+        "rasterizeIncludingDeferredJPEGMs" : 537.62449999999262,
+        "sourceReadExtractMs" : 4.3051666666542587
       },
       {
-        "queueWaitMs" : 1658.7562049999178,
-        "totalDecodeMs" : 5041.2864190000164
-      },
-      {
-        "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.92760600000474369,
-        "rasterizeIncludingDeferredJPEGMs" : 3927.5976100000207,
-        "sourceReadExtractMs" : 40.866810999887093
-      },
-      {
-        "queueWaitMs" : 6692.4067340000875,
-        "totalDecodeMs" : 3993.9485560000776
+        "queueWaitMs" : 0.94162500010952499,
+        "totalDecodeMs" : 543.94937499989737
       },
       {
         "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.20589099995049764,
-        "rasterizeIncludingDeferredJPEGMs" : 2657.7910989999509,
-        "sourceReadExtractMs" : 10.104596000019228
+        "imageIOCreateMs" : 0.19929166660404007,
+        "rasterizeIncludingDeferredJPEGMs" : 235.33574999999018,
+        "sourceReadExtractMs" : 4.0110833333528717
       },
       {
-        "queueWaitMs" : 5973.8666060000014,
-        "totalDecodeMs" : 2677.1842929999821
-      },
-      {
-        "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.19548199998098426,
-        "rasterizeIncludingDeferredJPEGMs" : 5633.5720199999741,
-        "sourceReadExtractMs" : 8.4601539999766828
-      },
-      {
-        "queueWaitMs" : 3263.9623170000505,
-        "totalDecodeMs" : 5669.933090999848
+        "queueWaitMs" : 541.99966666669752,
+        "totalDecodeMs" : 244.55054166674017
       },
       {
         "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.5948810000973026,
-        "rasterizeIncludingDeferredJPEGMs" : 3903.3960310000566,
-        "sourceReadExtractMs" : 15.887997999925574
+        "imageIOCreateMs" : 0.16504166671893472,
+        "rasterizeIncludingDeferredJPEGMs" : 891.83800000000701,
+        "sourceReadExtractMs" : 3.4725000000435102
       },
       {
-        "queueWaitMs" : 6157.9951879998589,
-        "totalDecodeMs" : 3944.3204520000563
+        "queueWaitMs" : 784.89012499994715,
+        "totalDecodeMs" : 923.857875000067
       },
       {
         "compressedCacheHit" : 0,
-        "imageIOCreateMs" : 0.23376799981633667,
-        "rasterizeIncludingDeferredJPEGMs" : 5364.8155470000347,
-        "sourceReadExtractMs" : 16.646530999878451
+        "imageIOCreateMs" : 0.23791666660599731,
+        "rasterizeIncludingDeferredJPEGMs" : 537.8211666666175,
+        "sourceReadExtractMs" : 4.247291666615638
       },
       {
-        "queueWaitMs" : 5442.7189309999449,
-        "totalDecodeMs" : 5407.6433069999439
+        "queueWaitMs" : 0.14912500000718865,
+        "totalDecodeMs" : 546.40774999995756
+      },
+      {
+        "compressedCacheHit" : 0,
+        "imageIOCreateMs" : 0.26258333332407346,
+        "rasterizeIncludingDeferredJPEGMs" : 462.51333333339062,
+        "sourceReadExtractMs" : 4.2074166666452584
+      },
+      {
+        "queueWaitMs" : 543.38133333328642,
+        "totalDecodeMs" : 469.01754166674436
+      },
+      {
+        "compressedCacheHit" : 0,
+        "imageIOCreateMs" : 0.20258333324818523,
+        "rasterizeIncludingDeferredJPEGMs" : 548.44475000004422,
+        "sourceReadExtractMs" : 3.6087083333313785
+      },
+      {
+        "queueWaitMs" : 1009.6141666666654,
+        "totalDecodeMs" : 554.54324999993787
+      },
+      {
+        "compressedCacheHit" : 0,
+        "imageIOCreateMs" : 0.26891666664141667,
+        "rasterizeIncludingDeferredJPEGMs" : 595.78629166662722,
+        "sourceReadExtractMs" : 5.678541666725323
+      },
+      {
+        "queueWaitMs" : 0.077749999945808668,
+        "totalDecodeMs" : 603.76925000002757
+      },
+      {
+        "compressedCacheHit" : 0,
+        "imageIOCreateMs" : 0.20933333325956482,
+        "rasterizeIncludingDeferredJPEGMs" : 563.77958333337119,
+        "sourceReadExtractMs" : 3.6104166666746096
+      },
+      {
+        "queueWaitMs" : 601.55004166665549,
+        "totalDecodeMs" : 569.26658333338764
+      },
+      {
+        "compressedCacheHit" : 0,
+        "imageIOCreateMs" : 0.1986666666198289,
+        "rasterizeIncludingDeferredJPEGMs" : 441.60308333334797,
+        "sourceReadExtractMs" : 3.2085000000279251
+      },
+      {
+        "queueWaitMs" : 1169.3138750000571,
+        "totalDecodeMs" : 447.5342499999897
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.1650000000381624,
+        "rasterizeIncludingDeferredJPEGMs" : 776.40124999993532,
+        "sourceReadExtractMs" : 0.036750000049323717
+      },
+      {
+        "queueWaitMs" : 0.054250000061983883,
+        "totalDecodeMs" : 778.39333333326977
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.16966666669304686,
+        "rasterizeIncludingDeferredJPEGMs" : 657.57441666664818,
+        "sourceReadExtractMs" : 0.026458333422851865
+      },
+      {
+        "queueWaitMs" : 777.06095833332256,
+        "totalDecodeMs" : 659.62620833340679
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.22441666658323811,
+        "rasterizeIncludingDeferredJPEGMs" : 332.21541666671328,
+        "sourceReadExtractMs" : 0.042041666688419355
+      },
+      {
+        "queueWaitMs" : 1435.4301666666061,
+        "totalDecodeMs" : 334.28650000007565
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.4887500000450018,
+        "rasterizeIncludingDeferredJPEGMs" : 559.18058333338649,
+        "sourceReadExtractMs" : 0.11895833335984207
+      },
+      {
+        "queueWaitMs" : 0.064999999949577614,
+        "totalDecodeMs" : 561.74654166670734
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.19758333326080901,
+        "rasterizeIncludingDeferredJPEGMs" : 502.13925000002746,
+        "sourceReadExtractMs" : 0.036625000007006747
+      },
+      {
+        "queueWaitMs" : 0.048208333282673266,
+        "totalDecodeMs" : 502.83845833337182
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.6042083333568371,
+        "rasterizeIncludingDeferredJPEGMs" : 697.82504166676063,
+        "sourceReadExtractMs" : 0.36283333326991851
+      },
+      {
+        "queueWaitMs" : 501.47820833331025,
+        "totalDecodeMs" : 703.53520833327821
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.23079166669504048,
+        "rasterizeIncludingDeferredJPEGMs" : 621.56850000008035,
+        "sourceReadExtractMs" : 0.095958333304224652
+      },
+      {
+        "queueWaitMs" : 1203.6115000000791,
+        "totalDecodeMs" : 621.99683333335543
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.20241666663878277,
+        "rasterizeIncludingDeferredJPEGMs" : 895.8797916666299,
+        "sourceReadExtractMs" : 0.02612499997667328
+      },
+      {
+        "queueWaitMs" : 4.556333333425755,
+        "totalDecodeMs" : 896.24291666666522
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.20370833328797744,
+        "rasterizeIncludingDeferredJPEGMs" : 971.61349999998947,
+        "sourceReadExtractMs" : 0.055083333336369833
+      },
+      {
+        "queueWaitMs" : 0.031666666586716019,
+        "totalDecodeMs" : 974.22829166669089
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.21141666672974679,
+        "rasterizeIncludingDeferredJPEGMs" : 359.71837499994308,
+        "sourceReadExtractMs" : 0.055625000072723196
+      },
+      {
+        "queueWaitMs" : 898.3485416666781,
+        "totalDecodeMs" : 360.11320833335958
+      },
+      {
+        "compressedCacheHit" : 1,
+        "imageIOCreateMs" : 0.2112500000066575,
+        "rasterizeIncludingDeferredJPEGMs" : 334.91270833326325,
+        "sourceReadExtractMs" : 0.031333333254224272
+      },
+      {
+        "queueWaitMs" : 1256.555624999919,
+        "totalDecodeMs" : 335.28245833338133
       }
     ]
   },
   "processMemory" : {
-    "peakResidentBytes" : 4745674752,
-    "residentBytes" : 4483981312
+    "peakResidentBytes" : 2458992640,
+    "residentBytes" : 1199898624
   },
   "scenarios" : {
     "back5" : {
       "drawMs" : [
-        0.029867999955968116,
-        0.017547999959788285,
-        0.01735500018185121,
-        0.01971099982256419,
-        0.017149000086646993
+        0.0071250000246436684,
+        0.0056666666523597087,
+        0.012041666650475236,
+        0.0076249999665378709,
+        0.0072916666340461234
       ],
       "requests" : [
         {
           "cacheHit" : 1,
           "index" : 9,
-          "requestToApplyMs" : 2.5454410001657379
+          "requestToApplyMs" : 3.9634583333736373
         },
         {
           "cacheHit" : 1,
           "index" : 8,
-          "requestToApplyMs" : 2.4723069998344727
+          "requestToApplyMs" : 1.3172083333756746
         },
         {
           "cacheHit" : 1,
           "index" : 7,
-          "requestToApplyMs" : 2.5818550000167306
+          "requestToApplyMs" : 2.0660833332613038
         },
         {
           "cacheHit" : 1,
           "index" : 6,
-          "requestToApplyMs" : 2.4658449999606091
+          "requestToApplyMs" : 2.2463749999133142
         },
         {
           "cacheHit" : 1,
           "index" : 5,
-          "requestToApplyMs" : 2.4500800000168965
+          "requestToApplyMs" : 1.4533333333019982
         }
       ],
       "requestToDrawMs" : [
-        2.2332780001761421,
-        2.1905479998167721,
-        2.2901980000824551,
-        2.1774839999579854,
-        2.1663830000306916
+        3.6073750000014115,
+        1.0525000000143336,
+        1.690583333243012,
+        1.7952916666672536,
+        1.1680833332547991
       ],
-      "totalMs" : 23.004366999884951
+      "totalMs" : 19.126125000070715
     },
     "forward10" : {
       "drawMs" : [
         0,
-        0.20357299990791944,
-        0.13113499994688027,
-        0.021679999917978421,
-        0.47734200006743777,
-        0.058371000022816588,
-        0.043204999883528217,
-        0.075694999850384193,
-        0.046462000000246917,
-        0.063265000108003733
+        0,
+        0.033666666695353342,
+        0.016416666653640277,
+        0.0070416667767858598,
+        0.039249999986168405,
+        0.0075833333994523855,
+        0.0057916666946766782,
+        0.029791666634082503,
+        0.0076249999665378709
       ],
       "requests" : [
         {
           "cacheHit" : 1,
           "index" : 1,
-          "requestToApplyMs" : 6.5890529999705905
+          "requestToApplyMs" : 2.1919166666748424
         },
         {
-          "cacheHit" : 0,
+          "cacheHit" : 1,
           "index" : 2,
-          "requestToApplyMs" : 3040.4184090000399
+          "requestToApplyMs" : 2.1240833333422415
         },
         {
           "cacheHit" : 0,
           "index" : 3,
-          "requestToApplyMs" : 499.54341400007252
+          "requestToApplyMs" : 793.70970833338106
         },
         {
           "cacheHit" : 1,
           "index" : 4,
-          "requestToApplyMs" : 15.87428900006671
+          "requestToApplyMs" : 3.9530000000240761
         },
         {
-          "cacheHit" : 0,
+          "cacheHit" : 1,
           "index" : 5,
-          "requestToApplyMs" : 1663.8624330000766
+          "requestToApplyMs" : 2.1073333333561095
         },
         {
           "cacheHit" : 0,
           "index" : 6,
-          "requestToApplyMs" : 2041.436671999918
+          "requestToApplyMs" : 1025.8456666666689
         },
         {
-          "cacheHit" : 0,
+          "cacheHit" : 1,
           "index" : 7,
-          "requestToApplyMs" : 619.35725199987246
+          "requestToApplyMs" : 2.580500000021857
         },
         {
-          "cacheHit" : 0,
+          "cacheHit" : 1,
           "index" : 8,
-          "requestToApplyMs" : 496.9410969999899
+          "requestToApplyMs" : 1.4515833332779948
         },
         {
           "cacheHit" : 0,
           "index" : 9,
-          "requestToApplyMs" : 1531.2710849998439
+          "requestToApplyMs" : 904.40645833325561
         },
         {
-          "cacheHit" : 0,
+          "cacheHit" : 1,
           "index" : 10,
-          "requestToApplyMs" : 1607.9463559999567
+          "requestToApplyMs" : 2.5336250000691507
         }
       ],
       "requestToDrawMs" : [
         0,
-        3035.4114689998823,
-        496.80930399995304,
-        6.6772570000921405,
-        1661.1020440000175,
-        2030.5880429998524,
-        616.96225499986213,
-        495.76348799996595,
-        1526.253522999923,
-        1606.4622650001184
+        0,
+        792.85408333339547,
+        2.6357916666484016,
+        1.5630833333943883,
+        1024.7134166667138,
+        1.8407500000421351,
+        0.89845833338131342,
+        903.24779166667213,
+        1.7644166666741512
       ],
-      "totalMs" : 44288.555274999904
+      "totalMs" : 5548.5967083333207
     },
     "forward10Again" : {
       "drawMs" : [
-        0.035819000004266854,
-        0.046779999820500962,
-        0.026496999907976715,
-        0.026328000103603699,
-        0.031906000003800727,
-        0.020453999923120136,
-        0.035281000009490526,
-        0.11082699984399369,
-        0.017338000134259346,
-        0.017335000165985548
+        0.0076666666473101941,
+        0.011416666666264064,
+        0.0065833332882903051,
+        0.0054583333621849306,
+        0.0072916666340461234,
+        0.006999999982326699,
+        0.0048749999450592441,
+        0.25616666664518561,
+        0.021374999960244168,
+        0.023083333303475229
       ],
       "requests" : [
         {
           "cacheHit" : 1,
           "index" : 1,
-          "requestToApplyMs" : 8.6889930000779714
+          "requestToApplyMs" : 6.1567916666263045
         },
         {
           "cacheHit" : 1,
           "index" : 2,
-          "requestToApplyMs" : 5.4651479999847652
+          "requestToApplyMs" : 3.2168333333402188
         },
         {
           "cacheHit" : 1,
           "index" : 3,
-          "requestToApplyMs" : 3.6576249999598076
+          "requestToApplyMs" : 1.1225416666320598
         },
         {
           "cacheHit" : 1,
           "index" : 4,
-          "requestToApplyMs" : 7.545226000047478
+          "requestToApplyMs" : 0.78858333336029318
         },
         {
           "cacheHit" : 1,
           "index" : 5,
-          "requestToApplyMs" : 5.1949960000001738
+          "requestToApplyMs" : 0.7940833332895636
         },
         {
           "cacheHit" : 1,
           "index" : 6,
-          "requestToApplyMs" : 6.7563119998794718
+          "requestToApplyMs" : 0.99599999998645217
         },
         {
           "cacheHit" : 1,
           "index" : 7,
-          "requestToApplyMs" : 5.6562560000656958
+          "requestToApplyMs" : 0.96683333333658084
         },
         {
-          "cacheHit" : 1,
+          "cacheHit" : 0,
           "index" : 8,
-          "requestToApplyMs" : 3.6491779999323626
+          "requestToApplyMs" : 1437.1081666666896
         },
         {
           "cacheHit" : 1,
           "index" : 9,
-          "requestToApplyMs" : 7.6075440001659445
+          "requestToApplyMs" : 11.000958333283961
         },
         {
           "cacheHit" : 1,
           "index" : 10,
-          "requestToApplyMs" : 2.2842199998649448
+          "requestToApplyMs" : 2.1407916666476012
         }
       ],
       "requestToDrawMs" : [
-        7.732761999932336,
-        4.9475280000024213,
-        3.4178890000475803,
-        7.1466159999999945,
-        4.8421830001643684,
-        6.1878960000285588,
-        4.8955960000967025,
-        3.2504809998954443,
-        7.277957000042079,
-        1.9950829998833797
+        4.5013749999043284,
+        2.8790833332550392,
+        0.87179166666828678,
+        0.6637083333771443,
+        0.66637499992339144,
+        0.80145833339884121,
+        0.78133333329333254,
+        1428.9634583333282,
+        8.7104166666449601,
+        1.1168333332989278
       ],
-      "totalMs" : 98.308574999919074
+      "totalMs" : 2643.4043333333648
     },
     "reverse10" : {
       "drawMs" : [
-        0.026948999902742798,
-        0.031410000019604922,
-        0.018780999880618765,
-        0.01879599994936143,
-        0.019793000092249713,
-        0.032795999914014828,
-        0.020098000049983966,
-        0.02020900001298287,
-        0.030465000008916832,
-        0.3965689998040034
+        0.0078749999374849722,
+        0.0067500000113795977,
+        0.0048333332642869209,
+        0.0052500000720101525,
+        0.0062916667502577184,
+        0.006374999998115527,
+        0.13179166660393093,
+        0.10312500000964064,
+        0.0078750000511718099,
+        0.047791666588636872
       ],
       "requests" : [
         {
           "cacheHit" : 1,
           "index" : 9,
-          "requestToApplyMs" : 4.0601189998596965
+          "requestToApplyMs" : 1.1455833333684495
         },
         {
           "cacheHit" : 1,
           "index" : 8,
-          "requestToApplyMs" : 3.7923909999335592
+          "requestToApplyMs" : 1.1049166666907695
         },
         {
           "cacheHit" : 1,
           "index" : 7,
-          "requestToApplyMs" : 3.770498999983829
+          "requestToApplyMs" : 0.75562500001069566
         },
         {
           "cacheHit" : 1,
           "index" : 6,
-          "requestToApplyMs" : 2.8040940001119452
+          "requestToApplyMs" : 0.72295833331281756
         },
         {
           "cacheHit" : 1,
           "index" : 5,
-          "requestToApplyMs" : 2.6719099998899765
+          "requestToApplyMs" : 0.72820833338482771
         },
         {
           "cacheHit" : 1,
           "index" : 4,
-          "requestToApplyMs" : 3.0281619999641407
+          "requestToApplyMs" : 0.72216666660551709
         },
         {
-          "cacheHit" : 1,
+          "cacheHit" : 0,
           "index" : 3,
-          "requestToApplyMs" : 2.7535040001112066
+          "requestToApplyMs" : 1763.518124999905
         },
         {
           "cacheHit" : 1,
           "index" : 2,
-          "requestToApplyMs" : 3.1495179998728418
+          "requestToApplyMs" : 9.374208333383649
         },
         {
           "cacheHit" : 1,
           "index" : 1,
-          "requestToApplyMs" : 4.4128040001396585
+          "requestToApplyMs" : 4.6152500000289365
         },
         {
-          "cacheHit" : 1,
+          "cacheHit" : 0,
           "index" : 0,
-          "requestToApplyMs" : 3.2365779998144717
+          "requestToApplyMs" : 975.64741666667487
         }
       ],
       "requestToDrawMs" : [
-        3.5947669998677156,
-        3.3877890000439947,
-        3.3581190000404604,
-        2.4509679999482614,
-        2.3389460000089457,
-        2.6681269998789503,
-        2.4661100001139857,
-        2.8982779999751074,
-        3.0236039999635977,
-        2.8256009998131049
+        0.92587500000718137,
+        0.94112499994025711,
+        0.61633333325517015,
+        0.58341666670003178,
+        0.59362499996495899,
+        0.60683333322231192,
+        1763.0904583332949,
+        7.9675833333112678,
+        3.2987083334319323,
+        975.27195833333735
       ],
-      "totalMs" : 75.85183500009407
+      "totalMs" : 4213.6447916666384
     }
   }
 }

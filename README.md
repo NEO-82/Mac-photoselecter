@@ -4,9 +4,9 @@ Jeonggwang ♡ Seoa.
 
 Apple Silicon(M1 이상), macOS 13+용 Swift/AppKit 사진 탐색기입니다. ARW/JPG/JPEG를 지원합니다.
 
-[J♡S v0.7.2 빌드87 확대 배율 검증판 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/f829d76883e0d6ea22840e7801aecead1d8fb14b/downloads/J-S-0.7.2-arm64.dmg)
+[J♡S v0.7.2 빌드90 확대 배율 검증판 다운로드 (.dmg)](https://github.com/NEO-82/Mac-photoselecter/raw/74f81b6c8784e06b703623aa714b3005e2bef435/downloads/J-S-0.7.2-arm64.dmg)
 
-현재 배포는 **v0.7.2 빌드87 확대 배율 검증판**입니다. 보기 메뉴에서 클릭 유지 확대를 100~200%로 선택하고 저장합니다. **exFAT 자동 이름 변경 수정은 미완료이며 미지원 볼륨에서는 원본 변경 전에 중단합니다. 요청 전체의 완료판은 아닙니다.** [변경 코드·검증·계측·남은 작업](docs/v0.7.2-development.md).
+현재 배포는 **v0.7.2 빌드90 확대 배율 검증판**입니다. 보기 메뉴에서 클릭 유지 확대를 100~200%로 선택하고 저장합니다. **exFAT 자동 이름 변경 수정은 미완료이며 미지원 볼륨에서는 원본 변경 전에 중단합니다. 요청 전체의 완료판은 아닙니다.** [변경 코드·검증·계측·남은 작업](docs/v0.7.2-development.md).
 
 v0.7.0의 [다중 선택·선택 파일 이름 변경·다중 휴지통 이동](docs/multi-selection.md), [Finder ARW 열기·기본 앱 설정](docs/finder-open.md), 기존 정렬·태그·사진 탐색은 유지합니다.
 
@@ -100,3 +100,5 @@ Swift Package 개발 실행은 `swift run PhotoSelect`도 지원합니다. 배�
 0.7.0 빌드71은 다중 선택과 선택 파일 이름 변경을 통합합니다. macOS XCTest **130개**, Release RAW/탐색 **4개**, Release 3,005장 선택 검사 **1개**, arm64 앱·서명·아이콘·DMG 및 실제 다운로드 SHA-256 검증을 통과했습니다. 선택 95백분위 **6.93ms**, RAW 캐시 적중 적용 최대 **18.34ms**, 빈 draw **0회**입니다. [상세 변경·검증 범위·실기기 절차](docs/multi-selection.md).
 
 0.7.1 빌드80은 APFS/HFS+의 기존 안전한 이름 변경을 유지하고 미지원 exFAT에서는 실행 전에 중단합니다. 원자적 독점 변경 API 2종과 볼륨 정보 검사, 부분 결과·위치 불명·태그 보류·저널 보존 보고를 보완했습니다. 전체 XCTest **136개**, 볼륨별 **6개씩**(exFAT은 안전 중단 검사), Release RAW **4개** 및 선택 성능 **1개**, arm64 DMG와 실제 다운로드 SHA-256 검증을 통과했습니다. exFAT 자동 변경 및 실물 SSD/HDD 검증은 완료하지 않았습니다. [검증 근거와 안전 한계](docs/filesystem-rename.md).
+
+0.7.2 빌드90은 보기 메뉴의 **100~200% 클릭 유지 확대 배율**과 설정 저장을 추가합니다. macOS 27.0.1/Apple Silicon에서 XCTest **140개**, Release RAW **4개**·선택 성능 **1개**, 볼륨별 **7개씩**, arm64 앱·서명·아이콘·DMG 및 실제 다운로드 SHA-256 검증을 통과했습니다. APFS/HFS+의 기존 이름 변경은 유지하며 **exFAT 자동 이름 변경 수정은 미완료**입니다. [변경 코드·계측·실기기 확인·남은 작업](docs/v0.7.2-development.md).
