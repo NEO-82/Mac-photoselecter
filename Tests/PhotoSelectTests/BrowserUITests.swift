@@ -1346,10 +1346,11 @@ final class BrowserUITests: XCTestCase {
         let preview = try XCTUnwrap(descendants(content).compactMap { $0 as? PreviewPane }.first)
         waitUntil("photo ready for theme render") { preview.imageView.image != nil }
         let originalPreview = try XCTUnwrap(preview.imageView.image)
-        for (name, filename, expected) in [
+        let themes: [(NSAppearance.Name, String, [Double])] = [
             (NSAppearance.Name.darkAqua, "browser-dark.png", [32.0 / 255, 35.0 / 255, 41.0 / 255]),
             (NSAppearance.Name.aqua, "browser-light.png", [244.0 / 255, 243.0 / 255, 244.0 / 255])
-        ] {
+        ]
+        for (name, filename, expected) in themes {
             let appearance = try XCTUnwrap(NSAppearance(named: name))
             NSApp.appearance = appearance
             window.appearance = appearance
