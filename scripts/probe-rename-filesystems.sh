@@ -18,7 +18,17 @@ for item in images:
             print(entities[0].get("dev-entry", ""))
         break
 ' "$image")"; then return 1; fi
-    if [[ -n "$device" ]]; then hdiutil detach "$device"; fi
+    if [[ -n "$device" ]]; then
+        # Spotlight or the test runner can briefly retain a just-remounted
+        # image. Retry, then force only this script's disposable image device.
+        # Never apply this fallback to a physical or user-selected volume.
+        if hdiutil detach "$device"; then return 0; fi
+        sleep 2
+        if hdiutil detach "$device"; then return 0; fi
+        [[ "$image" == "$base/"*.sparseimage && -f "$image" && "$device" =~ ^/dev/disk[0-9]+$ ]] || return 1
+        echo "Detaching busy disposable test image only: $image ($device)"
+        hdiutil detach -force "$device"
+    fi
 }
 cleanup() {
     local owned
