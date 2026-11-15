@@ -1,9 +1,9 @@
 {
-  "allRenamed" : false,
+  "allRenamed" : true,
+  "bytesAndTagsPreserved" : true,
   "files" : 368,
   "format" : "exfat",
-  "originalNamesBytesAndTagsUnchanged" : true,
+  "method" : "NSFileCoordinator + FSRenameUnicode (호환 모드)",
   "physicalDevice" : false,
-  "realSonySourceChecked" : true,
-  "status" : "blocked-no-safe-atomic-rename"
+  "realSonySamplePreserved" : true
 }
