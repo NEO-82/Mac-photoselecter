@@ -6,7 +6,9 @@
 
 ## 현재 상태
 
-현재 배포는 **J♡S v0.7.2 빌드90 확대 배율 검증판**입니다. **exFAT 자동 이름 변경 수정은 미완료이며 요청 전체의 완료판은 아닙니다.** [설치 파일·변경 코드·파일 시스템별 검증·계측·다운로드 SHA](v0.7.2-development.md).
+현재 배포는 **J♡S v0.7.3 빌드93**입니다. exFAT 호환 이름 변경과 확대 +/-·재시작 100%를 제공합니다. **호환 경로의 동시 쓰기 한계를 먼저 확인하세요.** [다운로드·코드·보장 범위·실제 변경/복구·계측](exfat-zoom-0.7.3.md).
+
+이전 [v0.7.2 확대 배율 검증판](v0.7.2-development.md)도 보존합니다.
 
 이전 **v0.7.1 빌드80 안전 보완판**의 [설치 파일·검증 기록](filesystem-rename.md)도 보존합니다.
 
@@ -48,7 +50,7 @@ arm64 전용 Release 앱 빌드, 앱 이름·공식 아이콘, ad-hoc 서명, DM
 2. 소스 묶음을 압축 해제하고 `설치파일-만들기.command`를 더블클릭합니다.
    터미널에서 실행할 경우 저장소 디렉터리로 이동해 `bash scripts/package-macos.sh`를 실행합니다.
 3. XCTest 및 Release 빌드가 성공하면 `dist` 폴더가 열립니다.
-4. `J-S-0.7.2-1-arm64` 안의 `.dmg`를 열고 `J♡S.app`을 `Applications`로 끌어 넣습니다.
+4. `J-S-0.7.3-1-arm64` 안의 `.dmg`를 열고 `J♡S.app`을 `Applications`로 끌어 넣습니다.
 5. 디스크 이미지를 추출한 뒤 응용 프로그램 폴더에서 앱을 실행합니다.
 
 완성된 앱의 실행 요건은 M1 이상, macOS 13 이상입니다. 앱 실행에는 Xcode나 Swift 설치가 필요하지 않습니다.
@@ -66,15 +68,15 @@ Locations → Command Line Tools에서 사용할 Xcode를 선택하세요.
 기본 결과물:
 
 ```text
-dist/J-S-0.7.2-1-arm64/
-  J-S-0.7.2-1-arm64.dmg
+dist/J-S-0.7.3-1-arm64/
+  J-S-0.7.3-1-arm64.dmg
   SHA256SUMS
 ```
 
 같은 버전/빌드 번호의 기존 결과물을 덮어쓰지 않습니다. 새로 빌드할 때 번호를 늘릴 수 있습니다.
 
 ```bash
-PHOTOSELECT_VERSION=0.7.2 PHOTOSELECT_BUILD_NUMBER=91 bash scripts/package-macos.sh
+PHOTOSELECT_VERSION=0.7.3 PHOTOSELECT_BUILD_NUMBER=94 bash scripts/package-macos.sh
 ```
 
 DMG가 들어 있는 디렉터리에서 `shasum -a 256 -c SHA256SUMS`로 파일 전송 후 무결성을 확인할 수 있습니다.
