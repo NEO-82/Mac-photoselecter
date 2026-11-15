@@ -4,11 +4,14 @@ import XCTest
 @testable import PhotoSelect
 
 final class FilesystemRenameTests: XCTestCase {
-    private func folder(onVolume: Bool = true) throws -> URL {
+    private func folder(onVolume: Bool = true, preserveForRemount: Bool = false) throws -> URL {
         let base = onVolume ? ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_VOLUME"].map { URL(fileURLWithPath: $0) } ?? FileManager.default.temporaryDirectory : FileManager.default.temporaryDirectory
         let root = base.appendingPathComponent("J-S-filesystem-test-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
-        addTeardownBlock { try? FileManager.default.removeItem(at: root) }; return root
+        if !preserveForRemount || !onVolume || ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"] == nil {
+            addTeardownBlock { try? FileManager.default.removeItem(at: root) }
+        }
+        return root
     }
     private func support(_ root: URL) throws -> RenameFilesystem.Prepared? {
         do { return try RenameFilesystem.prepare(in: root) }
@@ -188,16 +191,26 @@ final class FilesystemRenameTests: XCTestCase {
         }
     }
     func testVolumeRollbackInterruptedRecoveryAndRemount() throws {
-        let root = try folder(), tags = try store()
+        let root = try folder(preserveForRemount: true), tags = try store()
         for name in ["A.ARW", "B.JPG"] { try Data(name.utf8).write(to: root.appendingPathComponent(name)) }
         tag(root.appendingPathComponent("A.ARW"), tags)
         if try self.support(root) == nil {
             let safe = try engine()
             let refused = try execute(safe, plan(root), tags)
             XCTAssertFalse(refused.completed); XCTAssertFalse(refused.restored); XCTAssertNil(refused.journalURL)
-            try remountDisposableImageIfRequested()
             for name in ["A.ARW", "B.JPG"] { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), Data(name.utf8)) }
             XCTAssertTrue(try safe.pending(in: root).isEmpty)
+            if ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"] != nil,
+               let output = ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_REPORT"] {
+                // exFAT can refuse even forced unmounts while a Foundation
+                // test worker retains filesystem references. The script must
+                // reconnect the image AFTER this process exits, then verify
+                // these exact originals. No rename/recovery success is claimed.
+                let receipt: [String: Any] = ["folder": root.path, "files": ["A.ARW", "B.JPG"],
+                    "successfulRename": false, "physicalDevice": false, "reconnected": false]
+                let target = URL(fileURLWithPath: output.replacingOccurrences(of: "filesystem-integration-", with: "filesystem-remount-"))
+                try JSONSerialization.data(withJSONObject: receipt, options: [.prettyPrinted, .sortedKeys]).write(to: target)
+            }
             return // No partial rename/recovery success is claimed for unsupported exFAT.
         }
         var failed = false

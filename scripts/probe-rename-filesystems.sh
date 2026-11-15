@@ -68,6 +68,30 @@ cases = list(ET.parse(sys.argv[1]).getroot().iter('testcase'))
 assert len(cases) == 7, len(cases)
 assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
 PYTEST
+    receipt="$PWD/.build/filesystem-remount-$label.json"
+    if [[ -f "$receipt" ]]; then
+        # No XCTest worker may hold the exFAT image open during this check.
+        # The receipt identifies the originals from the application's safe-stop
+        # test, which deliberately keeps its fixture folder until this step.
+        detach_owned_image
+        hdiutil attach -nobrowse -mountpoint "$mount_path" "$image"
+        python3 - "$receipt" "$mount_path" <<'PYREMOUNT'
+import json, os, pathlib, sys
+receipt = pathlib.Path(sys.argv[1])
+report = json.loads(receipt.read_text())
+mount = pathlib.Path(sys.argv[2]).resolve()
+folder = pathlib.Path(report['folder']).resolve()
+assert folder != mount and os.path.commonpath([folder, mount]) == str(mount)
+assert folder.name.startswith('J-S-filesystem-test-')
+assert report['files'] == ['A.ARW', 'B.JPG']
+assert report['successfulRename'] is False
+for name in report['files']:
+    assert (folder / name).read_bytes() == name.encode('utf-8'), name
+report.update(reconnected=True, originalNamesAndBytesPreserved=True)
+receipt.write_text(json.dumps(report, indent=2) + '\n')
+print('Verified originals from unsupported-volume app transaction after process exit and image reconnect')
+PYREMOUNT
+    fi
     detach_owned_image
     mount_path=""
     image=""
