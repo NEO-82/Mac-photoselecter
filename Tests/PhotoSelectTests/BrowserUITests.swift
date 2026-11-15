@@ -572,13 +572,19 @@ final class BrowserUITests: XCTestCase {
             let memory: [String: Any] = status == KERN_SUCCESS
                 ? ["residentBytes": UInt64(info.resident_size), "peakResidentBytes": UInt64(info.resident_size_max)]
                 : ["unavailableStatus": status]
+            #if arch(arm64)
+            let architecture = "arm64"
+            #else
+            let architecture = "x86_64"
+            #endif
             let evidence: [String: Any] = ["configuration": configuration, "processMemory": memory,
+                "architecture": architecture, "osVersion": ProcessInfo.processInfo.operatingSystemVersionString,
                 "fixture": "12 distinct paths hard-linked to one real Sony A7M4 file; same pixel contents",
                 "firstFolderToImageMs": firstMs, "scenarios": scenarios, "cacheHitApplyMaxMs": hitTimes.max() ?? 0,
                 "navigationRequests": browser.navigationSamples, "emptyDrawsAfterFirstImage": canvas.emptyFramesAfterImage,
                 "drawnFrames": canvas.drawnFrames, "pipeline": pipeline.diagnostics,
                 "physicalMemoryBytes": ProcessInfo.processInfo.physicalMemory, "cacheBudgetBytes": ImagePipeline.defaultCacheLimit,
-                "limitation": "Intel macOS CI; warm OS file cache; draw callback timing, not GPU presentation or M1 Pro/SSD comparison"]
+                "limitation": "macOS CI; warm OS file cache; draw callback timing, not GPU presentation or a physical user SSD comparison"]
             let output = URL(fileURLWithPath: path).deletingLastPathComponent().appendingPathComponent("arw-navigation.json")
             try JSONSerialization.data(withJSONObject: evidence, options: [.prettyPrinted, .sortedKeys]).write(to: output)
         }
@@ -1492,6 +1498,13 @@ final class BrowserUITests: XCTestCase {
         waitUntil("double-click parent navigation") { grid.numberOfItems(inSection: 0) == 5 && preview.filename.stringValue == "photo.jpg" && preview.imageView.image != nil }
         let photoIndex = try XCTUnwrap(contents.firstIndex { $0.url.lastPathComponent == "photo.jpg" })
         for size in [NSSize(width: 900, height: 560), NSSize(width: 1200, height: 760)] {
+            // Hosted Apple Silicon displays can be only 1024 points wide.
+            // This test exercises both layout widths, independently of physical
+            // screen fitting (covered by WindowLayoutTests). Relax only this
+            // test window's cap; retain all resize and layout assertions.
+            let requestedFrame = window.frameRect(forContentRect: NSRect(origin: .zero, size: size)).size
+            window.maxSize = NSSize(width: max(window.maxSize.width, requestedFrame.width),
+                                    height: max(window.maxSize.height, requestedFrame.height))
             window.setContentSize(size)
             window.contentView?.superview?.layoutSubtreeIfNeeded()
             print("Browser resize request=\(size) frame=\(window.frame) contentFrame=\(content.frame) content=\(content.bounds) parent=\(String(describing: content.superview?.frame)) visible=\(window.isVisible) min=\(window.minSize) max=\(window.maxSize)")
