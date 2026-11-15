@@ -48,7 +48,7 @@ for fs in APFS HFS+ ExFAT; do
     python3 - ".build/filesystem-$label-results.xml" <<'PYTEST'
 import sys, xml.etree.ElementTree as ET
 cases = list(ET.parse(sys.argv[1]).getroot().iter('testcase'))
-assert len(cases) == 6, len(cases)
+assert len(cases) == 7, len(cases)
 assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
 PYTEST
     detach_owned_image

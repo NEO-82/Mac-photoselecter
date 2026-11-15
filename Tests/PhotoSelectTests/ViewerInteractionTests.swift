@@ -156,6 +156,45 @@ final class ViewerInteractionTests: XCTestCase {
     }
 
     @MainActor
+    func testEverySavedZoomRendersAtSelectedSizeAndSurvivesDeleteAndNavigation() throws {
+        let previous = UserDefaults.standard.object(forKey: ClickZoomPreference.key)
+        defer { UserDefaults.standard.set(previous, forKey: ClickZoomPreference.key) }
+        let canvas = PhotoCanvas(frame: NSRect(x: 0, y: 0, width: 400, height: 300))
+        var deletes = 0, navigations = 0
+        canvas.trashCurrent = {
+            deletes += 1
+            canvas.decoded = self.image(raw: false)
+        }
+        canvas.navigate = { _ in
+            navigations += 1
+            canvas.decoded = self.image(raw: true)
+        }
+        defer { canvas.trashCurrent = nil; canvas.navigate = nil; canvas.resetZoom() }
+        for percent in ClickZoomPreference.choices {
+            ClickZoomPreference.save(percent)
+            canvas.decoded = image(raw: true)
+            canvas.mouseDown(with: mouse(.leftMouseDown))
+            canvas.mouseDragged(with: mouse(.leftMouseDragged))
+            let top = 150 - percent / 2 // 100 source pixels in height, 1x display.
+            XCTAssertGreaterThan(try renderedColor(canvas, x: 200, y: top + 4).blueComponent, 0.9)
+            XCTAssertLessThan(try renderedColor(canvas, x: 200, y: top - 4).blueComponent, 0.1)
+            let delete = try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero,
+                modifierFlags: [], timestamp: 0, windowNumber: 0, context: nil,
+                characters: "\u{7F}", charactersIgnoringModifiers: "\u{7F}", isARepeat: false, keyCode: 51))
+            canvas.keyDown(with: delete)
+            XCTAssertGreaterThan(try renderedColor(canvas, x: 200, y: top + 4).redComponent, 0.9)
+            XCTAssertLessThan(try renderedColor(canvas, x: 200, y: top - 4).redComponent, 0.1)
+            canvas.keyDown(with: arrow(124))
+            XCTAssertGreaterThan(try renderedColor(canvas, x: 200, y: top + 4).blueComponent, 0.9)
+            canvas.mouseUp(with: mouse(.leftMouseUp))
+            // Fit returns to the same 200x100 RAW image at every preference.
+            XCTAssertLessThan(try renderedColor(canvas, x: 200, y: 90).blueComponent, 0.1)
+            XCTAssertEqual(canvas.emptyFramesAfterImage, 0)
+        }
+        XCTAssertEqual(deletes, 11); XCTAssertEqual(navigations, 11)
+    }
+
+    @MainActor
     func testZoomUsesActualDecodedPixelsEvenWhenRawMetadataIsLarger() throws {
         let bitmap = image(raw: true).image
         let decoded = DecodedImage(image: bitmap, sourceSize: CGSize(width: 6000, height: 4000),

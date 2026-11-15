@@ -75,6 +75,7 @@ enum AppMenus {
         }
         let zoom = NSMenu(title: "클릭 유지 확대 배율")
         let zoomItem = NSMenuItem(title: zoom.title, action: nil, keyEquivalent: "")
+        zoomItem.toolTip = "표시 JPEG 기준입니다. 100%는 물리 픽셀 1:1이며 더 높은 배율은 표시만 확대합니다."
         zoomItem.submenu = zoom; view.addItem(zoomItem)
         for percent in ClickZoomPreference.choices {
             let item = NSMenuItem(title: "\(percent)%", action: #selector(BrowserController.changeClickZoom(_:)), keyEquivalent: "")

@@ -37,6 +37,51 @@ final class FilesystemRenameTests: XCTestCase {
         tags.toggle(url) { result in XCTAssertEqual(try? result.get(), true); done.fulfill() }
         wait(for: [done], timeout: 5)
     }
+    func testVolumeRenameCountsTimingAndModificationDates() throws {
+        var rows: [[String: Any]] = []
+        for count in [1, 14, 100, 1200] {
+            let root = try folder(), tags = try store(), engine = try engine()
+            var snapshots: [RenameSourceSnapshot] = []
+            func original(_ index: Int) -> String {
+                String(format: "source_%04d.", index) + (index % 2 == 0 ? "ARW" : "JPG")
+            }
+            for index in 0..<count {
+                let file = root.appendingPathComponent(original(index))
+                try Data("small synthetic image payload \(index)".utf8).write(to: file, options: .withoutOverwriting)
+                try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 1_700_000_000)], ofItemAtPath: file.path)
+                snapshots.append(try RenameSourceSnapshot.read(file))
+            }
+            let excluded = ["notes.txt", "._shadow.ARW"]
+            for name in excluded { try Data(name.utf8).write(to: root.appendingPathComponent(name)) }
+            tag(root.appendingPathComponent(original(0)), tags)
+            let supported = try support(root) != nil
+            let preview = try plan(root)
+            let start = ProcessInfo.processInfo.systemUptime
+            let outcome = try execute(engine, preview, tags)
+            let elapsed = (ProcessInfo.processInfo.systemUptime - start) * 1000
+            XCTAssertEqual(outcome.completed, supported, outcome.message)
+            XCTAssertEqual(outcome.files.filter { $0.state == .renamed }.count, supported ? count : 0)
+            for index in 0..<count {
+                let name = supported ? String(format: "Wedding_%03d.", index + 1) + (index % 2 == 0 ? "ARW" : "JPG") : original(index)
+                let file = root.appendingPathComponent(name)
+                XCTAssertEqual(try Data(contentsOf: file), Data("small synthetic image payload \(index)".utf8))
+                let after = try RenameSourceSnapshot.read(file)
+                XCTAssertEqual(after.modifiedSeconds, snapshots[index].modifiedSeconds)
+                XCTAssertEqual(after.modifiedNanos, snapshots[index].modifiedNanos)
+            }
+            for name in excluded { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), Data(name.utf8)) }
+            XCTAssertTrue(try engine.pending(in: root).isEmpty)
+            let format = try RenameFilesystem.Volume.read(root).format
+            rows.append(["format": format, "requestedFiles": count, "renamedFiles": supported ? count : 0,
+                         "elapsedMilliseconds": elapsed, "status": supported ? "renamed" : "blocked-not-renamed",
+                         "fixture": "small synthetic files, not full-size RAW", "physicalDevice": false])
+            print("Rename timing \(format): \(count) requested, \(supported ? count : 0) renamed, \(elapsed) ms")
+        }
+        if let output = ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_REPORT"] {
+            let target = URL(fileURLWithPath: output.replacingOccurrences(of: "filesystem-integration-", with: "filesystem-timing-"))
+            try JSONSerialization.data(withJSONObject: rows, options: [.prettyPrinted, .sortedKeys]).write(to: target)
+        }
+    }
     func testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags() throws {
         let root = try folder(), tags = try store(), engine = try engine()
         let realSony = try ProcessInfo.processInfo.environment["PHOTOSELECT_ARW_SAMPLE_DIRECTORY"].map {

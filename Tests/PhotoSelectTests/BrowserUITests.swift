@@ -1544,6 +1544,17 @@ final class BrowserUITests: XCTestCase {
         XCTAssertEqual(open.keyEquivalent, "o"); XCTAssertEqual(open.keyEquivalentModifierMask, .command)
         file.update(); XCTAssertTrue(open.isEnabled)
         let view = try XCTUnwrap(menu.item(withTitle: "보기")?.submenu)
+        let zoom = try XCTUnwrap(view.item(withTitle: "클릭 유지 확대 배율")?.submenu)
+        XCTAssertEqual(zoom.items.map(\.title), (100...200).filter { $0 % 10 == 0 }.map { "\($0)%" })
+        let previousZoom = UserDefaults.standard.object(forKey: ClickZoomPreference.key)
+        defer { UserDefaults.standard.set(previousZoom, forKey: ClickZoomPreference.key) }
+        for item in zoom.items {
+            XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(item.action), to: item.target, from: item))
+            XCTAssertEqual(ClickZoomPreference.percent(), item.tag)
+            zoom.update()
+            XCTAssertEqual(zoom.items.filter { $0.state == .on }.map(\.tag), [item.tag])
+            XCTAssertTrue(zoom.items.allSatisfy(\.isEnabled))
+        }
         let photo = try XCTUnwrap(menu.item(withTitle: "사진")?.submenu)
         view.update(); photo.update()
         XCTAssertFalse(try XCTUnwrap(view.item(withTitle: "선택 사진 크게 보기")).isEnabled)
