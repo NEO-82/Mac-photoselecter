@@ -1,0 +1,59 @@
+[
+  {
+    "api" : "renamex-RENAME_EXCL",
+    "bytesPreserved" : true,
+    "capabilities" : {
+      "capabilitiesAvailable" : true,
+      "exclusiveRename" : true,
+      "formatFlags" : 10186463,
+      "hardLinks" : true,
+      "interfaceFlags" : 11497415,
+      "persistentFileIDs" : true,
+      "validFormatFlags" : 134217727,
+      "validInterfaceFlags" : 16777215
+    },
+    "collision" : "NSPOSIXErrorDomain:17",
+    "collisionPreserved" : true,
+    "identityStable" : true,
+    "move" : "success",
+    "volume" : "mount-APFS"
+  },
+  {
+    "api" : "renameatx-RENAME_EXCL",
+    "bytesPreserved" : true,
+    "capabilities" : {
+      "capabilitiesAvailable" : true,
+      "exclusiveRename" : true,
+      "formatFlags" : 10186463,
+      "hardLinks" : true,
+      "interfaceFlags" : 11497415,
+      "persistentFileIDs" : true,
+      "validFormatFlags" : 134217727,
+      "validInterfaceFlags" : 16777215
+    },
+    "collision" : "NSPOSIXErrorDomain:17",
+    "collisionPreserved" : true,
+    "identityStable" : true,
+    "move" : "success",
+    "volume" : "mount-APFS"
+  },
+  {
+    "api" : "link-unlink-diagnostic-only",
+    "bytesPreserved" : true,
+    "capabilities" : {
+      "capabilitiesAvailable" : true,
+      "exclusiveRename" : true,
+      "formatFlags" : 10186463,
+      "hardLinks" : true,
+      "interfaceFlags" : 11497415,
+      "persistentFileIDs" : true,
+      "validFormatFlags" : 134217727,
+      "validInterfaceFlags" : 16777215
+    },
+    "collision" : "NSPOSIXErrorDomain:17",
+    "collisionPreserved" : true,
+    "identityStable" : true,
+    "move" : "success",
+    "volume" : "mount-APFS"
+  }
+]

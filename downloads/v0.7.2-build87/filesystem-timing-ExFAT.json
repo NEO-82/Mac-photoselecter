@@ -1,0 +1,38 @@
+[
+  {
+    "elapsedMilliseconds" : 288.83399500000451,
+    "fixture" : "small synthetic files, not full-size RAW",
+    "format" : "exfat",
+    "physicalDevice" : false,
+    "renamedFiles" : 0,
+    "requestedFiles" : 1,
+    "status" : "blocked-not-renamed"
+  },
+  {
+    "elapsedMilliseconds" : 1163.7358579998818,
+    "fixture" : "small synthetic files, not full-size RAW",
+    "format" : "exfat",
+    "physicalDevice" : false,
+    "renamedFiles" : 0,
+    "requestedFiles" : 14,
+    "status" : "blocked-not-renamed"
+  },
+  {
+    "elapsedMilliseconds" : 263.00332400001025,
+    "fixture" : "small synthetic files, not full-size RAW",
+    "format" : "exfat",
+    "physicalDevice" : false,
+    "renamedFiles" : 0,
+    "requestedFiles" : 100,
+    "status" : "blocked-not-renamed"
+  },
+  {
+    "elapsedMilliseconds" : 552.20691599993188,
+    "fixture" : "small synthetic files, not full-size RAW",
+    "format" : "exfat",
+    "physicalDevice" : false,
+    "renamedFiles" : 0,
+    "requestedFiles" : 1200,
+    "status" : "blocked-not-renamed"
+  }
+]
