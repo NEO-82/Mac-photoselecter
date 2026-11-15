@@ -54,7 +54,7 @@ for fs in APFS HFS+ ExFAT; do
     mount_path="$base/mount-$label"
     mkdir "$mount_path"
     echo "Creating disposable filesystem image: $fs"
-    hdiutil create -size 256m -type SPARSE -layout GPTSPUD -fs "$fs" -volname "J-S-$label" "$image"
+    hdiutil create -size 2g -type SPARSE -layout GPTSPUD -fs "$fs" -volname "J-S-$label" "$image"
     hdiutil attach -nobrowse -mountpoint "$mount_path" "$image"
     diskutil info "$mount_path" | sed -n '/File System Personality/p;/Type (Bundle)/p;/Read-Only Volume/p'
     xcrun swift scripts/probe-rename-filesystems.swift "$mount_path" ".build/filesystem-probe-$label.json"
@@ -65,9 +65,31 @@ for fs in APFS HFS+ ExFAT; do
     python3 - ".build/filesystem-$label-results.xml" <<'PYTEST'
 import sys, xml.etree.ElementTree as ET
 cases = list(ET.parse(sys.argv[1]).getroot().iter('testcase'))
-assert len(cases) == 7, len(cases)
+assert len(cases) == 10, len(cases)
 assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
 PYTEST
+    recovery="$PWD/.build/filesystem-recovery-$label.json"
+    if [[ -f "$recovery" ]]; then
+        detach_owned_image
+        hdiutil attach -nobrowse -mountpoint "$mount_path" "$image"
+        PHOTOSELECT_RENAME_TEST_VOLUME="$mount_path" PHOTOSELECT_RENAME_RECOVERY_RECEIPT="$recovery" \
+            xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FilesystemRenameTests.testVolumeContentIdentityRecovery \
+            --xunit-output ".build/filesystem-recovery-$label-results.xml"
+        python3 - "$recovery" ".build/filesystem-recovery-$label-results.xml" <<'PYRECOVERY'
+import json, sys, xml.etree.ElementTree as ET
+report = json.load(open(sys.argv[1]))
+assert report['recoveredAfterReconnect'] and report['originalNamesBytesAndTagsPreserved']
+cases = list(ET.parse(sys.argv[2]).getroot().iter('testcase'))
+assert len(cases) == 1
+assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
+PYRECOVERY
+    fi
+    python3 - ".build/filesystem-integration-$label.json" ".build/filesystem-real14-$label.json" <<'PYRENAMED'
+import json, sys
+for path in sys.argv[1:]:
+    report = json.load(open(path))
+    assert report['allRenamed'] is True, 'This run requires successful renames, not a safe stop'
+PYRENAMED
     receipt="$PWD/.build/filesystem-remount-$label.json"
     if [[ -f "$receipt" ]]; then
         # No XCTest worker may hold the exFAT image open during this check.

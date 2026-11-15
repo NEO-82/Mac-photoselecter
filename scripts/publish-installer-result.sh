@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run by GitHub Actions only. The dedicated delivery branch owns downloads/.
 set -euo pipefail
-if [[ "${GITHUB_ACTIONS:-}" != true ]] || { [[ "${GITHUB_REF_NAME:-}" != codex/macos-installer-download ]] && [[ "${GITHUB_REF_NAME:-}" != codex/macos27-compatibility ]]; }; then
+if [[ "${GITHUB_ACTIONS:-}" != true ]] || { [[ "${GITHUB_REF_NAME:-}" != codex/macos-installer-download ]] && [[ "${GITHUB_REF_NAME:-}" != codex/macos27-compatibility ]] && [[ "${GITHUB_REF_NAME:-}" != codex/exfat-finder-compatibility ]]; }; then
     echo 'This command only publishes on the GitHub Actions delivery or macOS 27 compatibility branch.' >&2
     exit 2
 fi

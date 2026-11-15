@@ -1,5 +1,6 @@
 import Foundation
 import Darwin
+import CryptoKit
 
 struct RenameProblem: LocalizedError {
     let message: String
@@ -101,11 +102,13 @@ struct RenameSourceSnapshot: Hashable {
     }
 }
 
-// Only kernel-enforced no-replace primitives are allowed. Legacy catalog
-// renames and existence-check/plain-rename fallbacks failed concurrent-writer
-// testing on exFAT and are intentionally excluded from production.
+// Catalog compatibility requires explicit consent: coordination serializes
+// cooperating writers, but cannot promise RENAME_EXCL against arbitrary writers.
 enum RenameFilesystem {
-    enum Method: String { case native = "renamex_np(RENAME_EXCL)", directory = "renameatx_np(RENAME_EXCL)" }
+    enum Method: String {
+        case native = "renamex_np(RENAME_EXCL)", directory = "renameatx_np(RENAME_EXCL)"
+        case catalog = "NSFileCoordinator + FSRenameUnicode (호환 모드)"
+    }
     struct Volume {
         let format: String, mountID: String, readOnly: Bool
         var persistentIDs: Bool? = nil
@@ -129,7 +132,11 @@ enum RenameFilesystem {
     struct Prepared {
         let volume: Volume, method: Method
         let operation: (URL, URL) throws -> Void
-        var description: String { "파일 시스템 \(volume.format) · \(method.rawValue)" }
+        var requiresContentIdentity: Bool { method == .catalog || volume.persistentIDs == false }
+        var description: String {
+            "파일 시스템 \(volume.format) · \(method.rawValue)" +
+                (method == .catalog ? "\n호환 모드: 조정에 참여하지 않는 다른 앱의 동시 쓰기에는 원자적 덮어쓰기 방지를 보장하지 않습니다." : "")
+        }
     }
     static func unsupported(_ error: Error) -> Bool {
         let e = error as NSError
@@ -161,15 +168,87 @@ enum RenameFilesystem {
             throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
         }
     }
-    static func move(_ source: URL, _ destination: URL) throws {
+    private final class CatalogAPI {
+        typealias MakeRef = @convention(c) (UnsafePointer<UInt8>?, UInt32, UnsafeMutableRawPointer?, UnsafeMutablePointer<UInt8>?) -> Int32
+        typealias RenameRef = @convention(c) (UnsafeRawPointer?, UInt32, UnsafePointer<UInt16>?, UInt32, UnsafeMutableRawPointer?) -> Int16
+        let handle: UnsafeMutableRawPointer, make: MakeRef, rename: RenameRef
+        static let cached: Result<CatalogAPI, Error> = Result { try CatalogAPI() }
+        init() throws {
+            guard let handle = dlopen("/System/Library/Frameworks/CoreServices.framework/CoreServices", RTLD_LAZY | RTLD_LOCAL),
+                  let make = dlsym(handle, "FSPathMakeRefWithOptions"), let rename = dlsym(handle, "FSRenameUnicode") else {
+                throw RenameProblem(message: "이 macOS에서 catalog 이름 변경 API를 사용할 수 없습니다.")
+            }
+            self.handle = handle
+            self.make = unsafeBitCast(make, to: MakeRef.self)
+            self.rename = unsafeBitCast(rename, to: RenameRef.self)
+        }
+        func move(_ source: URL, _ destination: URL) throws {
+            let before = try RenameSourceSnapshot.read(source)
+            var ref = [UInt8](repeating: 0, count: 80), output = ref
+            let made = source.withUnsafeFileSystemRepresentation { path in
+                ref.withUnsafeMutableBytes { make(UnsafeRawPointer(path!).assumingMemoryBound(to: UInt8.self), 1, $0.baseAddress, nil) }
+            }
+            guard made == 0 else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(made)) }
+            var occupied = stat()
+            if lstat(destination.path, &occupied) == 0 { throw POSIXError(.EEXIST) }
+            guard errno == ENOENT else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+            let sidecar = destination.deletingLastPathComponent().appendingPathComponent("._" + destination.lastPathComponent)
+            if lstat(sidecar.path, &occupied) == 0 { throw POSIXError(.EEXIST) }
+            guard errno == ENOENT else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+            guard try RenameSourceSnapshot.read(source) == before else {
+                throw RenameProblem(message: "호환 이름 변경 직전 원본 상태가 달라졌습니다.")
+            }
+            let name = Array(destination.lastPathComponent.utf16)
+            let status = ref.withUnsafeBytes { from in
+                output.withUnsafeMutableBytes { result in
+                    name.withUnsafeBufferPointer { rename(from.baseAddress, UInt32($0.count), $0.baseAddress, 0xffff, result.baseAddress) }
+                }
+            }
+            if status == -48 { throw POSIXError(.EEXIST) }
+            guard status == 0 else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(status)) }
+            let after = try RenameSourceSnapshot.read(destination)
+            guard before.identity == after.identity, before.bytes == after.bytes,
+                  before.modifiedSeconds == after.modifiedSeconds, before.modifiedNanos == after.modifiedNanos else {
+                throw RenameProblem(message: "이름 변경 뒤 원본 식별자/크기/수정 시간을 확인하지 못했습니다. 저널을 보존합니다.")
+            }
+        }
+    }
+    private static let catalogLock = NSRecursiveLock()
+    static func coordinatedCatalog(_ source: URL, _ destination: URL) throws {
+        try checkParent(source, destination)
+        catalogLock.lock(); defer { catalogLock.unlock() }
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var coordinationError: NSError?, operationError: Error?
+        var invoked = false
+        coordinator.coordinate(writingItemAt: source, options: .forMoving,
+                               writingItemAt: destination, options: [], error: &coordinationError) { from, to in
+            invoked = true
+            do {
+                guard TagStore.key(from) == TagStore.key(source), TagStore.key(to) == TagStore.key(destination) else {
+                    throw RenameProblem(message: "조정 중 파일 경로가 달라져 중단했습니다.")
+                }
+                try CatalogAPI.cached.get().move(from, to)
+                coordinator.item(at: from, didMoveTo: to)
+            } catch { operationError = error }
+        }
+        if let operationError { throw operationError }
+        if let coordinationError { throw coordinationError }
+        guard invoked else { throw RenameProblem(message: "파일 조정기가 이름 변경을 실행하지 않았습니다.") }
+    }
+    static func move(_ source: URL, _ destination: URL, allowCompatibility: Bool = false) throws {
         do { try native(source, destination) }
-        catch { guard unsupported(error) else { throw error }; try directory(source, destination) }
+        catch {
+            guard unsupported(error) else { throw error }
+            do { try directory(source, destination) }
+            catch { guard unsupported(error), allowCompatibility else { throw error }; try coordinatedCatalog(source, destination) }
+        }
     }
     // Probe only freshly-created disposable entries, never the user's photos.
     // A collision-only probe is insufficient: exFAT returns EEXIST for an
     // occupied destination while rejecting an absent destination with ENOTSUP.
     static func prepare(in folder: URL, nativeMove: @escaping BatchRenameEngine.Move = native,
-                        relativeMove: @escaping BatchRenameEngine.Move = directory) throws -> Prepared {
+                        relativeMove: @escaping BatchRenameEngine.Move = directory,
+                        allowCompatibility: Bool = false) throws -> Prepared {
         let volume = try Volume.read(folder)
         guard !volume.readOnly else { throw RenameProblem(message: "\(volume.format): 읽기 전용 저장장치입니다. 파일은 변경하지 않았습니다.") }
         let scratch = folder.appendingPathComponent(".J-S-rename-probe-" + UUID().uuidString)
@@ -192,7 +271,16 @@ enum RenameFilesystem {
                     throw RenameProblem(message: "미지원 이름 변경 호출 뒤 상태가 달라져 대체 처리를 중단했습니다.")
                 }
                 method = .directory; operation = relativeMove
-                try operation(source, free)
+                do { try operation(source, free) }
+                catch {
+                    guard unsupported(error), allowCompatibility else { throw error }
+                    guard try RenameIdentity.read(source) == originalID,
+                          !FileManager.default.fileExists(atPath: free.path), try Data(contentsOf: source) == a else {
+                        throw RenameProblem(message: "호환 처리 전 원본 상태를 확인하지 못했습니다.")
+                    }
+                    method = .catalog; operation = coordinatedCatalog
+                    try operation(source, free)
+                }
             }
             guard try RenameIdentity.read(free) == originalID, try Data(contentsOf: free) == a else {
                 throw RenameProblem(message: "이 저장장치는 이름 변경 후 안정적인 파일 식별자를 유지하지 않습니다.")
@@ -212,7 +300,7 @@ enum RenameFilesystem {
             guard try RenameIdentity.read(source) == originalID, try Data(contentsOf: source) == a else {
                 throw RenameProblem(message: "이 볼륨에서 원래 이름 복원을 확인하지 못했습니다.")
             }
-            guard volume.persistentIDs != false else {
+            guard volume.persistentIDs != false || allowCompatibility else {
                 throw RenameProblem(message: "이 볼륨은 재연결 후 복구에 필요한 영구 파일 식별자를 지원하지 않습니다.")
             }
         } catch {
@@ -227,6 +315,50 @@ enum RenameFilesystem {
             }
             try selected(source, destination)
         })
+    }
+}
+
+// exFAT inode numbers need not survive reconnect. A bounded-memory read supplies
+// durable recovery identity; it does not copy, rewrite or delete photo contents.
+struct RenameFingerprint: Codable, Equatable {
+    let sha256: String
+    let bytes: Int64, modifiedSeconds: Int64, modifiedNanos: Int64
+    let bornSeconds: Int64, bornNanos: Int64
+    var valid: Bool { bytes >= 0 && sha256.count == 64 && sha256.allSatisfy { "0123456789abcdef".contains($0) } }
+    func matchesMetadata(_ snapshot: RenameSourceSnapshot) -> Bool {
+        bytes == snapshot.bytes && modifiedSeconds == snapshot.modifiedSeconds && modifiedNanos == snapshot.modifiedNanos &&
+            bornSeconds == snapshot.bornSeconds && bornNanos == snapshot.bornNanos
+    }
+    static func read(_ url: URL, expecting expected: RenameSourceSnapshot? = nil) throws -> RenameFingerprint {
+        let before = try RenameSourceSnapshot.read(url)
+        if let expected, before != expected { throw RenameProblem(message: "복구 식별 전 원본 상태가 달라졌습니다: " + url.lastPathComponent) }
+        let fd = Darwin.open(url.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        guard fd >= 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        let handle = FileHandle(fileDescriptor: fd, closeOnDealloc: true)
+        defer { try? handle.close() }
+        var info = stat()
+        guard fstat(fd, &info) == 0, UInt64(info.st_ino) == before.identity.inode,
+              UInt64(UInt32(bitPattern: info.st_dev)) == before.identity.device else {
+            throw RenameProblem(message: "복구 식별 중 원본이 교체됐습니다.")
+        }
+        var digest = SHA256(), readBytes: Int64 = 0
+        while true {
+            let more = try autoreleasepool { () throws -> Bool in
+                guard let chunk = try handle.read(upToCount: 1024 * 1024), !chunk.isEmpty else { return false }
+                digest.update(data: chunk); readBytes += Int64(chunk.count)
+                return true
+            }
+            if !more { break }
+        }
+        guard readBytes == before.bytes, try RenameSourceSnapshot.read(url) == before,
+              fstat(fd, &info) == 0, Int64(info.st_size) == before.bytes,
+              Int64(info.st_mtimespec.tv_sec) == before.modifiedSeconds, Int64(info.st_mtimespec.tv_nsec) == before.modifiedNanos,
+              Int64(info.st_ctimespec.tv_sec) == before.changedSeconds, Int64(info.st_ctimespec.tv_nsec) == before.changedNanos else {
+            throw RenameProblem(message: "내용을 확인하는 동안 원본이 변경됐습니다.")
+        }
+        return RenameFingerprint(sha256: digest.finalize().map { String(format: "%02x", $0) }.joined(),
+            bytes: before.bytes, modifiedSeconds: before.modifiedSeconds, modifiedNanos: before.modifiedNanos,
+            bornSeconds: before.bornSeconds, bornNanos: before.bornNanos)
     }
 }
 
@@ -251,6 +383,7 @@ struct RenameJournal: Codable {
     struct Item: Codable {
         let original: String, destination: String, temporary: String
         let identity: RenameIdentity
+        var fingerprint: RenameFingerprint? = nil
     }
     let version: Int
     let id: UUID
@@ -273,11 +406,13 @@ struct RenameOutcome {
     var hadMoves = false
 }
 
-// Images are only moved with the OS exclusive rename primitive, never copied or opened for writing.
+// Images are renamed only, never copied or opened for writing. Compatibility
+// is opt-in and has a narrower concurrency guarantee than kernel RENAME_EXCL.
 final class BatchRenameEngine {
     typealias Move = (URL, URL) throws -> Void
     typealias Progress = (Int, Int, String) -> Void
     let journalDirectory: URL
+    var allowCoordinatedCompatibility = false
     private let move: Move?
     private let queue = DispatchQueue(label: "dev.photoselect.rename", qos: .userInitiated)
     init(journalDirectory: URL? = nil, move: Move? = nil) {
@@ -288,10 +423,13 @@ final class BatchRenameEngine {
     static func exclusiveMove(_ source: URL, _ destination: URL) throws {
         try RenameFilesystem.move(source, destination)
     }
-    private func configuredMove(_ folder: URL) throws -> (Move, String) {
-        if let move { return (move, "") }
-        let support = try RenameFilesystem.prepare(in: folder)
-        return (support.operation, support.description)
+    private func configuredMove(_ folder: URL) throws -> (Move, String, Bool) {
+        if let move {
+            let contentIdentity = allowCoordinatedCompatibility ? (try RenameFilesystem.Volume.read(folder)).persistentIDs == false : false
+            return (move, "", contentIdentity)
+        }
+        let support = try RenameFilesystem.prepare(in: folder, allowCompatibility: allowCoordinatedCompatibility)
+        return (support.operation, support.description, support.requiresContentIdentity)
     }
     static func volume(_ folder: URL) -> (String?, String?) {
         var fresh = folder; fresh.removeAllCachedResourceValues()
@@ -303,7 +441,7 @@ final class BatchRenameEngine {
     }
     func readJournal(_ url: URL, folder: URL) throws -> RenameJournal {
         let journal = try JSONDecoder().decode(RenameJournal.self, from: Data(contentsOf: url))
-        guard journal.version == 1, TagStore.key(url.deletingLastPathComponent()) == TagStore.key(journalDirectory),
+        guard [1, 2].contains(journal.version), TagStore.key(url.deletingLastPathComponent()) == TagStore.key(journalDirectory),
               url.lastPathComponent == journal.id.uuidString + ".json",
               !journal.items.isEmpty, journal.items.count <= 10_000,
               journal.items.allSatisfy({ RenamePlan.leaf($0.original) && RenamePlan.leaf($0.destination) && RenamePlan.leaf($0.temporary) && $0.temporary.hasPrefix(".J-S-rename-" + journal.id.uuidString + "-") }),
@@ -314,6 +452,10 @@ final class BatchRenameEngine {
               journal.folderPath.hasPrefix("/"),
               ["prepared", "staged", "committed", "rollingBack", "complete"].contains(journal.phase),
               journal.items.allSatisfy({ URL(fileURLWithPath: $0.original).pathExtension == URL(fileURLWithPath: $0.destination).pathExtension }) else { throw RenameProblem(message: "복구 기록 형식이 올바르지 않습니다: " + url.path) }
+        guard journal.version == 1 ? journal.items.allSatisfy({ $0.fingerprint == nil }) :
+                (journal.volumeUUID != nil && journal.items.allSatisfy({ $0.fingerprint?.valid == true })) else {
+            throw RenameProblem(message: "복구 기록의 원본 내용 식별자가 올바르지 않습니다.")
+        }
         let allowedTags = Set(journal.items.flatMap { item in [item.original, item.destination, item.temporary].map { TagStore.key(URL(fileURLWithPath: journal.folderPath).appendingPathComponent($0)) } })
         guard Set(journal.tagSnapshot).isSubset(of: allowedTags) else { throw RenameProblem(message: "복구 기록의 태그 경로 범위가 올바르지 않습니다.") }
         let volume = Self.volume(folder)
@@ -348,6 +490,7 @@ final class BatchRenameEngine {
         var implementationDescription = ""
         var movedOriginals: Set<String> = []
         var originalSnapshots: [String: RenameSourceSnapshot] = [:]
+        var trustedSnapshots: [String: RenameSourceSnapshot] = [:]
         var locations: [String: String] = [:]
         var locationErrors: [String] = []
         var locationsVerified = false
@@ -371,6 +514,34 @@ final class BatchRenameEngine {
             let candidates = Set(journal.items.flatMap { [$0.original, $0.destination, $0.temporary] })
             let names = try FileManager.default.contentsOfDirectory(atPath: folder.path).filter { candidates.contains($0) }
             locations = [:]; locationErrors = []
+            if journal.version == 2 {
+                var byName: [String: [RenameJournal.Item]] = [:]
+                for item in journal.items {
+                    for name in Set([item.original, item.destination, item.temporary]) { byName[name, default: []].append(item) }
+                }
+                for name in names {
+                    let url = folder.appendingPathComponent(name)
+                    guard let snapshot = try? RenameSourceSnapshot.read(url) else { continue }
+                    let possible = byName[name, default: []]
+                    var matches = possible.filter { trustedSnapshots[$0.original] == snapshot }
+                    if matches.isEmpty {
+                        do {
+                            let fingerprint = try RenameFingerprint.read(url, expecting: snapshot)
+                            matches = possible.filter { $0.fingerprint == fingerprint }
+                        } catch { locationErrors.append(name + ": 내용 식별 실패 · " + error.localizedDescription); continue }
+                    }
+                    if matches.count > 1 { locationErrors.append(name + ": 동일 내용 파일의 복구 식별이 모호합니다."); continue }
+                    if let item = matches.first {
+                        if locations[item.original] != nil { locationErrors.append(item.original + ": 원본과 같은 내용의 후보가 여러 개입니다.") }
+                        else { locations[item.original] = name; trustedSnapshots[item.original] = snapshot }
+                    }
+                }
+                guard locationErrors.isEmpty, locations.count == journal.items.count else {
+                    throw RenameProblem(message: (locationErrors + ["모든 원본을 확실히 식별하지 못해 태그와 복구 기록을 보존했습니다."]).joined(separator: "\n"))
+                }
+                locationsVerified = true
+                return
+            }
             let byInode = Dictionary(grouping: journal.items, by: { $0.identity.inode })
             for name in names {
                 guard let identity = try? RenameIdentity.read(folder.appendingPathComponent(name)) else { continue }
@@ -386,13 +557,31 @@ final class BatchRenameEngine {
             guard let current = locations[item.original] else { throw RenameProblem(message: item.original + ": 파일 위치를 확인할 수 없습니다.") }
             if current == name { return }
             let source = folder.appendingPathComponent(current), destination = folder.appendingPathComponent(name)
-            guard identityMatches(try RenameIdentity.read(source), item.identity) else { throw RenameProblem(message: item.original + ": 다른 파일로 변경됐습니다.") }
+            let before: RenameSourceSnapshot?
+            if item.fingerprint != nil {
+                let currentSnapshot = try RenameSourceSnapshot.read(source)
+                guard trustedSnapshots[item.original] == currentSnapshot else { throw RenameProblem(message: item.original + ": 확인 이후 원본 상태가 변경됐습니다.") }
+                before = currentSnapshot
+            } else {
+                guard identityMatches(try RenameIdentity.read(source), item.identity) else { throw RenameProblem(message: item.original + ": 다른 파일로 변경됐습니다.") }
+                before = nil
+            }
             if journal.phase == "prepared", current == item.original, let expected = originalSnapshots[item.original] {
                 guard try RenameSourceSnapshot.read(source) == expected else {
                     throw RenameProblem(message: item.original + ": 실행 도중 파일 상태가 변경됐습니다. 원래 이름 복구를 시도합니다.")
                 }
             }
-            do { try move(source, destination); locations[item.original] = name; movedOriginals.insert(item.original) }
+            do {
+                try move(source, destination)
+                locations[item.original] = name; movedOriginals.insert(item.original)
+                if let fingerprint = item.fingerprint, let before {
+                    let after = try RenameSourceSnapshot.read(destination)
+                    guard after.identity == before.identity, fingerprint.matchesMetadata(after) else {
+                        throw RenameProblem(message: "호환 변경 후 파일 상태가 달라졌습니다.")
+                    }
+                    trustedSnapshots[item.original] = after
+                }
+            }
             catch {
                 let e = error as NSError
                 throw RenameProblem(message: implementationDescription + " · " + item.original + " → " + item.destination + " [실제 시도: " + current + " → " + name + "] · \(e.domain) \(e.code): " + error.localizedDescription)
@@ -458,7 +647,7 @@ final class BatchRenameEngine {
         }
         func finish() throws { try save("complete"); try FileManager.default.removeItem(at: url) }
     }
-    private func prepare(_ plan: RenamePlan, tags: Set<String>, lease: FolderLease, lock: RenameLock) throws -> Transaction {
+    private func prepare(_ plan: RenamePlan, tags: Set<String>, lease: FolderLease, lock: RenameLock, progress: Progress) throws -> Transaction {
         guard plan.valid, plan.changedCount > 0 else { throw RenameProblem(message: "미리보기의 이름 충돌을 해결하거나 변경 규칙을 입력하세요.") }
         if let expected = plan.volumeUUID, expected != Self.volume(plan.folder).0 { throw RenameProblem(message: "미리보기 이후 저장장치가 달라졌습니다. 파일을 변경하지 않았습니다.") }
         guard try pending(in: plan.folder).isEmpty else { throw RenameProblem(message: "중단된 작업을 먼저 복구하세요.") }
@@ -477,21 +666,30 @@ final class BatchRenameEngine {
             }
         }
         let implementation = try configuredMove(plan.folder)
+        if implementation.2, Self.volume(plan.folder).0 == nil {
+            throw RenameProblem(message: "호환 복구에 필요한 볼륨 식별자를 확인하지 못했습니다. 파일은 변경하지 않았습니다.")
+        }
         let id = UUID(); var identities: Set<RenameIdentity> = []
         let items = try plan.rows.filter { $0.original != $0.proposed }.enumerated().map { index, row -> RenameJournal.Item in
             let source = plan.folder.appendingPathComponent(row.original)
             let identity = try RenameIdentity.read(source)
             guard identities.insert(identity).inserted else { throw RenameProblem(message: "같은 실제 파일을 가리키는 하드 링크는 안전한 복구 식별을 위해 지원하지 않습니다.") }
             let ext = source.pathExtension
-            return RenameJournal.Item(original: row.original, destination: row.proposed, temporary: ".J-S-rename-" + id.uuidString + "-\(index)." + ext, identity: identity)
+            var item = RenameJournal.Item(original: row.original, destination: row.proposed, temporary: ".J-S-rename-" + id.uuidString + "-\(index)." + ext, identity: identity)
+            if implementation.2 {
+                progress(index, plan.changedCount, "복구용 원본 SHA-256 확인 · 파일 복사 없음")
+                item.fingerprint = try RenameFingerprint.read(source, expecting: plan.snapshots[row.original])
+            }
+            return item
         }
         let volume = Self.volume(plan.folder)
         let keys = Set(items.flatMap { [$0.original, $0.destination, $0.temporary].map { TagStore.key(plan.folder.appendingPathComponent($0)) } })
-        let journal = RenameJournal(version: 1, id: id, folderPath: plan.folder.standardizedFileURL.path, volumeUUID: volume.0,
+        let journal = RenameJournal(version: implementation.2 ? 2 : 1, id: id, folderPath: plan.folder.standardizedFileURL.path, volumeUUID: volume.0,
             relativeFolder: volume.1, orderTitle: plan.orderTitle, items: items, tagSnapshot: tags.intersection(keys).sorted(), phase: "prepared")
         let transaction = Transaction(journal: journal, url: journalDirectory.appendingPathComponent(id.uuidString + ".json"), folder: plan.folder, lease: lease, lock: lock, move: implementation.0)
         transaction.implementationDescription = implementation.1
         transaction.originalSnapshots = plan.snapshots
+        if implementation.2 { transaction.trustedSnapshots = plan.snapshots }
         try transaction.refresh(); try transaction.save("prepared"); return transaction
     }
     private func progressHandler(_ callback: @escaping Progress) -> Progress {
@@ -502,8 +700,9 @@ final class BatchRenameEngine {
         }
     }
     func execute(_ plan: RenamePlan, tagStore: TagStore, lease: FolderLease, progress: @escaping Progress, completion: @escaping (RenameOutcome) -> Void) {
+        let prepareProgress = progressHandler(progress)
         start(folder: plan.folder, tagStore: tagStore, lease: lease, progress: progress, completion: completion) { lock, tags in
-            try self.prepare(plan, tags: tags, lease: lease, lock: lock)
+            try self.prepare(plan, tags: tags, lease: lease, lock: lock, progress: prepareProgress)
         }
     }
     func recover(_ journalURL: URL, folder: URL, tagStore: TagStore, lease: FolderLease, progress: @escaping Progress, completion: @escaping (RenameOutcome) -> Void) {

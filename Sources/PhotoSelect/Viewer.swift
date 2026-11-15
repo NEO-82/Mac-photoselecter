@@ -44,6 +44,7 @@ final class PhotoCanvas: NSView {
         displayIfNeeded()
     }
     var zoomChanged: ((Bool) -> Void)?
+    var magnificationChanged: (() -> Void)?
     var navigate: ((Int) -> Void)?
     var close: (() -> Void)?
     var trashCurrent: (() -> Void)?
@@ -125,6 +126,16 @@ final class PhotoCanvas: NSView {
         super.viewWillMove(toWindow: newWindow)
     }
     override func keyDown(with event: NSEvent) {
+        if pressed, event.modifierFlags.intersection([.command, .control, .option]).isEmpty {
+            let text = event.charactersIgnoringModifiers ?? ""
+            let direction = ["+", "="].contains(text) || event.keyCode == 69 ? 1 :
+                (["-", "−"].contains(text) || event.keyCode == 78 ? -1 : 0)
+            if direction != 0 {
+                ClickZoomPreference.step(direction)
+                needsDisplay = true; magnificationChanged?()
+                return
+            }
+        }
         if let action = PhotoShortcuts.editingAction(event) {
             if !event.isARepeat {
                 switch action {

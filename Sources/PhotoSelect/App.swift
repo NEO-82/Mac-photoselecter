@@ -75,7 +75,7 @@ enum AppMenus {
         }
         let zoom = NSMenu(title: "클릭 유지 확대 배율")
         let zoomItem = NSMenuItem(title: zoom.title, action: nil, keyEquivalent: "")
-        zoomItem.toolTip = "표시 JPEG 기준입니다. 100%는 물리 픽셀 1:1이며 더 높은 배율은 표시만 확대합니다."
+        zoomItem.toolTip = "표시 JPEG 기준입니다. 확대 중 +/-로 10%씩 조절하며 앱을 다시 시작하면 100%입니다."
         zoomItem.submenu = zoom; view.addItem(zoomItem)
         for percent in ClickZoomPreference.choices {
             let item = NSMenuItem(title: "\(percent)%", action: #selector(BrowserController.changeClickZoom(_:)), keyEquivalent: "")
@@ -122,6 +122,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
     func applicationDidFinishLaunching(_ notification: Notification) {
+        ClickZoomPreference.resetForLaunch()
         let savedTheme = UserDefaults.standard.object(forKey: "appearancePreference") as? Int ?? 2
         NSApp.appearance = savedTheme == 0 ? nil : NSAppearance(named: savedTheme == 1 ? .aqua : .darkAqua)
         let browser = BrowserController(); self.browser = browser

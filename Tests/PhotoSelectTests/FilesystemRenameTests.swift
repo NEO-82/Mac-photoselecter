@@ -1,29 +1,79 @@
 import Foundation
+import AppKit
 import Darwin
 import XCTest
 @testable import PhotoSelect
 
 final class FilesystemRenameTests: XCTestCase {
+    @MainActor
+    func testVolumeCompatibilityConsentCancelAndActualRename() throws {
+        _ = NSApplication.shared
+        let root = try folder(), tags = try store()
+        let source = root.appendingPathComponent("A.ARW"), bytes = Data("original fixture".utf8)
+        try bytes.write(to: source)
+        let engine = BatchRenameEngine(journalDirectory: try folder(onVolume: false))
+        let entries = try BrowserEntry.read(root, showHidden: true)
+        let controller = BatchRenameWindow(folder: root, photos: entries, existingNames: ["A.ARW"], orderTitle: "test",
+            engine: engine, tags: tags, lease: FolderLease(root), sourceVolumeUUID: BatchRenameEngine.volume(root).0)
+        let window = try XCTUnwrap(controller.window)
+        let parent = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 950, height: 700), styleMask: [.titled], backing: .buffered, defer: false)
+        parent.isReleasedWhenClosed = false; parent.makeKeyAndOrderFront(nil); parent.beginSheet(window)
+        defer { if window.sheetParent != nil { parent.endSheet(window) }; controller.close(); parent.close() }
+        func views(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap { views($0) } }
+        func until(_ label: String, _ condition: @escaping () -> Bool) {
+            let done = expectation(description: label), deadline = Date().addingTimeInterval(15)
+            func poll() {
+                if condition() { done.fulfill() }
+                else if Date() < deadline { DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { poll() } }
+            }
+            poll(); wait(for: [done], timeout: 16)
+        }
+        let run = try XCTUnwrap(views(try XCTUnwrap(window.contentView)).compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "RenameExecute" })
+        until("rename preview ready") { run.isEnabled }
+        var result: RenameOutcome?
+        controller.onComplete = { result = $0 }
+        let volume = try RenameFilesystem.Volume.read(root)
+        let needsConsent = volume.format == "exfat" || volume.persistentIDs == false
+        run.performClick(nil)
+        if needsConsent {
+            until("compatibility warning shown") { window.attachedSheet != nil }
+            var sheet = try XCTUnwrap(window.attachedSheet)
+            let warning = views(try XCTUnwrap(sheet.contentView)).compactMap { $0 as? NSTextField }.map(\.stringValue).joined()
+            XCTAssertTrue(warning.contains("원자적으로"))
+            let cancel = try XCTUnwrap(views(try XCTUnwrap(sheet.contentView)).compactMap { $0 as? NSButton }.first { $0.title == "취소" })
+            cancel.performClick(nil)
+            until("cancel leaves originals unchanged") { window.attachedSheet == nil }
+            XCTAssertNil(result); XCTAssertFalse(engine.allowCoordinatedCompatibility)
+            XCTAssertEqual(try Data(contentsOf: source), bytes)
+            run.performClick(nil)
+            until("compatibility warning shown again") { window.attachedSheet != nil }
+            sheet = try XCTUnwrap(window.attachedSheet)
+            let proceed = try XCTUnwrap(views(try XCTUnwrap(sheet.contentView)).compactMap { $0 as? NSButton }.first { $0.title.hasPrefix("동시 작업을") })
+            proceed.performClick(nil)
+        }
+        until("rename completes") { result != nil }
+        XCTAssertTrue(try XCTUnwrap(result).completed, result?.message ?? "")
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("Photo_0001.ARW")), bytes)
+        XCTAssertEqual(engine.allowCoordinatedCompatibility, needsConsent)
+    }
     private func folder(onVolume: Bool = true, preserveForRemount: Bool = false) throws -> URL {
         let base = onVolume ? ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_VOLUME"].map { URL(fileURLWithPath: $0) } ?? FileManager.default.temporaryDirectory : FileManager.default.temporaryDirectory
         let root = base.appendingPathComponent("J-S-filesystem-test-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
-        if !preserveForRemount || !onVolume || ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"] == nil {
+        if !preserveForRemount || ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"] == nil {
             addTeardownBlock { try? FileManager.default.removeItem(at: root) }
         }
         return root
     }
     private func support(_ root: URL) throws -> RenameFilesystem.Prepared? {
-        do { return try RenameFilesystem.prepare(in: root) }
-        catch {
-            guard try RenameFilesystem.Volume.read(root).format == "exfat" else { throw error }
-            XCTAssertTrue(error.localizedDescription.contains("사진 파일은 변경하지 않았습니다"))
-            return nil
-        }
+        // This suite now requires actual successful renames on exFAT too.
+        try RenameFilesystem.prepare(in: root, allowCompatibility: true)
     }
     private func store() throws -> TagStore { TagStore(fileURL: try folder(onVolume: false).appendingPathComponent("tags.json")) }
     private func engine(move: BatchRenameEngine.Move? = nil) throws -> BatchRenameEngine {
-        BatchRenameEngine(journalDirectory: try folder(onVolume: false), move: move)
+        let value = BatchRenameEngine(journalDirectory: try folder(onVolume: false), move: move)
+        value.allowCoordinatedCompatibility = true
+        return value
     }
     private func plan(_ root: URL, selected: Set<String>? = nil) throws -> RenamePlan {
         let entries = try BrowserEntry.read(root, showHidden: true).filter { selected?.contains($0.url.lastPathComponent) ?? true }
@@ -39,6 +89,42 @@ final class FilesystemRenameTests: XCTestCase {
         let done = expectation(description: "volume tag")
         tags.toggle(url) { result in XCTAssertEqual(try? result.get(), true); done.fulfill() }
         wait(for: [done], timeout: 5)
+    }
+    func testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles() throws {
+        guard let samples = ProcessInfo.processInfo.environment["PHOTOSELECT_ARW_SAMPLE_DIRECTORY"] else {
+            throw XCTSkip("Checksum-pinned Sony samples required")
+        }
+        let payload = try Data(contentsOf: URL(fileURLWithPath: samples).appendingPathComponent("Sony-A7M4.ARW"))
+        let root = try folder(), tags = try store(), engine = try engine()
+        var selected: Set<String> = []
+        for index in 0..<14 {
+            let name = String(format: "DSC%04d.ARW", index)
+            selected.insert(name)
+            try payload.write(to: root.appendingPathComponent(name), options: .withoutOverwriting)
+        }
+        let bystander = root.appendingPathComponent("unselected.JPG")
+        try Data("unselected original".utf8).write(to: bystander)
+        tag(root.appendingPathComponent("DSC0000.ARW"), tags); tag(bystander, tags)
+        let start = ProcessInfo.processInfo.systemUptime
+        let result = try execute(engine, plan(root, selected: selected), tags)
+        let elapsed = (ProcessInfo.processInfo.systemUptime - start) * 1000
+        XCTAssertTrue(result.completed, result.message)
+        XCTAssertEqual(result.files.filter { $0.state == .renamed }.count, 14)
+        for index in 0..<14 {
+            try autoreleasepool {
+                XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(String(format: "Wedding_%03d.ARW", index + 1))), payload)
+            }
+        }
+        XCTAssertEqual(try Data(contentsOf: bystander), Data("unselected original".utf8))
+        XCTAssertEqual(result.taggedPaths, [TagStore.key(bystander), TagStore.key(root.appendingPathComponent("Wedding_001.ARW"))])
+        XCTAssertTrue(try engine.pending(in: root).isEmpty)
+        if let output = ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_REPORT"] {
+            let report: [String: Any] = ["files": 14, "bytesPerFile": payload.count, "elapsedMilliseconds": elapsed,
+                "allRenamed": result.completed, "allBytesAndTagsPreserved": true, "unselectedUnchanged": true,
+                "fixture": "14 full-size copies of one checksum-pinned Sony A7M4 sample", "physicalDevice": false]
+            try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]).write(to:
+                URL(fileURLWithPath: output.replacingOccurrences(of: "filesystem-integration-", with: "filesystem-real14-")))
+        }
     }
     func testVolumeRenameCountsTimingAndModificationDates() throws {
         var rows: [[String: Any]] = []
@@ -146,14 +232,14 @@ final class FilesystemRenameTests: XCTestCase {
         let conflict = try plan(root, selected: ["B.ARW"])
         XCTAssertFalse(conflict.valid)
         let a = root.appendingPathComponent("B.ARW"), b = root.appendingPathComponent("Wedding_001.ARW")
-        XCTAssertThrowsError(try BatchRenameEngine.exclusiveMove(a, b))
+        XCTAssertThrowsError(try RenameFilesystem.move(a, b, allowCompatibility: true))
         XCTAssertEqual(try Data(contentsOf: a), data); XCTAssertEqual(try Data(contentsOf: b), data)
         let lateRoot = try folder(), marker = Data("foreign race winner".utf8)
         try data.write(to: lateRoot.appendingPathComponent("A.ARW"))
         var collision: URL?
         let lateEngine = try engine(move: { source, destination in
             if collision == nil { collision = destination; try marker.write(to: destination, options: .withoutOverwriting) }
-            try BatchRenameEngine.exclusiveMove(source, destination)
+            try RenameFilesystem.move(source, destination, allowCompatibility: true)
         })
         let late = try execute(lateEngine, plan(lateRoot), tags)
         XCTAssertFalse(late.completed); XCTAssertTrue(late.restored, late.message)
@@ -162,7 +248,7 @@ final class FilesystemRenameTests: XCTestCase {
     }
     func testVolumeConcurrentRenamesHaveExactlyOneWinner() throws {
         let root = try folder(), support = try self.support(root)
-        let operation: BatchRenameEngine.Move = support?.operation ?? RenameFilesystem.move
+        let operation = try XCTUnwrap(support).operation
         for round in 0..<128 {
             let a = root.appendingPathComponent("a\(round).ARW"), b = root.appendingPathComponent("b\(round).ARW"), target = root.appendingPathComponent("target\(round).ARW")
             let first = Data("first-\(round)".utf8), second = Data("second-\(round)".utf8)
@@ -190,46 +276,93 @@ final class FilesystemRenameTests: XCTestCase {
             XCTAssertFalse(FileManager.default.fileExists(atPath: winner.path))
         }
     }
+    private func recover(_ engine: BatchRenameEngine, _ journal: URL, _ root: URL, _ tags: TagStore) throws -> RenameOutcome {
+        let done = expectation(description: "recover original names and tags")
+        var result: RenameOutcome?
+        engine.recover(journal, folder: root, tagStore: tags, lease: FolderLease(root), progress: { _, _, _ in }) { result = $0; done.fulfill() }
+        wait(for: [done], timeout: 90)
+        return try XCTUnwrap(result)
+    }
+    func testVolumeContentIdentityRecovery() throws {
+        if let receiptPath = ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_RECOVERY_RECEIPT"] {
+            let receiptURL = URL(fileURLWithPath: receiptPath)
+            var receipt = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: receiptURL)) as? [String: Any])
+            let root = URL(fileURLWithPath: try XCTUnwrap(receipt["folder"] as? String))
+            let metadata = URL(fileURLWithPath: try XCTUnwrap(receipt["metadata"] as? String))
+            let mount = URL(fileURLWithPath: try XCTUnwrap(ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_VOLUME"]))
+            guard root.deletingLastPathComponent().resolvingSymlinksInPath() == mount.resolvingSymlinksInPath(),
+                  root.lastPathComponent.hasPrefix("J-S-filesystem-test-"), metadata.lastPathComponent.hasPrefix("J-S-filesystem-test-") else {
+                throw RenameProblem(message: "Recovery receipt provenance missing")
+            }
+            let engine = BatchRenameEngine(journalDirectory: metadata.appendingPathComponent("journals"))
+            engine.allowCoordinatedCompatibility = true
+            let journal = URL(fileURLWithPath: try XCTUnwrap(receipt["journal"] as? String))
+            let tags = TagStore(fileURL: metadata.appendingPathComponent("tags.json"))
+            XCTAssertEqual(try engine.readJournal(journal, folder: root).version, 2)
+            let result = try recover(engine, journal, root, tags)
+            XCTAssertTrue(result.restored, result.message)
+            XCTAssertFalse(result.completed)
+            for name in ["A.ARW", "B.JPG"] { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), Data(name.utf8)) }
+            XCTAssertEqual(result.taggedPaths, [TagStore.key(root.appendingPathComponent("A.ARW"))])
+            XCTAssertTrue(try engine.pending(in: root).isEmpty)
+            receipt["recoveredAfterReconnect"] = true
+            receipt["originalNamesBytesAndTagsPreserved"] = true
+            try JSONSerialization.data(withJSONObject: receipt, options: [.prettyPrinted, .sortedKeys]).write(to: receiptURL)
+            addTeardownBlock { try? FileManager.default.removeItem(at: metadata) }
+            return
+        }
+        // A separate, deterministic check changes stored inode numbers, so
+        // recovery cannot accidentally pass by relying on persistent IDs.
+        let root = try folder(), tags = try store(), engine = try engine(), id = UUID()
+        let source = root.appendingPathComponent("A.ARW")
+        try Data("content identity across changed inodes".utf8).write(to: source)
+        tag(source, tags)
+        let fingerprint = try RenameFingerprint.read(source)
+        let identity = try RenameIdentity.read(source)
+        let temporary = ".J-S-rename-" + id.uuidString + "-0.ARW"
+        try RenameFilesystem.move(source, root.appendingPathComponent(temporary), allowCompatibility: true)
+        var item = RenameJournal.Item(original: "A.ARW", destination: "Wedding_001.ARW", temporary: temporary,
+            identity: RenameIdentity(device: identity.device, inode: identity.inode &+ 10_000))
+        item.fingerprint = fingerprint
+        let volume = BatchRenameEngine.volume(root)
+        let journal = RenameJournal(version: 2, id: id, folderPath: root.path, volumeUUID: volume.0,
+            relativeFolder: volume.1, orderTitle: "test", items: [item], tagSnapshot: [TagStore.key(source)], phase: "staged")
+        let journalURL = engine.journalDirectory.appendingPathComponent(id.uuidString + ".json")
+        try JSONEncoder().encode(journal).write(to: journalURL)
+        let result = try recover(engine, journalURL, root, tags)
+        XCTAssertTrue(result.restored, result.message)
+        XCTAssertEqual(try Data(contentsOf: source), Data("content identity across changed inodes".utf8))
+    }
     func testVolumeRollbackInterruptedRecoveryAndRemount() throws {
-        let root = try folder(preserveForRemount: true), tags = try store()
+        let root = try folder(preserveForRemount: true)
+        let prepared = try XCTUnwrap(try support(root))
+        let externalRecovery = prepared.requiresContentIdentity && ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"] != nil
+        let metadata = try folder(onVolume: false, preserveForRemount: externalRecovery)
+        let tags = TagStore(fileURL: metadata.appendingPathComponent("tags.json"))
         for name in ["A.ARW", "B.JPG"] { try Data(name.utf8).write(to: root.appendingPathComponent(name)) }
         tag(root.appendingPathComponent("A.ARW"), tags)
-        if try self.support(root) == nil {
-            let safe = try engine()
-            let refused = try execute(safe, plan(root), tags)
-            XCTAssertFalse(refused.completed); XCTAssertFalse(refused.restored); XCTAssertNil(refused.journalURL)
-            for name in ["A.ARW", "B.JPG"] { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), Data(name.utf8)) }
-            XCTAssertTrue(try safe.pending(in: root).isEmpty)
-            if ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"] != nil,
-               let output = ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_REPORT"] {
-                // exFAT can refuse even forced unmounts while a Foundation
-                // test worker retains filesystem references. The script must
-                // reconnect the image AFTER this process exits, then verify
-                // these exact originals. No rename/recovery success is claimed.
-                let receipt: [String: Any] = ["folder": root.path, "files": ["A.ARW", "B.JPG"],
-                    "successfulRename": false, "physicalDevice": false, "reconnected": false]
-                let target = URL(fileURLWithPath: output.replacingOccurrences(of: "filesystem-integration-", with: "filesystem-remount-"))
-                try JSONSerialization.data(withJSONObject: receipt, options: [.prettyPrinted, .sortedKeys]).write(to: target)
-            }
-            return // No partial rename/recovery success is claimed for unsupported exFAT.
-        }
         var failed = false
-        let broken = try engine(move: { source, destination in
+        let broken = BatchRenameEngine(journalDirectory: metadata.appendingPathComponent("journals"), move: { source, destination in
             if destination.lastPathComponent == "Wedding_002.JPG" { failed = true; throw POSIXError(.EIO) }
             if failed && destination.lastPathComponent == "A.ARW" { throw POSIXError(.EACCES) }
-            try BatchRenameEngine.exclusiveMove(source, destination)
+            try RenameFilesystem.move(source, destination, allowCompatibility: true)
         })
+        broken.allowCoordinatedCompatibility = true
         let result = try execute(broken, plan(root), tags)
         XCTAssertFalse(result.completed); XCTAssertFalse(result.restored)
         XCTAssertTrue(result.files.contains { $0.state == .temporary || $0.state == .renamed })
         let journal = try XCTUnwrap(result.journalURL)
+        if externalRecovery, let output = ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_REPORT"] {
+            let receipt: [String: Any] = ["folder": root.path, "metadata": metadata.path, "journal": journal.path,
+                "recoveredAfterReconnect": false, "physicalDevice": false]
+            let url = URL(fileURLWithPath: output.replacingOccurrences(of: "filesystem-integration-", with: "filesystem-recovery-"))
+            try JSONSerialization.data(withJSONObject: receipt, options: [.prettyPrinted, .sortedKeys]).write(to: url)
+            return // The script reconnects, then runs testVolumeContentIdentityRecovery in a fresh process.
+        }
         try remountDisposableImageIfRequested()
-        let done = expectation(description: "resume recovery after remount")
-        var recovered: RenameOutcome?
         let available = BatchRenameEngine(journalDirectory: broken.journalDirectory)
-        available.recover(journal, folder: root, tagStore: tags, lease: FolderLease(root), progress: { _, _, _ in }) { recovered = $0; done.fulfill() }
-        wait(for: [done], timeout: 30)
-        let restored = try XCTUnwrap(recovered)
+        available.allowCoordinatedCompatibility = true
+        let restored = try recover(available, journal, root, tags)
         XCTAssertFalse(restored.completed); XCTAssertTrue(restored.restored, restored.message)
         for name in ["A.ARW", "B.JPG"] { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), Data(name.utf8)) }
         XCTAssertEqual(restored.taggedPaths, [TagStore.key(root.appendingPathComponent("A.ARW"))])
@@ -319,7 +452,7 @@ final class FilesystemRenameTests: XCTestCase {
         let away = hiddenRoot.deletingLastPathComponent().appendingPathComponent(".J-S-unavailable-" + UUID().uuidString)
         var disconnected = false
         let disappearing = try engine(move: { source, destination in
-            try BatchRenameEngine.exclusiveMove(source, destination)
+            try RenameFilesystem.move(source, destination, allowCompatibility: true)
             if !disconnected {
                 disconnected = true
                 try FileManager.default.moveItem(at: hiddenRoot, to: away)

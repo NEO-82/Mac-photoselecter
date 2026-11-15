@@ -335,9 +335,9 @@ final class BrowserUITests: XCTestCase {
     @MainActor
     func testViewerHeldZoomDeleteIsSingleEvenWithBrowserMultiSelection() throws {
         _ = NSApplication.shared
-        let previousZoom = UserDefaults.standard.object(forKey: ClickZoomPreference.key)
+        let previousZoom = ClickZoomPreference.percent()
         ClickZoomPreference.save(200)
-        defer { UserDefaults.standard.set(previousZoom, forKey: ClickZoomPreference.key) }
+        defer { ClickZoomPreference.save(previousZoom) }
         let root = try folder(), trash = try folder(), data = jpegData()
         for name in ["1.jpg", "2.jpg"] { try data.write(to: root.appendingPathComponent(name)) }
         let service = PhotoTrash { url in try FileManager.default.moveItem(at: url, to: trash.appendingPathComponent(url.lastPathComponent)) }
@@ -1565,8 +1565,8 @@ final class BrowserUITests: XCTestCase {
         let view = try XCTUnwrap(menu.item(withTitle: "보기")?.submenu)
         let zoom = try XCTUnwrap(view.item(withTitle: "클릭 유지 확대 배율")?.submenu)
         XCTAssertEqual(zoom.items.map(\.title), (100...200).filter { $0 % 10 == 0 }.map { "\($0)%" })
-        let previousZoom = UserDefaults.standard.object(forKey: ClickZoomPreference.key)
-        defer { UserDefaults.standard.set(previousZoom, forKey: ClickZoomPreference.key) }
+        let previousZoom = ClickZoomPreference.percent()
+        defer { ClickZoomPreference.save(previousZoom) }
         for item in zoom.items {
             XCTAssertTrue(NSApp.sendAction(try XCTUnwrap(item.action), to: item.target, from: item))
             XCTAssertEqual(ClickZoomPreference.percent(), item.tag)

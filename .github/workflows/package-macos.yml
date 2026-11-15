@@ -2,14 +2,14 @@ name: Build macOS installer
 
 on:
   push:
-    branches: [codex/macos-installer-download, codex/macos27-compatibility]
+    branches: [codex/macos-installer-download, codex/macos27-compatibility, codex/exfat-finder-compatibility]
     paths-ignore: ['downloads/**']
   workflow_dispatch:
     inputs:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.7.2'
+        default: '0.7.3'
         type: string
 
 permissions:
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.7.2' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.7.3' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
   PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
@@ -28,7 +28,7 @@ jobs:
   package:
     # The compatibility branch matches the user's macOS 27.0.1 on Apple Silicon.
     # Keep the existing Intel/macOS 15 regression path on the delivery branch.
-    runs-on: ${{ github.ref_name == 'codex/macos27-compatibility' && 'xcode-27' || 'macos-15-intel' }}
+    runs-on: ${{ github.ref_name == 'codex/macos-installer-download' && 'macos-15-intel' || 'xcode-27' }}
     timeout-minutes: 30
     permissions:
       contents: write
@@ -44,8 +44,8 @@ jobs:
         run: |
           set -o pipefail
           {
-            sw_vers; uname -m; xcodebuild -version
-            if [[ "$GITHUB_REF_NAME" == codex/macos27-compatibility ]]; then
+            sw_vers; uname -m; xcodebuild -version; df -h .; sysctl -n hw.memsize
+            if [[ "$GITHUB_REF_NAME" != codex/macos-installer-download ]]; then
               xcrun swift scripts/prepare-ci-display.swift
               xcrun swift -e 'import AppKit; let size = NSScreen.main!.visibleFrame.size; print("Independent worker visible area: \(size)"); precondition(size.width >= 1200 && size.height >= 792)'
             fi
@@ -62,7 +62,12 @@ jobs:
               'testMixedBrowserFolderNavigationFilePreviewAndCreditLayout',
               'testSelectingThumbnailChangesRightPreview',
               'testClickZoomAllPercentagesAcrossDisplayScales',
-              'testClickZoomPreferencePersistsAndRejectsInvalidValues',
+              'testClickZoomSessionResetsAtLaunchAndRejectsInvalidValues',
+              'testHeldPlusMinusChangesZoomWithoutInterruptingInspection',
+              'testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles',
+              'testVolumeContentIdentityRecovery',
+              'testVolumeCompatibilityConsentCancelAndActualRename',
+              'testContentJournalRejectsMiddleByteChangesAndAmbiguousAliases',
               'testEverySavedZoomRendersAtSelectedSizeAndSurvivesDeleteAndNavigation',
               'testVolumeRenameCountsTimingAndModificationDates',
           }
@@ -129,7 +134,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Save installer and build evidence on the delivery branch
-        if: always() && (github.ref_name == 'codex/macos-installer-download' || github.ref_name == 'codex/macos27-compatibility')
+        if: always() && (github.ref_name == 'codex/macos-installer-download' || github.ref_name == 'codex/macos27-compatibility' || github.ref_name == 'codex/exfat-finder-compatibility')
         env:
           PACKAGE_OUTCOME: ${{ steps.package.outcome == 'success' && steps.selection.outcome == 'success' && 'success' || 'failure' }}
         run: bash scripts/publish-installer-result.sh

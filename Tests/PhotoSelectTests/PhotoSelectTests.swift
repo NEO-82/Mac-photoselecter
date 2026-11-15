@@ -19,19 +19,22 @@ final class PhotoSelectTests: XCTestCase {
             }
         }
     }
-    func testClickZoomPreferencePersistsAndRejectsInvalidValues() {
-        let suite = "PhotoSelectTests.zoom." + UUID().uuidString
-        let defaults = UserDefaults(suiteName: suite)!
-        defer { defaults.removePersistentDomain(forName: suite) }
-        XCTAssertEqual(ClickZoomPreference.percent(in: defaults), 100)
+    func testClickZoomSessionResetsAtLaunchAndRejectsInvalidValues() {
+        let previous = ClickZoomPreference.percent()
+        let legacy = UserDefaults.standard.object(forKey: ClickZoomPreference.key)
+        defer { ClickZoomPreference.save(previous); UserDefaults.standard.set(legacy, forKey: ClickZoomPreference.key) }
+        UserDefaults.standard.set(200, forKey: ClickZoomPreference.key)
+        ClickZoomPreference.resetForLaunch()
+        XCTAssertEqual(ClickZoomPreference.percent(), 100)
+        XCTAssertNil(UserDefaults.standard.object(forKey: ClickZoomPreference.key))
         for percent in ClickZoomPreference.choices {
-            ClickZoomPreference.save(percent, in: defaults)
-            XCTAssertEqual(ClickZoomPreference.percent(in: UserDefaults(suiteName: suite)!), percent)
+            ClickZoomPreference.save(percent)
+            XCTAssertEqual(ClickZoomPreference.percent(), percent)
         }
-        ClickZoomPreference.save(205, in: defaults)
-        XCTAssertEqual(ClickZoomPreference.percent(in: defaults), 200)
-        defaults.set(999, forKey: ClickZoomPreference.key)
-        XCTAssertEqual(ClickZoomPreference.percent(in: defaults), 100)
+        ClickZoomPreference.save(205)
+        XCTAssertEqual(ClickZoomPreference.percent(), 200)
+        ClickZoomPreference.resetForLaunch()
+        XCTAssertEqual(ClickZoomPreference.percent(), 100)
     }
     func testExtensionsAndRawJpegPair() {
         XCTAssertTrue(Photo.accepts(URL(fileURLWithPath: "/a/DSC001.ARW")))

@@ -123,13 +123,18 @@ enum WindowLayout {
 enum ClickZoomPreference {
     static let key = "clickZoomPercent"
     static let choices = Array(stride(from: 100, through: 200, by: 10))
-    static func percent(in defaults: UserDefaults = .standard) -> Int {
-        let saved = defaults.integer(forKey: key)
-        return choices.contains(saved) ? saved : 100
-    }
-    static func save(_ percent: Int, in defaults: UserDefaults = .standard) {
+    private static var current = 100
+    static func percent() -> Int { current }
+    static func save(_ percent: Int) {
         guard choices.contains(percent) else { return }
-        defaults.set(percent, forKey: key)
+        current = percent
+    }
+    static func resetForLaunch() {
+        current = 100
+        UserDefaults.standard.removeObject(forKey: key)
+    }
+    static func step(_ direction: Int) {
+        save(min(200, max(100, current + direction * 10)))
     }
 }
 

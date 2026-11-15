@@ -156,9 +156,46 @@ final class ViewerInteractionTests: XCTestCase {
     }
 
     @MainActor
+    func testHeldPlusMinusChangesZoomWithoutInterruptingInspection() throws {
+        let previous = ClickZoomPreference.percent()
+        defer { ClickZoomPreference.save(previous) }
+        ClickZoomPreference.resetForLaunch()
+        let canvas = makeCanvas(); canvas.decoded = image(raw: true)
+        var states: [Bool] = [], changes: [Int] = []
+        canvas.zoomChanged = { states.append($0) }
+        canvas.magnificationChanged = { changes.append(ClickZoomPreference.percent()) }
+        func key(_ text: String, code: UInt16 = 24, modifiers: NSEvent.ModifierFlags = [], repeated: Bool = false) throws -> NSEvent {
+            try XCTUnwrap(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: modifiers,
+                timestamp: 0, windowNumber: 0, context: nil, characters: text, charactersIgnoringModifiers: text,
+                isARepeat: repeated, keyCode: code))
+        }
+        canvas.keyDown(with: try key("+"))
+        XCTAssertEqual(ClickZoomPreference.percent(), 100, "Only held zoom handles these keys")
+        canvas.mouseDown(with: mouse(.leftMouseDown)); canvas.mouseDragged(with: mouse(.leftMouseDragged))
+        for value in stride(from: 110, through: 200, by: 10) {
+            canvas.keyDown(with: try key("+", modifiers: .shift))
+            XCTAssertEqual(ClickZoomPreference.percent(), value)
+            XCTAssertTrue(isRenderedZoomed(canvas))
+        }
+        canvas.keyDown(with: try key("", code: 69, repeated: true))
+        XCTAssertEqual(ClickZoomPreference.percent(), 200)
+        for value in stride(from: 190, through: 100, by: -10) {
+            canvas.keyDown(with: try key("-", code: 27))
+            XCTAssertEqual(ClickZoomPreference.percent(), value)
+        }
+        canvas.keyDown(with: try key("", code: 78))
+        XCTAssertEqual(ClickZoomPreference.percent(), 100)
+        XCTAssertEqual(states, [true])
+        XCTAssertTrue(changes.contains(150))
+        canvas.mouseUp(with: mouse(.leftMouseUp))
+        XCTAssertEqual(states, [true, false])
+        XCTAssertFalse(isRenderedZoomed(canvas))
+    }
+
+    @MainActor
     func testEverySavedZoomRendersAtSelectedSizeAndSurvivesDeleteAndNavigation() throws {
-        let previous = UserDefaults.standard.object(forKey: ClickZoomPreference.key)
-        defer { UserDefaults.standard.set(previous, forKey: ClickZoomPreference.key) }
+        let previous = ClickZoomPreference.percent()
+        defer { ClickZoomPreference.save(previous) }
         let canvas = PhotoCanvas(frame: NSRect(x: 0, y: 0, width: 400, height: 300))
         var deletes = 0, navigations = 0
         canvas.trashCurrent = {

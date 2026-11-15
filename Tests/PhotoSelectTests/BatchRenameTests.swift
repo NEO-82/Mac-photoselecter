@@ -2,6 +2,43 @@ import XCTest
 @testable import PhotoSelect
 
 final class BatchRenameTests: XCTestCase {
+    func testContentJournalRejectsMiddleByteChangesAndAmbiguousAliases() throws {
+        for ambiguous in [false, true] {
+            let root = try folder(), metadata = try folder(), id = UUID()
+            let source = root.appendingPathComponent("A.ARW")
+            try Data(repeating: 7, count: 3 * 1024 * 1024).write(to: source)
+            let date = Date(timeIntervalSince1970: 1_700_000_000)
+            try FileManager.default.setAttributes([.modificationDate: date], ofItemAtPath: source.path)
+            let fingerprint = try RenameFingerprint.read(source), identity = try RenameIdentity.read(source)
+            let temporary = ".J-S-rename-" + id.uuidString + "-0.ARW"
+            let target = root.appendingPathComponent(temporary)
+            if ambiguous { try FileManager.default.linkItem(at: source, to: target) }
+            else {
+                try BatchRenameEngine.exclusiveMove(source, target)
+                let handle = try FileHandle(forWritingTo: target)
+                try handle.seek(toOffset: 1_500_000); try handle.write(contentsOf: Data([99])); try handle.close()
+                try FileManager.default.setAttributes([.modificationDate: date], ofItemAtPath: target.path)
+            }
+            var item = RenameJournal.Item(original: "A.ARW", destination: "Wedding_001.ARW", temporary: temporary, identity: identity)
+            item.fingerprint = fingerprint
+            let volume = BatchRenameEngine.volume(root)
+            let journal = RenameJournal(version: 2, id: id, folderPath: root.path, volumeUUID: volume.0,
+                relativeFolder: volume.1, orderTitle: "test", items: [item], tagSnapshot: [], phase: "staged")
+            let url = metadata.appendingPathComponent(id.uuidString + ".json")
+            try JSONEncoder().encode(journal).write(to: url)
+            let engine = BatchRenameEngine(journalDirectory: metadata), tags = TagStore(fileURL: metadata.appendingPathComponent("tags.json"))
+            let done = expectation(description: "unverifiable content recovery stops")
+            var result: RenameOutcome?
+            engine.recover(url, folder: root, tagStore: tags, lease: FolderLease(root), progress: { _, _, _ in }) { result = $0; done.fulfill() }
+            wait(for: [done], timeout: 10)
+            let outcome = try XCTUnwrap(result)
+            XCTAssertFalse(outcome.completed); XCTAssertFalse(outcome.restored)
+            XCTAssertNil(outcome.taggedPaths); XCTAssertTrue(outcome.mapping.isEmpty)
+            XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: target.path))
+            XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Wedding_001.ARW").path))
+        }
+    }
     private func folder() throws -> URL {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
