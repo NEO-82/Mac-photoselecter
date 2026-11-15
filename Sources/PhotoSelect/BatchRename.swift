@@ -102,12 +102,12 @@ struct RenameSourceSnapshot: Hashable {
     }
 }
 
-// Catalog compatibility requires explicit consent: coordination serializes
+// Coordinated compatibility requires explicit consent: coordination serializes
 // cooperating writers, but cannot promise RENAME_EXCL against arbitrary writers.
 enum RenameFilesystem {
     enum Method: String {
         case native = "renamex_np(RENAME_EXCL)", directory = "renameatx_np(RENAME_EXCL)"
-        case catalog = "NSFileCoordinator + FSRenameUnicode (호환 모드)"
+        case coordinated = "NSFileCoordinator + FileManager.moveItem (호환 모드)"
     }
     struct Volume {
         let format: String, mountID: String, readOnly: Bool
@@ -132,10 +132,10 @@ enum RenameFilesystem {
     struct Prepared {
         let volume: Volume, method: Method
         let operation: (URL, URL) throws -> Void
-        var requiresContentIdentity: Bool { method == .catalog || volume.persistentIDs == false }
+        var requiresContentIdentity: Bool { method == .coordinated || volume.persistentIDs == false }
         var description: String {
             "파일 시스템 \(volume.format) · \(method.rawValue)" +
-                (method == .catalog ? "\n호환 모드: 조정에 참여하지 않는 다른 앱의 동시 쓰기에는 원자적 덮어쓰기 방지를 보장하지 않습니다." : "")
+                (method == .coordinated ? "\n호환 모드: 조정에 참여하지 않는 다른 앱의 동시 쓰기에는 원자적 덮어쓰기 방지를 보장하지 않습니다." : "")
         }
     }
     static func unsupported(_ error: Error) -> Bool {
@@ -168,55 +168,39 @@ enum RenameFilesystem {
             throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
         }
     }
-    private final class CatalogAPI {
-        typealias MakeRef = @convention(c) (UnsafePointer<UInt8>?, UInt32, UnsafeMutableRawPointer?, UnsafeMutablePointer<UInt8>?) -> Int32
-        typealias RenameRef = @convention(c) (UnsafeRawPointer?, UInt32, UnsafePointer<UInt16>?, UInt32, UnsafeMutableRawPointer?) -> Int16
-        let handle: UnsafeMutableRawPointer, make: MakeRef, rename: RenameRef
-        static let cached: Result<CatalogAPI, Error> = Result { try CatalogAPI() }
-        init() throws {
-            guard let handle = dlopen("/System/Library/Frameworks/CoreServices.framework/CoreServices", RTLD_LAZY | RTLD_LOCAL),
-                  let make = dlsym(handle, "FSPathMakeRefWithOptions"), let rename = dlsym(handle, "FSRenameUnicode") else {
-                throw RenameProblem(message: "이 macOS에서 catalog 이름 변경 API를 사용할 수 없습니다.")
-            }
-            self.handle = handle
-            self.make = unsafeBitCast(make, to: MakeRef.self)
-            self.rename = unsafeBitCast(rename, to: RenameRef.self)
+    private static func compatibilityRename(_ source: URL, _ destination: URL) throws {
+        let before = try RenameSourceSnapshot.read(source)
+        var directory = stat()
+        guard stat(source.deletingLastPathComponent().path, &directory) == 0,
+              UInt64(UInt32(bitPattern: directory.st_dev)) == before.identity.device,
+              stat(destination.deletingLastPathComponent().path, &directory) == 0,
+              UInt64(UInt32(bitPattern: directory.st_dev)) == before.identity.device else {
+            throw RenameProblem(message: "같은 볼륨·같은 폴더의 이름 변경만 허용합니다.")
         }
-        func move(_ source: URL, _ destination: URL) throws {
-            let before = try RenameSourceSnapshot.read(source)
-            var ref = [UInt8](repeating: 0, count: 80), output = ref
-            let made = source.withUnsafeFileSystemRepresentation { path in
-                ref.withUnsafeMutableBytes { make(UnsafeRawPointer(path!).assumingMemoryBound(to: UInt8.self), 1, $0.baseAddress, nil) }
-            }
-            guard made == 0 else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(made)) }
+        for url in [destination, destination.deletingLastPathComponent().appendingPathComponent("._" + destination.lastPathComponent)] {
             var occupied = stat()
-            if lstat(destination.path, &occupied) == 0 { throw POSIXError(.EEXIST) }
+            if lstat(url.path, &occupied) == 0 { throw POSIXError(.EEXIST) }
             guard errno == ENOENT else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
-            let sidecar = destination.deletingLastPathComponent().appendingPathComponent("._" + destination.lastPathComponent)
-            if lstat(sidecar.path, &occupied) == 0 { throw POSIXError(.EEXIST) }
-            guard errno == ENOENT else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
-            guard try RenameSourceSnapshot.read(source) == before else {
-                throw RenameProblem(message: "호환 이름 변경 직전 원본 상태가 달라졌습니다.")
-            }
-            let name = Array(destination.lastPathComponent.utf16)
-            let status = ref.withUnsafeBytes { from in
-                output.withUnsafeMutableBytes { result in
-                    name.withUnsafeBufferPointer { rename(from.baseAddress, UInt32($0.count), $0.baseAddress, 0xffff, result.baseAddress) }
-                }
-            }
-            if status == -48 { throw POSIXError(.EEXIST) }
-            guard status == 0 else { throw NSError(domain: NSOSStatusErrorDomain, code: Int(status)) }
-            let after = try RenameSourceSnapshot.read(destination)
-            guard before.identity == after.identity, before.bytes == after.bytes,
-                  before.modifiedSeconds == after.modifiedSeconds, before.modifiedNanos == after.modifiedNanos else {
-                throw RenameProblem(message: "이름 변경 뒤 원본 식별자/크기/수정 시간을 확인하지 못했습니다. 저널을 보존합니다.")
-            }
+        }
+        guard try RenameSourceSnapshot.read(source) == before else {
+            throw RenameProblem(message: "호환 이름 변경 직전 원본 상태가 달라졌습니다.")
+        }
+        do { try FileManager.default.moveItem(at: source, to: destination) }
+        catch {
+            let e = error as NSError
+            if e.domain == NSCocoaErrorDomain && e.code == CocoaError.fileWriteFileExists.rawValue { throw POSIXError(.EEXIST) }
+            throw error
+        }
+        let after = try RenameSourceSnapshot.read(destination)
+        guard before.identity == after.identity, before.bytes == after.bytes,
+              before.modifiedSeconds == after.modifiedSeconds, before.modifiedNanos == after.modifiedNanos else {
+            throw RenameProblem(message: "변경 후 같은 파일 식별자/크기/수정 시간을 확인하지 못했습니다. 저널을 보존합니다.")
         }
     }
-    private static let catalogLock = NSRecursiveLock()
-    private static let batchFolderKey = "dev.photoselect.catalog-batch-folder"
-    static func coordinateCatalogBatch<T>(in folder: URL, _ body: @escaping () throws -> T) throws -> T {
-        catalogLock.lock(); defer { catalogLock.unlock() }
+    private static let coordinationLock = NSRecursiveLock()
+    private static let batchFolderKey = "dev.photoselect.coordinated-batch-folder"
+    static func coordinateCompatibilityBatch<T>(in folder: URL, _ body: @escaping () throws -> T) throws -> T {
+        coordinationLock.lock(); defer { coordinationLock.unlock() }
         let coordinator = NSFileCoordinator(filePresenter: nil)
         var coordinationError: NSError?, result: Result<T, Error>?
         coordinator.coordinate(writingItemAt: folder, options: [], error: &coordinationError) { actual in
@@ -235,13 +219,13 @@ enum RenameFilesystem {
         guard let result else { throw RenameProblem(message: "폴더 조정기가 작업을 실행하지 않았습니다.") }
         return try result.get()
     }
-    static func coordinatedCatalog(_ source: URL, _ destination: URL) throws {
+    static func coordinatedMove(_ source: URL, _ destination: URL) throws {
         try checkParent(source, destination)
         if Thread.current.threadDictionary[batchFolderKey] as? String == TagStore.key(source.deletingLastPathComponent()) {
-            try CatalogAPI.cached.get().move(source, destination)
+            try compatibilityRename(source, destination)
             return
         }
-        catalogLock.lock(); defer { catalogLock.unlock() }
+        coordinationLock.lock(); defer { coordinationLock.unlock() }
         let coordinator = NSFileCoordinator(filePresenter: nil)
         var coordinationError: NSError?, operationError: Error?
         var invoked = false
@@ -252,7 +236,7 @@ enum RenameFilesystem {
                 guard TagStore.key(from) == TagStore.key(source), TagStore.key(to) == TagStore.key(destination) else {
                     throw RenameProblem(message: "조정 중 파일 경로가 달라져 중단했습니다.")
                 }
-                try CatalogAPI.cached.get().move(from, to)
+                try compatibilityRename(from, to)
                 coordinator.item(at: from, didMoveTo: to)
             } catch { operationError = error }
         }
@@ -265,7 +249,7 @@ enum RenameFilesystem {
         catch {
             guard unsupported(error) else { throw error }
             do { try directory(source, destination) }
-            catch { guard unsupported(error), allowCompatibility else { throw error }; try coordinatedCatalog(source, destination) }
+            catch { guard unsupported(error), allowCompatibility else { throw error }; try coordinatedMove(source, destination) }
         }
     }
     // Probe only freshly-created disposable entries, never the user's photos.
@@ -303,7 +287,7 @@ enum RenameFilesystem {
                           !FileManager.default.fileExists(atPath: free.path), try Data(contentsOf: source) == a else {
                         throw RenameProblem(message: "호환 처리 전 원본 상태를 확인하지 못했습니다.")
                     }
-                    method = .catalog; operation = coordinatedCatalog
+                    method = .coordinated; operation = coordinatedMove
                     try operation(source, free)
                 }
             }
@@ -454,7 +438,7 @@ final class BatchRenameEngine {
             return (move, "", contentIdentity, contentIdentity)
         }
         let support = try RenameFilesystem.prepare(in: folder, allowCompatibility: allowCoordinatedCompatibility)
-        return (support.operation, support.description, support.requiresContentIdentity, support.method == .catalog)
+        return (support.operation, support.description, support.requiresContentIdentity, support.method == .coordinated)
     }
     static func volume(_ folder: URL) -> (String?, String?) {
         var fresh = folder; fresh.removeAllCachedResourceValues()
@@ -516,7 +500,7 @@ final class BatchRenameEngine {
         var movedOriginals: Set<String> = []
         var originalSnapshots: [String: RenameSourceSnapshot] = [:]
         var trustedSnapshots: [String: RenameSourceSnapshot] = [:]
-        var usesCatalogBatch = false
+        var usesCoordinatedBatch = false
         var locations: [String: String] = [:]
         var locationErrors: [String] = []
         var locationsVerified = false
@@ -614,7 +598,7 @@ final class BatchRenameEngine {
             }
         }
         func commit(progress: @escaping Progress) throws {
-            if usesCatalogBatch { try RenameFilesystem.coordinateCatalogBatch(in: folder) { try self.commitMoves(progress: progress) } }
+            if usesCoordinatedBatch { try RenameFilesystem.coordinateCompatibilityBatch(in: folder) { try self.commitMoves(progress: progress) } }
             else { try commitMoves(progress: progress) }
         }
         private func commitMoves(progress: Progress) throws {
@@ -624,8 +608,8 @@ final class BatchRenameEngine {
             try save("committed")
         }
         func rollback(progress: @escaping Progress) -> [String] {
-            if usesCatalogBatch {
-                do { return try RenameFilesystem.coordinateCatalogBatch(in: folder) { self.rollbackMoves(progress: progress) } }
+            if usesCoordinatedBatch {
+                do { return try RenameFilesystem.coordinateCompatibilityBatch(in: folder) { self.rollbackMoves(progress: progress) } }
                 catch { return [error.localizedDescription] }
             }
             return rollbackMoves(progress: progress)
@@ -725,7 +709,7 @@ final class BatchRenameEngine {
             relativeFolder: volume.1, orderTitle: plan.orderTitle, items: items, tagSnapshot: tags.intersection(keys).sorted(), phase: "prepared")
         let transaction = Transaction(journal: journal, url: journalDirectory.appendingPathComponent(id.uuidString + ".json"), folder: plan.folder, lease: lease, lock: lock, move: implementation.0)
         transaction.implementationDescription = implementation.1
-        transaction.usesCatalogBatch = implementation.3
+        transaction.usesCoordinatedBatch = implementation.3
         transaction.originalSnapshots = plan.snapshots
         if implementation.2 { transaction.trustedSnapshots = plan.snapshots }
         try transaction.refresh(); try transaction.save("prepared"); return transaction
@@ -749,7 +733,7 @@ final class BatchRenameEngine {
             let implementation = try self.configuredMove(folder)
             let transaction = Transaction(journal: journal, url: journalURL, folder: folder, lease: lease, lock: lock, move: implementation.0)
             transaction.implementationDescription = implementation.1
-            transaction.usesCatalogBatch = implementation.3
+            transaction.usesCoordinatedBatch = implementation.3
             try transaction.refresh(); return transaction
         }
     }

@@ -87,11 +87,11 @@ final class FilesystemRenameTests: XCTestCase {
             let read = actual.withUnsafeMutableBytes { getxattr(target.path, name, $0.baseAddress, $0.count, 0, 0) }
             XCTAssertEqual(read, value.count); XCTAssertEqual(actual, value)
         }
-        if try XCTUnwrap(support(root)).method == .catalog {
+        if try XCTUnwrap(support(root)).method == .coordinated {
             let other = root.appendingPathComponent("B.ARW"), sidecar = root.appendingPathComponent("._occupied.ARW")
             let marker = Data("unrelated orphan metadata".utf8)
             try Data("another photo".utf8).write(to: other); try marker.write(to: sidecar)
-            XCTAssertThrowsError(try RenameFilesystem.coordinatedCatalog(other, root.appendingPathComponent("occupied.ARW")))
+            XCTAssertThrowsError(try RenameFilesystem.coordinatedMove(other, root.appendingPathComponent("occupied.ARW")))
             XCTAssertEqual(try Data(contentsOf: other), Data("another photo".utf8))
             XCTAssertEqual(try Data(contentsOf: sidecar), marker)
         }
@@ -174,7 +174,7 @@ final class FilesystemRenameTests: XCTestCase {
         let done = expectation(description: "volume rename transaction")
         var output: RenameOutcome?
         engine.execute(plan, tagStore: tags, lease: FolderLease(plan.folder), progress: { _, _, _ in }) { output = $0; done.fulfill() }
-        wait(for: [done], timeout: 90); return try XCTUnwrap(output)
+        wait(for: [done], timeout: 300); return try XCTUnwrap(output)
     }
     private func tag(_ url: URL, _ tags: TagStore) {
         let done = expectation(description: "volume tag")

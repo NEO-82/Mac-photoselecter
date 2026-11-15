@@ -162,7 +162,7 @@ final class BatchRenameWindow: NSWindowController, NSTableViewDataSource, NSTabl
         if !compatibilityConfirmed, volume?.format == "exfat" || volume?.persistentIDs == false, let window {
             let alert = NSAlert()
             alert.messageText = "외장 저장장치 호환 이름 변경"
-            alert.informativeText = "지원되는 볼륨은 기존 독점 rename을 사용합니다. exFAT에서는 파일 조정과 catalog 이름 변경을 사용하고, 기존 이름 충돌을 확인해 거부합니다.\n\n이 방식은 파일 조정에 참여하지 않는 다른 프로그램의 동시 파일 생성·이동까지 원자적으로 차단하지 못합니다. 이 폴더를 사용하는 Finder 작업·동기화·다른 앱의 쓰기를 먼저 끝내 주세요. 동시 변경 시 기존 파일이 덮어써지지 않는다고 완전히 보장할 수 없습니다.\n\n재연결 복구를 위해 원본 내용을 SHA-256으로 읽습니다. 사진 내용을 복사하거나 수정하지 않습니다."
+            alert.informativeText = "지원되는 볼륨은 기존 독점 rename을 사용합니다. exFAT에서는 파일 조정과 시스템 파일 이동 API을 사용하고, 기존 이름 충돌을 확인해 거부합니다.\n\n이 방식은 파일 조정에 참여하지 않는 다른 프로그램의 동시 파일 생성·이동까지 원자적으로 차단하지 못합니다. 이 폴더를 사용하는 Finder 작업·동기화·다른 앱의 쓰기를 먼저 끝내 주세요. 동시 변경 시 기존 파일이 덮어써지지 않는다고 완전히 보장할 수 없습니다.\n\n재연결 복구를 위해 원본 내용을 SHA-256으로 읽습니다. 사진 내용을 복사하거나 수정하지 않습니다."
             alert.addButton(withTitle: "동시 작업을 끝냈으며 호환 방식으로 진행")
             alert.addButton(withTitle: "취소")
             alert.beginSheetModal(for: window) { [weak self] response in
