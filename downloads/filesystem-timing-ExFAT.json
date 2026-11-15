@@ -1,6 +1,6 @@
 [
   {
-    "elapsedMilliseconds" : 1027.960773000018,
+    "elapsedMilliseconds" : 187.42040999995879,
     "fixture" : "small synthetic files, not full-size RAW",
     "format" : "exfat",
     "physicalDevice" : false,
@@ -9,7 +9,7 @@
     "status" : "blocked-not-renamed"
   },
   {
-    "elapsedMilliseconds" : 213.57989700004509,
+    "elapsedMilliseconds" : 272.66293000002406,
     "fixture" : "small synthetic files, not full-size RAW",
     "format" : "exfat",
     "physicalDevice" : false,
@@ -18,7 +18,7 @@
     "status" : "blocked-not-renamed"
   },
   {
-    "elapsedMilliseconds" : 243.92419000002974,
+    "elapsedMilliseconds" : 890.22005500009982,
     "fixture" : "small synthetic files, not full-size RAW",
     "format" : "exfat",
     "physicalDevice" : false,
@@ -27,7 +27,7 @@
     "status" : "blocked-not-renamed"
   },
   {
-    "elapsedMilliseconds" : 322.2428100000343,
+    "elapsedMilliseconds" : 321.11845600002198,
     "fixture" : "small synthetic files, not full-size RAW",
     "format" : "exfat",
     "physicalDevice" : false,
