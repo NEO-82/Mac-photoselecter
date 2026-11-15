@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <testsuites>
-<testsuite name="TestResults" errors="0" tests="7" failures="0" time="92.699492957">
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags" time="18.495637666">
+<testsuite name="TestResults" errors="0" tests="7" failures="0" time="112.17224275100001">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags" time="20.214627917">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess" time="0.297238542">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess" time="0.304473833">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeConcurrentRenamesHaveExactlyOneWinner" time="11.677574625">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeConcurrentRenamesHaveExactlyOneWinner" time="13.195908125">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRenameCountsTimingAndModificationDates" time="60.894846625">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRenameCountsTimingAndModificationDates" time="74.286642584">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRollbackInterruptedRecoveryAndRemount" time="0.379995625">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRollbackInterruptedRecoveryAndRemount" time="2.273588458">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite" time="0.499667833">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite" time="1.021313917">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange" time="0.454532041">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange" time="0.875687917">
 </testcase>
 </testsuite>
 </testsuites>
