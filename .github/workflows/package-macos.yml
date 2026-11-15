@@ -2,7 +2,7 @@ name: Build macOS installer
 
 on:
   push:
-    branches: [codex/macos-installer-download]
+    branches: [codex/macos-installer-download, codex/macos27-compatibility]
     paths-ignore: ['downloads/**']
   workflow_dispatch:
     inputs:
@@ -26,9 +26,9 @@ env:
 
 jobs:
   package:
-    # Use the Intel macOS pool when arm64 hosted runner capacity is unavailable.
-    # package-macos.sh still builds and verifies an arm64-only application.
-    runs-on: macos-15-intel
+    # The compatibility branch matches the user's macOS 27.0.1 on Apple Silicon.
+    # Keep the existing Intel/macOS 15 regression path on the delivery branch.
+    runs-on: ${{ github.ref_name == 'codex/macos27-compatibility' && 'xcode-27' || 'macos-15-intel' }}
     timeout-minutes: 30
     permissions:
       contents: write
@@ -43,7 +43,7 @@ jobs:
         id: package
         run: |
           set -o pipefail
-          { bash scripts/probe-rename-filesystems.sh; bash scripts/package-macos.sh; } 2>&1 | tee "$RUNNER_TEMP/PhotoSelect-build.log"
+          { sw_vers; uname -m; xcodebuild -version; bash scripts/probe-rename-filesystems.sh; bash scripts/package-macos.sh; } 2>&1 | tee "$RUNNER_TEMP/PhotoSelect-build.log"
           python3 - <<'PYTEST'
           import xml.etree.ElementTree as ET
           root = ET.parse('.build/xctest-results.xml').getroot()
@@ -121,7 +121,7 @@ jobs:
           if-no-files-found: error
           retention-days: 14
       - name: Save installer and build evidence on the delivery branch
-        if: always() && github.ref_name == 'codex/macos-installer-download'
+        if: always() && (github.ref_name == 'codex/macos-installer-download' || github.ref_name == 'codex/macos27-compatibility')
         env:
           PACKAGE_OUTCOME: ${{ steps.package.outcome == 'success' && steps.selection.outcome == 'success' && 'success' || 'failure' }}
         run: bash scripts/publish-installer-result.sh
