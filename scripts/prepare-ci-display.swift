@@ -12,8 +12,14 @@ let candidates = modes.filter { $0.width >= 1280 && $0.height >= 900 }
 print("CI display modes: " + modes.map { "\($0.width)x\($0.height)" }.joined(separator: ", "))
 var configured = false
 for mode in candidates {
-    let status = CGDisplaySetDisplayMode(display, mode, nil)
-    print("CI display \(mode.width)x\(mode.height): \(status.rawValue)")
+    var configuration: CGDisplayConfigRef?
+    guard CGBeginDisplayConfiguration(&configuration) == .success, let configuration else { continue }
+    let selected = CGConfigureDisplayWithDisplayMode(configuration, display, mode, nil)
+    guard selected == .success else { CGCancelDisplayConfiguration(configuration); continue }
+    // A per-application change is restored when this Swift process exits.
+    // Retain it for this disposable login session so later XCTest workers see it.
+    let status = CGCompleteDisplayConfiguration(configuration, .forSession)
+    print("CI session display \(mode.width)x\(mode.height): \(status.rawValue)")
     if status == .success { configured = true; break }
 }
 guard configured else { fatalError("A 1200x760 browser layout test needs a larger CI display") }
