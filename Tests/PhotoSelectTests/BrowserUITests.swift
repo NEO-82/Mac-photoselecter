@@ -335,6 +335,9 @@ final class BrowserUITests: XCTestCase {
     @MainActor
     func testViewerHeldZoomDeleteIsSingleEvenWithBrowserMultiSelection() throws {
         _ = NSApplication.shared
+        let previousZoom = UserDefaults.standard.object(forKey: ClickZoomPreference.key)
+        ClickZoomPreference.save(200)
+        defer { UserDefaults.standard.set(previousZoom, forKey: ClickZoomPreference.key) }
         let root = try folder(), trash = try folder(), data = jpegData()
         for name in ["1.jpg", "2.jpg"] { try data.write(to: root.appendingPathComponent(name)) }
         let service = PhotoTrash { url in try FileManager.default.moveItem(at: url, to: trash.appendingPathComponent(url.lastPathComponent)) }
@@ -349,6 +352,11 @@ final class BrowserUITests: XCTestCase {
         let viewer = try XCTUnwrap(NSApp.windows.first { $0.isVisible && $0.contentView is PhotoCanvas })
         defer { viewer.close() }
         let canvas = try XCTUnwrap(viewer.contentView as? PhotoCanvas)
+        let hud = try XCTUnwrap(canvas.subviews.compactMap { $0 as? NSTextField }.first)
+        XCTAssertTrue(hud.stringValue.contains("누르는 동안 200%"))
+        let previousZoomChanged = canvas.zoomChanged
+        var zoomChanges: [Bool] = []
+        canvas.zoomChanged = { active in previousZoomChanged?(active); zoomChanges.append(active) }
         let down = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDown, location: NSPoint(x: 50, y: 50), modifierFlags: [], timestamp: 0,
             windowNumber: viewer.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
         let drag = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseDragged, location: NSPoint(x: 52, y: 52), modifierFlags: [], timestamp: 0.1,
@@ -359,11 +367,15 @@ final class BrowserUITests: XCTestCase {
         canvas.keyDown(with: delete)
         XCTAssertNil(browser.window?.attachedSheet)
         waitUntil("held viewer single delete") { FileManager.default.fileExists(atPath: trash.appendingPathComponent("1.jpg").path) && preview.filename.stringValue == "2.jpg" }
+        XCTAssertEqual(zoomChanges, [true], "Deleting must keep the held zoom active on the next photo")
+        XCTAssertEqual(canvas.emptyFramesAfterImage, 0)
+        XCTAssertTrue(hud.stringValue.contains("누르는 동안 200%"))
         XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("2.jpg")), data)
         XCTAssertNil(browser.window?.attachedSheet)
         let up = try XCTUnwrap(NSEvent.mouseEvent(with: .leftMouseUp, location: NSPoint(x: 50, y: 50), modifierFlags: [], timestamp: 0,
             windowNumber: viewer.windowNumber, context: nil, eventNumber: 0, clickCount: 1, pressure: 0))
         canvas.mouseUp(with: up)
+        XCTAssertEqual(zoomChanges, [true, false])
     }
 
     @MainActor

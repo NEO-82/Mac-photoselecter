@@ -640,6 +640,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     @objc func changeClickZoom(_ sender: NSMenuItem) {
         ClickZoomPreference.save(sender.tag)
         viewer?.canvas.needsDisplay = true
+        updateHUD()
     }
     @objc func changeAppearance(_ sender: NSMenuItem) {
         UserDefaults.standard.set(sender.tag, forKey: "appearancePreference")
@@ -1175,7 +1176,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         }
         guard let displayed else { return }
         let quality = displayed.qualityDescription
-        viewer?.hud.stringValue = "\(index + 1)/\(list.photos.count)  \(photo.url.lastPathComponent)  \(quality)\n←/→ 탐색 · 누르는 동안 100% · \\ 태그 · Delete 휴지통 · Esc/더블클릭 복귀" + (actionMessage.map { "\n" + $0 } ?? "")
+        viewer?.hud.stringValue = "\(index + 1)/\(list.photos.count)  \(photo.url.lastPathComponent)  \(quality)\n←/→ 탐색 · 누르는 동안 \(ClickZoomPreference.percent())% · \\ 태그 · Delete 휴지통 · Esc/더블클릭 복귀" + (actionMessage.map { "\n" + $0 } ?? "")
     }
     private func updateBadges() {
         showButton.isEnabled = list.selectedPhoto != nil && !fileManagementActive
