@@ -1,125 +1,114 @@
+ProductName:		macOS
+ProductVersion:		27.0.1
+BuildVersion:		26A434
+arm64
+Xcode 27.1
+Build version 27A9275
 Creating disposable filesystem image: APFS
-created: /Users/runner/work/_temp/js-filesystem-probe.4XO0Hj/APFS.sparseimage
-/dev/disk2          	GUID_partition_scheme          	
-/dev/disk2s1        	Apple_APFS                     	
-/dev/disk3          	EF57347C-0000-11AA-AA11-0030654	
-/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.4XO0Hj/mount-APFS
+created: /Users/runner/work/_temp/js-filesystem-probe.3hOIHM/APFS.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
+
+hdiutil: WARNING: 'hdiutil attach -nobrowse -mountpoint ...' is deprecated. Please use 'diskutil image attach --mountOptions nobrowse --mountPoint ...' instead.
+/dev/disk5          	GUID_partition_scheme          	
+/dev/disk5s1        	Apple_APFS                     	
+/dev/disk6          	EF57347C-0000-11AA-AA11-0030654	
+/dev/disk6s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.3hOIHM/mount-APFS
    File System Personality:   APFS
    Type (Bundle):             apfs
-["api": "renamex-RENAME_EXCL", "collisionPreserved": true, "capabilities": ["interfaceFlags": 11497415, "capabilitiesAvailable": true, "hardLinks": true, "validInterfaceFlags": 16777215, "formatFlags": 10186463, "validFormatFlags": 134217727, "exclusiveRename": true, "persistentFileIDs": true], "move": "success", "collision": "NSPOSIXErrorDomain:17", "volume": "mount-APFS", "bytesPreserved": true, "identityStable": true]
-["capabilities": ["formatFlags": 10186463, "exclusiveRename": true, "validInterfaceFlags": 16777215, "validFormatFlags": 134217727, "hardLinks": true, "interfaceFlags": 11497415, "capabilitiesAvailable": true, "persistentFileIDs": true], "api": "renameatx-RENAME_EXCL", "volume": "mount-APFS", "identityStable": true, "bytesPreserved": true, "collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17", "move": "success"]
-["collision": "NSPOSIXErrorDomain:17", "volume": "mount-APFS", "identityStable": true, "capabilities": ["validFormatFlags": 134217727, "exclusiveRename": true, "persistentFileIDs": true, "formatFlags": 10186463, "interfaceFlags": 11497415, "capabilitiesAvailable": true, "hardLinks": true, "validInterfaceFlags": 16777215], "collisionPreserved": true, "api": "link-unlink-diagnostic-only", "bytesPreserved": true, "move": "success"]
+["move": "success", "api": "renamex-RENAME_EXCL", "identityStable": true, "volume": "mount-APFS", "capabilities": ["capabilitiesAvailable": true, "persistentFileIDs": true, "validInterfaceFlags": 33554431, "interfaceFlags": 28274631, "exclusiveRename": true, "hardLinks": true, "validFormatFlags": 134217727, "formatFlags": 10186463], "collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17", "bytesPreserved": true]
+["collisionPreserved": true, "api": "renameatx-RENAME_EXCL", "capabilities": ["exclusiveRename": true, "validInterfaceFlags": 33554431, "validFormatFlags": 134217727, "capabilitiesAvailable": true, "interfaceFlags": 28274631, "formatFlags": 10186463, "persistentFileIDs": true, "hardLinks": true], "move": "success", "bytesPreserved": true, "identityStable": true, "volume": "mount-APFS", "collision": "NSPOSIXErrorDomain:17"]
+["bytesPreserved": true, "capabilities": ["validInterfaceFlags": 33554431, "persistentFileIDs": true, "validFormatFlags": 134217727, "interfaceFlags": 28274631, "exclusiveRename": true, "capabilitiesAvailable": true, "hardLinks": true, "formatFlags": 10186463], "volume": "mount-APFS", "api": "link-unlink-diagnostic-only", "collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "move": "success", "identityStable": true]
 Building for debugging...
-[0/11] /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/x86_64-apple-macosx/debug/PhotoSelectPackageTests.derived/runner.swift
-[1/11] Write PhotoSelect-entitlement.plist
-[1/11] Write sources
-[5/11] Write swift-version--79AA4F9932D1E87A.txt
-[7/18] Emitting module PhotoSelect
-[8/18] Compiling PhotoSelect App.swift
-[9/18] Compiling PhotoSelect BatchRename.swift
-[10/18] Compiling PhotoSelect BatchRenameWindow.swift
-[11/18] Compiling PhotoSelect Browser.swift
-[12/18] Compiling PhotoSelect EmbeddedPreview.swift
-[13/18] Compiling PhotoSelect FolderTree.swift
-[14/23] Compiling PhotoSelect ImagePipeline.swift
-[15/23] Compiling PhotoSelect PhotoActions.swift
-[16/23] Compiling PhotoSelect PhotoModel.swift
-[17/23] Compiling PhotoSelect PhotoSorting.swift
-[18/23] Compiling PhotoSelect Viewer.swift
-[18/23] Write Objects.LinkFileList
-[19/23] Linking PhotoSelect
-[20/23] Applying PhotoSelect
-[22/30] Emitting module PhotoSelectTests
-[23/30] Compiling PhotoSelectTests BatchRenameTests.swift
-[24/30] Compiling PhotoSelectTests BrowserUITests.swift
-[25/30] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
-[26/30] Compiling PhotoSelectTests FilesystemRenameTests.swift
-[27/30] Compiling PhotoSelectTests FolderTreeTests.swift
-[28/30] Compiling PhotoSelectTests ImagePipelineTests.swift
-[29/35] Compiling PhotoSelectTests PhotoActionsTests.swift
-[30/35] Compiling PhotoSelectTests PhotoSelectTests.swift
-[31/35] Compiling PhotoSelectTests PhotoSortingTests.swift
-[32/35] Compiling PhotoSelectTests ViewerInteractionTests.swift
-[33/35] Compiling PhotoSelectTests WindowLayoutTests.swift
-[34/37] Compiling PhotoSelectPackageTests runner.swift
-[35/37] Emitting module PhotoSelectPackageTests
-[35/37] Write Objects.LinkFileList
-[36/37] Linking PhotoSelectPackageTests
-Build complete! (112.31s)
-[1/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
-[2/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
-[3/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
-[4/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
-[5/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
-[6/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
-[7/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
-◇ Test run started.
-↳ Testing Library Version: 124.4
-↳ Target Platform: x86_64-apple-macos14.0
-✔ Test run with 0 tests passed after 0.001 seconds.
-"disk2" ejected.
-Creating disposable filesystem image: HFS+
-created: /Users/runner/work/_temp/js-filesystem-probe.4XO0Hj/HFSplus.sparseimage
-/dev/disk2          	GUID_partition_scheme          	
-/dev/disk2s1        	Apple_HFS                      	/Users/runner/work/_temp/js-filesystem-probe.4XO0Hj/mount-HFSplus
-   File System Personality:   HFS+
-   Type (Bundle):             hfs
-["api": "renamex-RENAME_EXCL", "collision": "NSPOSIXErrorDomain:17", "identityStable": true, "move": "success", "bytesPreserved": true, "volume": "mount-HFSplus", "capabilities": ["formatFlags": 1928847, "interfaceFlags": 2650079, "validFormatFlags": 8224767, "exclusiveRename": true, "hardLinks": true, "capabilitiesAvailable": true, "validInterfaceFlags": 2654207, "persistentFileIDs": true], "collisionPreserved": true]
-["collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17", "volume": "mount-HFSplus", "api": "renameatx-RENAME_EXCL", "capabilities": ["capabilitiesAvailable": true, "formatFlags": 1928847, "hardLinks": true, "exclusiveRename": true, "interfaceFlags": 2650079, "validInterfaceFlags": 2654207, "persistentFileIDs": true, "validFormatFlags": 8224767], "move": "success", "bytesPreserved": true, "identityStable": true]
-["volume": "mount-HFSplus", "bytesPreserved": true, "identityStable": true, "api": "link-unlink-diagnostic-only", "collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "move": "success", "capabilities": ["validInterfaceFlags": 2654207, "exclusiveRename": true, "capabilitiesAvailable": true, "validFormatFlags": 8224767, "persistentFileIDs": true, "hardLinks": true, "formatFlags": 1928847, "interfaceFlags": 2650079]]
-[0/1] Planning build
-Building for debugging...
-[0/4] Write swift-version--79AA4F9932D1E87A.txt
-Build complete! (0.31s)
-[1/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
-[2/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
-[3/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
-[4/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
-[5/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
-[6/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
-[7/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
-◇ Test run started.
-↳ Testing Library Version: 124.4
-↳ Target Platform: x86_64-apple-macos14.0
-✔ Test run with 0 tests passed after 0.001 seconds.
-"disk2" ejected.
-Creating disposable filesystem image: ExFAT
-created: /Users/runner/work/_temp/js-filesystem-probe.4XO0Hj/ExFAT.sparseimage
-/dev/disk2          	GUID_partition_scheme          	
-/dev/disk2s1        	Microsoft Basic Data           	/Users/runner/work/_temp/js-filesystem-probe.4XO0Hj/mount-ExFAT
-   File System Personality:   ExFAT
-   Type (Bundle):             exfat
-["move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "capabilities": ["capabilitiesAvailable": true, "interfaceFlags": 1051584, "exclusiveRename": false, "hardLinks": false, "validInterfaceFlags": 2097151, "persistentFileIDs": false, "validFormatFlags": 16777215, "formatFlags": 4206114], "volume": "mount-ExFAT", "api": "renamex-RENAME_EXCL"]
-["move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "volume": "mount-ExFAT", "capabilities": ["formatFlags": 4206114, "validFormatFlags": 16777215, "persistentFileIDs": false, "interfaceFlags": 1051584, "hardLinks": false, "validInterfaceFlags": 2097151, "capabilitiesAvailable": true, "exclusiveRename": false], "collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17", "api": "renameatx-RENAME_EXCL"]
-["capabilities": ["validInterfaceFlags": 2097151, "capabilitiesAvailable": true, "formatFlags": 4206114, "persistentFileIDs": false, "hardLinks": false, "interfaceFlags": 1051584, "exclusiveRename": false, "validFormatFlags": 16777215], "volume": "mount-ExFAT", "collision": "NSPOSIXErrorDomain:17", "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "collisionPreserved": true, "api": "link-unlink-diagnostic-only"]
-[0/1] Planning build
-Building for debugging...
-[0/4] Write swift-version--79AA4F9932D1E87A.txt
-Build complete! (0.39s)
-[1/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
-[2/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
-[3/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
-[4/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
-[5/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
-[6/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
-[7/7] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
-Test Suite 'Selected tests' started at 2026-11-15 11:51:18.080.
-Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-15 11:51:18.085.
-Test Suite 'FilesystemRenameTests' started at 2026-11-15 11:51:18.085.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount]' started.
-hdiutil: couldn't eject "disk2" - Resource busy
-hdiutil: detach failed - No such file or directory
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:250: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount] : failed: caught error: "RenameProblem(message: "Disposable image forced detach failed")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount]' failed (7.667 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-15 11:51:25.752.
-	 Executed 1 test, with 1 failure (1 unexpected) in 7.667 (7.667) seconds
-Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-15 11:51:25.752.
-	 Executed 1 test, with 1 failure (1 unexpected) in 7.667 (7.667) seconds
-Test Suite 'Selected tests' failed at 2026-11-15 11:51:25.752.
-	 Executed 1 test, with 1 failure (1 unexpected) in 7.667 (7.672) seconds
+[Planning 1 / 95]
+[Planning deferred tasks]
+[34 / 62]
+[36 / 64] PhotoSelect
+[39 / 136]
+[43 / 136]
+[47 / 136]
+[49 / 136]
+[56 / 136]
+[58 / 136]
+[60 / 136]
+[63 / 136]
+[66 / 136]
+[68 / 136]
+[71 / 136]
+[75 / 136]
+[76 / 136]
+[78 / 136]
+[81 / 136]
+[82 / 136]
+[87 / 136]
+[90 / 136]
+[93 / 136]
+[96 / 136]
+[99 / 136]
+[100 / 136]
+[103 / 136] PhotoSelect-product
+[105 / 136] PhotoSelect-product
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:838:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+ [0;36m827 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
+ [0;36m828 |[0;0m             }
+ [0;36m829 |[0;0m             DispatchQueue.main.async {
+     [0;36m|[0;0m                                      |- [1;39mnote: [1;39m'self' implicitly strongly captured here[0;0m
+     [0;36m|[0;0m                                      `- [1;39mnote: [1;39madd 'self' as a capture list item to silence[0;0m
+ [0;36m830 |[0;0m                 guard self.generation == token, !self.finishingTagWrites else { self.preparingRename = false; self.updateBadges(); return }
+ [0;36m831 |[0;0m                 switch result {
+     [0;36m:[0;0m
+ [0;36m836 |[0;0m                         self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal, selectedIDs: [])
+ [0;36m837 |[0;0m                     } else {
+ [0;36m838 |[0;0m                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
+     [0;36m|[0;0m                                                                                                                                                          |- [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+     [0;36m|[0;0m                                                                                                                                                          `- [1;39mnote: [1;39mexplicitly assign the capture list item to silence[0;0m
+ [0;36m839 |[0;0m                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
+ [0;36m840 |[0;0m                             self.preparingRename = false
 
-◇ Test run started.
-↳ Testing Library Version: 124.4
-↳ Target Platform: x86_64-apple-macos14.0
-✔ Test run with 0 tests passed after 0.001 seconds.
-"disk2" ejected.
+[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
+[109 / 136] PhotoSelect
+[116 / 136] PhotoSelect-product
+[116 / 136] PhotoSelect
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:838:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+ [0;36m827 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
+ [0;36m828 |[0;0m             }
+ [0;36m829 |[0;0m             DispatchQueue.main.async {
+     [0;36m|[0;0m                                      |- [1;39mnote: [1;39m'self' implicitly strongly captured here[0;0m
+     [0;36m|[0;0m                                      `- [1;39mnote: [1;39madd 'self' as a capture list item to silence[0;0m
+ [0;36m830 |[0;0m                 guard self.generation == token, !self.finishingTagWrites else { self.preparingRename = false; self.updateBadges(); return }
+ [0;36m831 |[0;0m                 switch result {
+     [0;36m:[0;0m
+ [0;36m836 |[0;0m                         self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal, selectedIDs: [])
+ [0;36m837 |[0;0m                     } else {
+ [0;36m838 |[0;0m                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
+     [0;36m|[0;0m                                                                                                                                                          |- [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+     [0;36m|[0;0m                                                                                                                                                          `- [1;39mnote: [1;39mexplicitly assign the capture list item to silence[0;0m
+ [0;36m839 |[0;0m                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
+ [0;36m840 |[0;0m                             self.preparingRename = false
+
+[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
+[117 / 136] PhotoSelectTests-product
+[120 / 136] PhotoSelectTests-product
+[121 / 136] PhotoSelect-product
+[126 / 137] PhotoSelectTests-product
+[129 / 148]
+[130 / 148]
+[131 / 148]
+[132 / 148]
+[133 / 148]
+[136 / 148] PhotoSelectTests-product
+[137 / 148] PhotoSelectTests-product
+[139 / 148] PhotoSelectTests-product
+error: SwiftCompile normal arm64 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift failed with a nonzero exit code. Command line:     cd /Users/runner/work/Mac-photoselecter
+    builtin-SwiftPerFileCompile BrowserUITests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift:1349:9: [1;31merror: [1;39mthe compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions[0;0m
+[0;36m1347 |[0;0m         waitUntil("photo ready for theme render") { preview.imageView.image != nil }
+[0;36m1348 |[0;0m         let originalPreview = try XCTUnwrap(preview.imageView.image)
+[0;36m1349 |[0;0m         for (name, filename, expected) in [
+     [0;36m|[0;0m         `- [1;31merror: [1;39mthe compiler is unable to type-check this expression in reasonable time; try breaking up the expression into distinct sub-expressions[0;0m
+[0;36m1350 |[0;0m             (NSAppearance.Name.darkAqua, "browser-dark.png", [32.0 / 255, 35.0 / 255, 41.0 / 255]),
+[0;36m1351 |[0;0m             (NSAppearance.Name.aqua, "browser-light.png", [244.0 / 255, 243.0 / 255, 244.0 / 255])
+Failed frontend command:
+/Applications/Xcode_27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c -primary-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/DerivedSources/test_entry_point.swift -primary-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BatchRenameTests.swift -primary-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/BrowserUITests.swift -primary-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/EmbeddedPreviewTests.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FolderTreeTests.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/ImagePipelineTests.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/PhotoActionsTests.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/PhotoSelectTests.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/PhotoSortingTests.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/ViewerInteractionTests.swift /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/WindowLayoutTests.swift -supplementary-output-file-map /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/supplementaryOutputs-7 -target arm64-apple-macos14.0 -module-can-import-version Testing 2084 0 -module-can-import-version XCTest 25229 0 -disable-cross-import-overlay-search -swift-module-cross-import Darwin /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Darwin.swiftcrossimport/xlocale.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/AppKit.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreGraphics.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreImage.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/CoreTransferable.swiftoverlay -swift-module-cross-import Testing /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/Testing.framework/Modules/Testing.swiftcrossimport/Foundation.swiftoverlay -load-resolved-plugin /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -load-resolved-plugin /Applications/Xcode_27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing/libTestingMacros.dylib\#\#TestingMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/PhotoSelectTests-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -I /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Products/Debug -Isystem /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Products/Debug/PackageFrameworks -F /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Products/Debug -F /Applications/Xcode_27.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -module-cache-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/SwiftExplicitPrecompiledModules -color-diagnostics -Xcc -fcolor-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=4 -swift-version 5 -Onone -D SWIFT_PACKAGE -D DEBUG -D Xcode -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/runner/work/Mac-photoselecter -enable-anonymous-context-mangled-names -file-compilation-dir /Users/runner/work/Mac-photoselecter -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/SDKStatCaches.noindex/macosx27.0-26A425-80c5bbf1d171475443272936d42f90a34621a33692987793de5955334bf0a0a8.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Products/Debug/include -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name PhotoSelectTests -package-name mac_photoselecter -const-gather-protocols-file /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/PhotoSelectTests_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-macos27.0 -target-sdk-version 27.0 -target-sdk-name macosx27.0 -in-process-plugin-server-path /Applications/Xcode_27.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -parse-as-library -o /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/test_entry_point.o -o /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/BatchRenameTests.o -o /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/BrowserUITests.o -o /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/EmbeddedPreviewTests.o -debug-module-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out/Intermediates.noindex/PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/PhotoSelectTests.swiftmodule -index-unit-output-path /PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/test_entry_point.o -index-unit-output-path /PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/BatchRenameTests.o -index-unit-output-path /PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/BrowserUITests.o -index-unit-output-path /PhotoSelect.build/Debug/PhotoSelectTests-p.build/Objects-normal/arm64/EmbeddedPreviewTests.o -index-store-path /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/out -index-system-modules
+error: Build failed
+error: fatalError
+hdiutil: WARNING: 'hdiutil detach ...' is deprecated. Please use 'diskutil eject ...' instead.
+"disk5" ejected.
