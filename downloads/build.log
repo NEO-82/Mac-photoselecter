@@ -5,77 +5,58 @@ arm64
 Xcode 27.1
 Build version 27A9275
 Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
-/dev/disk2s5   180Gi   119Gi    36Gi    77%    1.4M  383M    0%   /System/Volumes/Data
+/dev/disk2s5   180Gi   119Gi    37Gi    77%    1.4M  385M    0%   /System/Volumes/Data
 7516192768
 CI display modes: 800x600, 960x540, 1024x576, 1024x768, 1280x720, 1280x960, 1344x756, 1344x1008, 1600x900, 1600x1200, 1920x1080, 640x480
 CI session display 1280x960: 0
 Configured CI visible area: (1280.0, 851.0)
 Independent worker visible area: (1280.0, 851.0)
 Creating disposable filesystem image: APFS
-created: /Users/runner/work/_temp/js-filesystem-probe.33rPGB/APFS.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
+created: /Users/runner/work/_temp/js-filesystem-probe.QbCI5i/APFS.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
 
 hdiutil: WARNING: 'hdiutil attach -nobrowse -mountpoint ...' is deprecated. Please use 'diskutil image attach --mountOptions nobrowse --mountPoint ...' instead.
 /dev/disk5          	GUID_partition_scheme          	
 /dev/disk5s1        	Apple_APFS                     	
 /dev/disk6          	EF57347C-0000-11AA-AA11-0030654	
-/dev/disk6s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.33rPGB/mount-APFS
+/dev/disk6s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.QbCI5i/mount-APFS
    File System Personality:   APFS
    Type (Bundle):             apfs
-["capabilities": ["validFormatFlags": 134217727, "formatFlags": 10186463, "exclusiveRename": true, "validInterfaceFlags": 33554431, "interfaceFlags": 28274631, "persistentFileIDs": true, "capabilitiesAvailable": true, "hardLinks": true], "collision": "NSPOSIXErrorDomain:17", "volume": "mount-APFS", "collisionPreserved": true, "move": "success", "identityStable": true, "api": "renamex-RENAME_EXCL", "bytesPreserved": true]
-["collision": "NSPOSIXErrorDomain:17", "identityStable": true, "move": "success", "api": "renameatx-RENAME_EXCL", "collisionPreserved": true, "bytesPreserved": true, "capabilities": ["capabilitiesAvailable": true, "persistentFileIDs": true, "interfaceFlags": 28274631, "formatFlags": 10186463, "exclusiveRename": true, "validFormatFlags": 134217727, "validInterfaceFlags": 33554431, "hardLinks": true], "volume": "mount-APFS"]
-["volume": "mount-APFS", "identityStable": true, "collisionPreserved": true, "move": "success", "capabilities": ["persistentFileIDs": true, "hardLinks": true, "formatFlags": 10186463, "exclusiveRename": true, "validFormatFlags": 134217727, "interfaceFlags": 28274631, "validInterfaceFlags": 33554431, "capabilitiesAvailable": true], "bytesPreserved": true, "collision": "NSPOSIXErrorDomain:17", "api": "link-unlink-diagnostic-only"]
+["collision": "NSPOSIXErrorDomain:17", "move": "success", "api": "renamex-RENAME_EXCL", "capabilities": ["capabilitiesAvailable": true, "validInterfaceFlags": 33554431, "persistentFileIDs": true, "formatFlags": 10186463, "exclusiveRename": true, "interfaceFlags": 28274631, "hardLinks": true, "validFormatFlags": 134217727], "collisionPreserved": true, "identityStable": true, "volume": "mount-APFS", "bytesPreserved": true]
+["identityStable": true, "collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "move": "success", "bytesPreserved": true, "api": "renameatx-RENAME_EXCL", "capabilities": ["exclusiveRename": true, "hardLinks": true, "validFormatFlags": 134217727, "validInterfaceFlags": 33554431, "persistentFileIDs": true, "capabilitiesAvailable": true, "formatFlags": 10186463, "interfaceFlags": 28274631], "volume": "mount-APFS"]
+["collision": "NSPOSIXErrorDomain:17", "volume": "mount-APFS", "api": "link-unlink-diagnostic-only", "identityStable": true, "bytesPreserved": true, "move": "success", "capabilities": ["hardLinks": true, "formatFlags": 10186463, "validInterfaceFlags": 33554431, "persistentFileIDs": true, "exclusiveRename": true, "capabilitiesAvailable": true, "validFormatFlags": 134217727, "interfaceFlags": 28274631], "collisionPreserved": true]
 Building for debugging...
-[Planning 51 / 95]
+[Pre-planning 1 / 95]
 [Planning deferred tasks]
 [34 / 62]
-[36 / 64] PhotoSelect-product
-[41 / 137]
-[46 / 137]
-[49 / 137]
-[53 / 137]
+[36 / 64] PhotoSelect
+[39 / 137]
+[43 / 137]
+[47 / 137]
+[52 / 137]
+[56 / 137]
 [58 / 137]
-[59 / 137]
 [60 / 137]
-[63 / 137]
 [65 / 137]
 [67 / 137]
-[69 / 137]
-[72 / 137]
+[68 / 137]
+[71 / 137]
 [76 / 137]
-[78 / 137]
+[79 / 137]
 [81 / 137]
 [82 / 137]
 [87 / 137]
 [91 / 137]
-[93 / 137]
+[92 / 137]
+[94 / 137]
 [95 / 137]
-[98 / 137]
+[97 / 137]
 [100 / 137]
 [101 / 137]
 [104 / 137] PhotoSelect-product
 [108 / 137] PhotoSelect
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:838:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
- [0;36m827 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
- [0;36m828 |[0;0m             }
- [0;36m829 |[0;0m             DispatchQueue.main.async {
-     [0;36m|[0;0m                                      |- [1;39mnote: [1;39m'self' implicitly strongly captured here[0;0m
-     [0;36m|[0;0m                                      `- [1;39mnote: [1;39madd 'self' as a capture list item to silence[0;0m
- [0;36m830 |[0;0m                 guard self.generation == token, !self.finishingTagWrites else { self.preparingRename = false; self.updateBadges(); return }
- [0;36m831 |[0;0m                 switch result {
-     [0;36m:[0;0m
- [0;36m836 |[0;0m                         self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal, selectedIDs: [])
- [0;36m837 |[0;0m                     } else {
- [0;36m838 |[0;0m                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
-     [0;36m|[0;0m                                                                                                                                                          |- [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
-     [0;36m|[0;0m                                                                                                                                                          `- [1;39mnote: [1;39mexplicitly assign the capture list item to silence[0;0m
- [0;36m839 |[0;0m                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
- [0;36m840 |[0;0m                             self.preparingRename = false
-
-[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
 [114 / 137] PhotoSelect
 [115 / 137] PhotoSelectTests-product
-[118 / 137] PhotoSelect-product
-[118 / 137] PhotoSelectTests-product
+[116 / 137] PhotoSelectTests-product
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:838:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
  [0;36m827 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
  [0;36m828 |[0;0m             }
@@ -94,8 +75,30 @@ Building for debugging...
  [0;36m840 |[0;0m                             self.preparingRename = false
 
 [#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
-[122 / 137] PhotoSelect-product
+[120 / 137]
+[122 / 137] PhotoSelect
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:838:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+ [0;36m827 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
+ [0;36m828 |[0;0m             }
+ [0;36m829 |[0;0m             DispatchQueue.main.async {
+     [0;36m|[0;0m                                      |- [1;39mnote: [1;39m'self' implicitly strongly captured here[0;0m
+     [0;36m|[0;0m                                      `- [1;39mnote: [1;39madd 'self' as a capture list item to silence[0;0m
+ [0;36m830 |[0;0m                 guard self.generation == token, !self.finishingTagWrites else { self.preparingRename = false; self.updateBadges(); return }
+ [0;36m831 |[0;0m                 switch result {
+     [0;36m:[0;0m
+ [0;36m836 |[0;0m                         self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal, selectedIDs: [])
+ [0;36m837 |[0;0m                     } else {
+ [0;36m838 |[0;0m                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
+     [0;36m|[0;0m                                                                                                                                                          |- [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+     [0;36m|[0;0m                                                                                                                                                          `- [1;39mnote: [1;39mexplicitly assign the capture list item to silence[0;0m
+ [0;36m839 |[0;0m                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
+ [0;36m840 |[0;0m                             self.preparingRename = false
+
+[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
+[125 / 137] PhotoSelectTests-product
+[127 / 138]
 [127 / 138] PhotoSelectTests-product
+[130 / 149]
 [131 / 149]
 [132 / 149]
 [133 / 149]
@@ -105,101 +108,91 @@ Building for debugging...
 [140 / 149] PhotoSelectTests-product
 [143 / 149] PhotoSelectTests-product
 [145 / 149] PhotoSelectTests-product
-Build complete! (28.88 sec)
-[1/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
-[2/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
-[3/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
-[4/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCompatibilityConsentCancelAndActualRename
-[5/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
-[6/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeContentIdentityRecovery
-[7/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
-[8/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
-[9/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
-[10/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
+Build complete! (36.85 sec)
+[1/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
+[2/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
+[3/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
+[4/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCompatibilityConsentCancelAndActualRename
+[5/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
+[6/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeContentIdentityRecovery
+[7/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCoordinatedProcessRace
+[8/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeExtendedAttributesAndOrphanSidecarCollision
+[9/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
+[10/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
+[11/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
+[12/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
 hdiutil: WARNING: 'hdiutil detach ...' is deprecated. Please use 'diskutil eject ...' instead.
 "disk5" ejected.
 Creating disposable filesystem image: HFS+
-created: /Users/runner/work/_temp/js-filesystem-probe.33rPGB/HFSplus.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
+created: /Users/runner/work/_temp/js-filesystem-probe.QbCI5i/HFSplus.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
 
 hdiutil: WARNING: 'hdiutil attach -nobrowse -mountpoint ...' is deprecated. Please use 'diskutil image attach --mountOptions nobrowse --mountPoint ...' instead.
 /dev/disk5          	GUID_partition_scheme          	
-/dev/disk5s1        	Apple_HFS                      	/Users/runner/work/_temp/js-filesystem-probe.33rPGB/mount-HFSplus
+/dev/disk5s1        	Apple_HFS                      	/Users/runner/work/_temp/js-filesystem-probe.QbCI5i/mount-HFSplus
    File System Personality:   HFS+
    Type (Bundle):             hfs
-["collisionPreserved": true, "volume": "mount-HFSplus", "capabilities": ["formatFlags": 1928847, "validInterfaceFlags": 19431423, "persistentFileIDs": true, "interfaceFlags": 2650079, "capabilitiesAvailable": true, "exclusiveRename": true, "validFormatFlags": 8224767, "hardLinks": true], "identityStable": true, "api": "renamex-RENAME_EXCL", "move": "success", "collision": "NSPOSIXErrorDomain:17", "bytesPreserved": true]
-["api": "renameatx-RENAME_EXCL", "volume": "mount-HFSplus", "bytesPreserved": true, "collisionPreserved": true, "identityStable": true, "capabilities": ["validInterfaceFlags": 19431423, "persistentFileIDs": true, "hardLinks": true, "capabilitiesAvailable": true, "exclusiveRename": true, "validFormatFlags": 8224767, "formatFlags": 1928847, "interfaceFlags": 2650079], "collision": "NSPOSIXErrorDomain:17", "move": "success"]
-["move": "success", "identityStable": true, "bytesPreserved": true, "api": "link-unlink-diagnostic-only", "collisionPreserved": true, "capabilities": ["capabilitiesAvailable": true, "exclusiveRename": true, "interfaceFlags": 2650079, "hardLinks": true, "persistentFileIDs": true, "formatFlags": 1928847, "validFormatFlags": 8224767, "validInterfaceFlags": 19431423], "volume": "mount-HFSplus", "collision": "NSPOSIXErrorDomain:17"]
+["move": "success", "capabilities": ["interfaceFlags": 2650079, "validInterfaceFlags": 19431423, "formatFlags": 1928847, "validFormatFlags": 8224767, "exclusiveRename": true, "hardLinks": true, "capabilitiesAvailable": true, "persistentFileIDs": true], "api": "renamex-RENAME_EXCL", "identityStable": true, "volume": "mount-HFSplus", "collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "bytesPreserved": true]
+["capabilities": ["hardLinks": true, "validFormatFlags": 8224767, "interfaceFlags": 2650079, "validInterfaceFlags": 19431423, "exclusiveRename": true, "capabilitiesAvailable": true, "formatFlags": 1928847, "persistentFileIDs": true], "api": "renameatx-RENAME_EXCL", "bytesPreserved": true, "volume": "mount-HFSplus", "identityStable": true, "move": "success", "collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17"]
+["api": "link-unlink-diagnostic-only", "collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17", "capabilities": ["hardLinks": true, "validInterfaceFlags": 19431423, "exclusiveRename": true, "capabilitiesAvailable": true, "validFormatFlags": 8224767, "persistentFileIDs": true, "formatFlags": 1928847, "interfaceFlags": 2650079], "identityStable": true, "volume": "mount-HFSplus", "move": "success", "bytesPreserved": true]
 Building for debugging...
 [1 / 4]
-Build complete! (0.32 sec)
-[1/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
-[2/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
-[3/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
-[4/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCompatibilityConsentCancelAndActualRename
-[5/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
-[6/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeContentIdentityRecovery
-[7/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
-[8/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
-[9/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
-[10/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
+Build complete! (0.31 sec)
+[1/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
+[2/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
+[3/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
+[4/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCompatibilityConsentCancelAndActualRename
+[5/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
+[6/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeContentIdentityRecovery
+[7/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCoordinatedProcessRace
+[8/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeExtendedAttributesAndOrphanSidecarCollision
+[9/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
+[10/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
+[11/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
+[12/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
 hdiutil: WARNING: 'hdiutil detach ...' is deprecated. Please use 'diskutil eject ...' instead.
 "disk5" ejected.
 Creating disposable filesystem image: ExFAT
-created: /Users/runner/work/_temp/js-filesystem-probe.33rPGB/ExFAT.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
+created: /Users/runner/work/_temp/js-filesystem-probe.QbCI5i/ExFAT.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
 
 hdiutil: WARNING: 'hdiutil attach -nobrowse -mountpoint ...' is deprecated. Please use 'diskutil image attach --mountOptions nobrowse --mountPoint ...' instead.
 /dev/disk5          	GUID_partition_scheme          	
-/dev/disk5s1        	Microsoft Basic Data           	/Users/runner/work/_temp/js-filesystem-probe.33rPGB/mount-ExFAT
+/dev/disk5s1        	Microsoft Basic Data           	/Users/runner/work/_temp/js-filesystem-probe.QbCI5i/mount-ExFAT
    File System Personality:   ExFAT
    Type (Bundle):             exfat
-["api": "renamex-RENAME_EXCL", "capabilities": ["capabilitiesAvailable": true, "validInterfaceFlags": 2097151, "exclusiveRename": false, "formatFlags": 4206114, "persistentFileIDs": false, "hardLinks": false, "interfaceFlags": 1051584, "validFormatFlags": 16777215], "collision": "NSPOSIXErrorDomain:17", "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "collisionPreserved": true, "volume": "mount-ExFAT"]
-["api": "renameatx-RENAME_EXCL", "collision": "NSPOSIXErrorDomain:17", "volume": "mount-ExFAT", "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "capabilities": ["validInterfaceFlags": 2097151, "interfaceFlags": 1051584, "validFormatFlags": 16777215, "hardLinks": false, "exclusiveRename": false, "persistentFileIDs": false, "capabilitiesAvailable": true, "formatFlags": 4206114], "collisionPreserved": true]
-["collisionPreserved": true, "api": "link-unlink-diagnostic-only", "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "collision": "NSPOSIXErrorDomain:17", "capabilities": ["interfaceFlags": 1051584, "validFormatFlags": 16777215, "hardLinks": false, "exclusiveRename": false, "formatFlags": 4206114, "persistentFileIDs": false, "capabilitiesAvailable": true, "validInterfaceFlags": 2097151], "volume": "mount-ExFAT"]
+["move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "api": "renamex-RENAME_EXCL", "volume": "mount-ExFAT", "capabilities": ["validInterfaceFlags": 2097151, "validFormatFlags": 16777215, "exclusiveRename": false, "hardLinks": false, "capabilitiesAvailable": true, "formatFlags": 4206114, "interfaceFlags": 1051584, "persistentFileIDs": false], "collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true]
+["collisionPreserved": true, "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "volume": "mount-ExFAT", "api": "renameatx-RENAME_EXCL", "collision": "NSPOSIXErrorDomain:17", "capabilities": ["interfaceFlags": 1051584, "validFormatFlags": 16777215, "validInterfaceFlags": 2097151, "hardLinks": false, "exclusiveRename": false, "persistentFileIDs": false, "capabilitiesAvailable": true, "formatFlags": 4206114]]
+["collisionPreserved": true, "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "collision": "NSPOSIXErrorDomain:17", "volume": "mount-ExFAT", "capabilities": ["formatFlags": 4206114, "hardLinks": false, "capabilitiesAvailable": true, "persistentFileIDs": false, "interfaceFlags": 1051584, "validFormatFlags": 16777215, "validInterfaceFlags": 2097151, "exclusiveRename": false], "api": "link-unlink-diagnostic-only"]
 Building for debugging...
-[1 / 4]
-Build complete! (0.45 sec)
-[1/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
-[2/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
-[3/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
-[4/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCompatibilityConsentCancelAndActualRename
-[5/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
-[6/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeContentIdentityRecovery
-[7/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
-[8/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
-[9/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
-[10/10] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
-Test Suite 'Selected tests' started at 2026-11-15 13:46:06.789.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-15 13:46:06.790.
-Test Suite 'FilesystemRenameTests' started at 2026-11-15 13:46:06.790.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:480: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess] : XCTAssertTrue failed - 파일 시스템 exfat · renameatx_np(RENAME_EXCL) · NSPOSIXErrorDomain 45: The operation couldn’t be completed. Operation not supported
-이 볼륨에서 원자적 덮어쓰기 방지 이름 변경을 지원하지 않거나 안전성을 확인하지 못했습니다. 사진 파일은 변경하지 않았습니다. 일반 rename·파일 복사 방식으로 우회하지 않습니다.
-복구 기록 보존: /var/folders/5n/5t77mfb93jd7q8v9s6f0dn0m0000gn/T/J-S-filesystem-test-9410637F-9680-44E3-B95B-199FA58FCD4D/6B2106F2-2EBF-4396-B1BD-3FE368EB99F2.json
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:481: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess] : XCTAssertEqual failed: threw error "Error Domain=NSCocoaErrorDomain Code=260 "The file “A.ARW” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/Users/runner/work/_temp/js-filesystem-probe.33rPGB/mount-ExFAT/J-S-filesystem-test-F5F581E2-6927-4BDF-936D-9B20078C2613/A.ARW, NSURL=file:///Users/runner/work/_temp/js-filesystem-probe.33rPGB/mount-ExFAT/J-S-filesystem-test-F5F581E2-6927-4BDF-936D-9B20078C2613/A.ARW, NSUnderlyingError=0x76a31cfa20 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess]' failed (0.928 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-15 13:46:07.718.
-	 Executed 1 test, with 2 failures (1 unexpected) in 0.928 (0.929) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-15 13:46:07.719.
-	 Executed 1 test, with 2 failures (1 unexpected) in 0.928 (0.929) seconds
-Test Suite 'Selected tests' failed at 2026-11-15 13:46:07.719.
-	 Executed 1 test, with 2 failures (1 unexpected) in 0.928 (0.929) seconds
-
-Test Suite 'Selected tests' started at 2026-11-15 13:46:34.298.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-15 13:46:34.299.
-Test Suite 'FilesystemRenameTests' started at 2026-11-15 13:46:34.299.
+[1 / 3] PhotoSelectTests-product
+Build complete! (0.28 sec)
+[1/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
+[2/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
+[3/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
+[4/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCompatibilityConsentCancelAndActualRename
+[5/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
+[6/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeContentIdentityRecovery
+[7/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCoordinatedProcessRace
+[8/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeExtendedAttributesAndOrphanSidecarCollision
+[9/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
+[10/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
+[11/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
+[12/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
+Test Suite 'Selected tests' started at 2026-11-15 14:01:14.210.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-15 14:01:14.210.
+Test Suite 'FilesystemRenameTests' started at 2026-11-15 14:01:14.210.
 Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:86: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates] : Asynchronous wait failed: Exceeded timeout of 90 seconds, with unfulfilled expectations: "volume rename transaction".
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:86: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates] : XCTUnwrap failed: expected non-nil value of type "RenameOutcome"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates]' failed (181.956 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-15 13:49:36.256.
-	 Executed 1 test, with 2 failures (0 unexpected) in 181.956 (181.956) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-15 13:49:36.256.
-	 Executed 1 test, with 2 failures (0 unexpected) in 181.956 (181.956) seconds
-Test Suite 'Selected tests' failed at 2026-11-15 13:49:36.256.
-	 Executed 1 test, with 2 failures (0 unexpected) in 181.956 (181.957) seconds
-Rename timing exfat: 1 requested, 1 renamed, 396.37358333334305 ms
-Rename timing exfat: 14 requested, 14 renamed, 884.5014999999989 ms
-Rename timing exfat: 100 requested, 100 renamed, 5957.236166666661 ms
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:177: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates] : Asynchronous wait failed: Exceeded timeout of 90 seconds, with unfulfilled expectations: "volume rename transaction".
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:177: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates] : XCTUnwrap failed: expected non-nil value of type "RenameOutcome"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates]' failed (161.825 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-15 14:03:56.036.
+	 Executed 1 test, with 2 failures (0 unexpected) in 161.825 (161.826) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-15 14:03:56.036.
+	 Executed 1 test, with 2 failures (0 unexpected) in 161.825 (161.826) seconds
+Test Suite 'Selected tests' failed at 2026-11-15 14:03:56.036.
+	 Executed 1 test, with 2 failures (0 unexpected) in 161.825 (161.827) seconds
+Rename timing exfat: 1 requested, 1 renamed, 342.49337500000365 ms
+Rename timing exfat: 14 requested, 14 renamed, 1005.4453749999084 ms
+Rename timing exfat: 100 requested, 100 renamed, 8070.175416666643 ms
 
 Note: Some test targets reported failures:
   - PhotoSelectTests (XCTest)
