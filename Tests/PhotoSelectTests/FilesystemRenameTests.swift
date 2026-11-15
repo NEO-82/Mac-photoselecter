@@ -5,6 +5,97 @@ import XCTest
 @testable import PhotoSelect
 
 final class FilesystemRenameTests: XCTestCase {
+    func testVolumeCoordinatedProcessRace() throws {
+        let env = ProcessInfo.processInfo.environment
+        if let role = env["PHOTOSELECT_COORDINATED_RACE_ROLE"], let path = env["PHOTOSELECT_COORDINATED_RACE_FOLDER"] {
+            guard ["a", "b"].contains(role) else { throw RenameProblem(message: "Invalid race role") }
+            let root = URL(fileURLWithPath: path)
+            guard root.lastPathComponent.hasPrefix("J-S-filesystem-test-") else { throw RenameProblem(message: "Race folder provenance missing") }
+            let source = root.appendingPathComponent(role + ".ARW")
+            var preview = RenamePlan(folder: root, orderTitle: "process race", rows: [RenamePreview(original: source.lastPathComponent, proposed: "target.ARW")])
+            preview.selectedOnly = true; preview.volumeUUID = BatchRenameEngine.volume(root).0
+            preview.snapshots[source.lastPathComponent] = try RenameSourceSnapshot.read(source)
+            let engine = try engine(), tags = try store()
+            try Data().write(to: root.appendingPathComponent(role + ".ready"), options: .withoutOverwriting)
+            let deadline = Date().addingTimeInterval(15)
+            while !FileManager.default.fileExists(atPath: root.appendingPathComponent("go").path), Date() < deadline { Thread.sleep(forTimeInterval: 0.01) }
+            guard Date() < deadline else { throw RenameProblem(message: "Race barrier timed out") }
+            var result: [String: Any] = ["executed": true]
+            let outcome = try execute(engine, preview, tags)
+            result["success"] = outcome.completed; result["message"] = outcome.message
+            try JSONSerialization.data(withJSONObject: result).write(to: root.appendingPathComponent(role + ".json"), options: .withoutOverwriting)
+            return
+        }
+        // Both processes use the public coordination path. Arbitrary writers
+        // that bypass coordination remain outside this guarantee.
+        for _ in 0..<4 {
+            let root = try folder()
+            for role in ["a", "b"] { try Data(role.utf8).write(to: root.appendingPathComponent(role + ".ARW")) }
+            var processes: [Process] = []
+            for role in ["a", "b"] {
+                let process = Process()
+                process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+                process.arguments = ["xctest", "-XCTest", "PhotoSelectTests.FilesystemRenameTests/testVolumeCoordinatedProcessRace", Bundle(for: FilesystemRenameTests.self).bundlePath]
+                var child = env
+                for key in ["XCTestConfigurationFilePath", "XCTestSessionIdentifier", "XCInjectBundleInto", "XCInjectBundle"] { child.removeValue(forKey: key) }
+                child["PHOTOSELECT_COORDINATED_RACE_ROLE"] = role
+                child["PHOTOSELECT_COORDINATED_RACE_FOLDER"] = root.path
+                process.environment = child
+                let log = root.appendingPathComponent(role + ".log")
+                XCTAssertTrue(FileManager.default.createFile(atPath: log.path, contents: nil))
+                let output = try FileHandle(forWritingTo: log)
+                process.standardOutput = output; process.standardError = output
+                try process.run(); try output.close(); processes.append(process)
+            }
+            defer { for process in processes where process.isRunning { process.terminate() } }
+            let deadline = Date().addingTimeInterval(20)
+            while Date() < deadline && !(FileManager.default.fileExists(atPath: root.appendingPathComponent("a.ready").path) && FileManager.default.fileExists(atPath: root.appendingPathComponent("b.ready").path)) {
+                Thread.sleep(forTimeInterval: 0.01)
+            }
+            XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("a.ready").path))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("b.ready").path))
+            try Data().write(to: root.appendingPathComponent("go"))
+            while processes.contains(where: \.isRunning), Date() < deadline { Thread.sleep(forTimeInterval: 0.01) }
+            guard processes.allSatisfy({ !$0.isRunning }) else { throw RenameProblem(message: "Coordinated child processes timed out") }
+            var winners: [String] = []
+            for (index, role) in ["a", "b"].enumerated() {
+                let log = try String(contentsOf: root.appendingPathComponent(role + ".log"), encoding: .utf8)
+                XCTAssertEqual(processes[index].terminationStatus, 0, log)
+                let result = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: root.appendingPathComponent(role + ".json"))) as? [String: Any])
+                XCTAssertEqual(result["executed"] as? Bool, true)
+                if result["success"] as? Bool == true { winners.append(role) }
+            }
+            XCTAssertEqual(winners.count, 1)
+            let winner = try XCTUnwrap(winners.first), loser = winner == "a" ? "b" : "a"
+            XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("target.ARW")), Data(winner.utf8))
+            XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(loser + ".ARW")), Data(loser.utf8))
+        }
+    }
+    func testVolumeExtendedAttributesAndOrphanSidecarCollision() throws {
+        let root = try folder(), source = root.appendingPathComponent("A.ARW")
+        try Data("metadata payload".utf8).write(to: source)
+        let name = "com.photoselect.rename-test", value = Data("preserve extended metadata".utf8)
+        let set = value.withUnsafeBytes { setxattr(source.path, name, $0.baseAddress, $0.count, 0, 0) }
+        XCTAssertEqual(set, 0)
+        let result = try execute(engine(), plan(root), store())
+        XCTAssertTrue(result.completed, result.message)
+        let target = root.appendingPathComponent("Wedding_001.ARW")
+        let count = getxattr(target.path, name, nil, 0, 0, 0)
+        XCTAssertEqual(count, value.count)
+        if count > 0 {
+            var actual = Data(count: count)
+            let read = actual.withUnsafeMutableBytes { getxattr(target.path, name, $0.baseAddress, $0.count, 0, 0) }
+            XCTAssertEqual(read, value.count); XCTAssertEqual(actual, value)
+        }
+        if try XCTUnwrap(support(root)).method == .catalog {
+            let other = root.appendingPathComponent("B.ARW"), sidecar = root.appendingPathComponent("._occupied.ARW")
+            let marker = Data("unrelated orphan metadata".utf8)
+            try Data("another photo".utf8).write(to: other); try marker.write(to: sidecar)
+            XCTAssertThrowsError(try RenameFilesystem.coordinatedCatalog(other, root.appendingPathComponent("occupied.ARW")))
+            XCTAssertEqual(try Data(contentsOf: other), Data("another photo".utf8))
+            XCTAssertEqual(try Data(contentsOf: sidecar), marker)
+        }
+    }
     @MainActor
     func testVolumeCompatibilityConsentCancelAndActualRename() throws {
         _ = NSApplication.shared
@@ -475,6 +566,7 @@ final class FilesystemRenameTests: XCTestCase {
         let restored = expectation(description: "recover after path becomes available")
         var recovered: RenameOutcome?
         let recovery = BatchRenameEngine(journalDirectory: disappearing.journalDirectory)
+        recovery.allowCoordinatedCompatibility = true
         recovery.recover(pending, folder: hiddenRoot, tagStore: durableTags, lease: FolderLease(hiddenRoot), progress: { _, _, _ in }) { recovered = $0; restored.fulfill() }
         wait(for: [restored], timeout: 30)
         XCTAssertTrue(try XCTUnwrap(recovered).restored, recovered?.message ?? "")

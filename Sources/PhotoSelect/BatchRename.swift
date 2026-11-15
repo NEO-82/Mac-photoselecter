@@ -214,8 +214,33 @@ enum RenameFilesystem {
         }
     }
     private static let catalogLock = NSRecursiveLock()
+    private static let batchFolderKey = "dev.photoselect.catalog-batch-folder"
+    static func coordinateCatalogBatch<T>(in folder: URL, _ body: @escaping () throws -> T) throws -> T {
+        catalogLock.lock(); defer { catalogLock.unlock() }
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var coordinationError: NSError?, result: Result<T, Error>?
+        coordinator.coordinate(writingItemAt: folder, options: [], error: &coordinationError) { actual in
+            result = Result {
+                guard TagStore.key(actual) == TagStore.key(folder) else { throw RenameProblem(message: "조정 중 폴더 경로가 변경됐습니다.") }
+                let previous = Thread.current.threadDictionary[batchFolderKey]
+                Thread.current.threadDictionary[batchFolderKey] = TagStore.key(folder)
+                defer {
+                    if let previous { Thread.current.threadDictionary[batchFolderKey] = previous }
+                    else { Thread.current.threadDictionary.removeObject(forKey: batchFolderKey) }
+                }
+                return try body()
+            }
+        }
+        if let coordinationError { throw coordinationError }
+        guard let result else { throw RenameProblem(message: "폴더 조정기가 작업을 실행하지 않았습니다.") }
+        return try result.get()
+    }
     static func coordinatedCatalog(_ source: URL, _ destination: URL) throws {
         try checkParent(source, destination)
+        if Thread.current.threadDictionary[batchFolderKey] as? String == TagStore.key(source.deletingLastPathComponent()) {
+            try CatalogAPI.cached.get().move(source, destination)
+            return
+        }
         catalogLock.lock(); defer { catalogLock.unlock() }
         let coordinator = NSFileCoordinator(filePresenter: nil)
         var coordinationError: NSError?, operationError: Error?
@@ -423,13 +448,13 @@ final class BatchRenameEngine {
     static func exclusiveMove(_ source: URL, _ destination: URL) throws {
         try RenameFilesystem.move(source, destination)
     }
-    private func configuredMove(_ folder: URL) throws -> (Move, String, Bool) {
+    private func configuredMove(_ folder: URL) throws -> (Move, String, Bool, Bool) {
         if let move {
             let contentIdentity = allowCoordinatedCompatibility ? (try RenameFilesystem.Volume.read(folder)).persistentIDs == false : false
-            return (move, "", contentIdentity)
+            return (move, "", contentIdentity, contentIdentity)
         }
         let support = try RenameFilesystem.prepare(in: folder, allowCompatibility: allowCoordinatedCompatibility)
-        return (support.operation, support.description, support.requiresContentIdentity)
+        return (support.operation, support.description, support.requiresContentIdentity, support.method == .catalog)
     }
     static func volume(_ folder: URL) -> (String?, String?) {
         var fresh = folder; fresh.removeAllCachedResourceValues()
@@ -491,6 +516,7 @@ final class BatchRenameEngine {
         var movedOriginals: Set<String> = []
         var originalSnapshots: [String: RenameSourceSnapshot] = [:]
         var trustedSnapshots: [String: RenameSourceSnapshot] = [:]
+        var usesCatalogBatch = false
         var locations: [String: String] = [:]
         var locationErrors: [String] = []
         var locationsVerified = false
@@ -587,13 +613,24 @@ final class BatchRenameEngine {
                 throw RenameProblem(message: implementationDescription + " · " + item.original + " → " + item.destination + " [실제 시도: " + current + " → " + name + "] · \(e.domain) \(e.code): " + error.localizedDescription)
             }
         }
-        func commit(progress: Progress) throws {
+        func commit(progress: @escaping Progress) throws {
+            if usesCatalogBatch { try RenameFilesystem.coordinateCatalogBatch(in: folder) { try self.commitMoves(progress: progress) } }
+            else { try commitMoves(progress: progress) }
+        }
+        private func commitMoves(progress: Progress) throws {
             for (index, item) in journal.items.enumerated() { try relocate(item, to: item.temporary); progress(index + 1, journal.items.count * 2, "임시 이름 준비") }
             try save("staged")
             for (index, item) in journal.items.enumerated() { try relocate(item, to: item.destination); progress(journal.items.count + index + 1, journal.items.count * 2, "새 이름 적용") }
             try save("committed")
         }
-        func rollback(progress: Progress) -> [String] {
+        func rollback(progress: @escaping Progress) -> [String] {
+            if usesCatalogBatch {
+                do { return try RenameFilesystem.coordinateCatalogBatch(in: folder) { self.rollbackMoves(progress: progress) } }
+                catch { return [error.localizedDescription] }
+            }
+            return rollbackMoves(progress: progress)
+        }
+        private func rollbackMoves(progress: Progress) -> [String] {
             var errors: [String] = []
             do { try refresh() } catch { return [error.localizedDescription] }
             try? save("rollingBack")
@@ -688,6 +725,7 @@ final class BatchRenameEngine {
             relativeFolder: volume.1, orderTitle: plan.orderTitle, items: items, tagSnapshot: tags.intersection(keys).sorted(), phase: "prepared")
         let transaction = Transaction(journal: journal, url: journalDirectory.appendingPathComponent(id.uuidString + ".json"), folder: plan.folder, lease: lease, lock: lock, move: implementation.0)
         transaction.implementationDescription = implementation.1
+        transaction.usesCatalogBatch = implementation.3
         transaction.originalSnapshots = plan.snapshots
         if implementation.2 { transaction.trustedSnapshots = plan.snapshots }
         try transaction.refresh(); try transaction.save("prepared"); return transaction
@@ -711,6 +749,7 @@ final class BatchRenameEngine {
             let implementation = try self.configuredMove(folder)
             let transaction = Transaction(journal: journal, url: journalURL, folder: folder, lease: lease, lock: lock, move: implementation.0)
             transaction.implementationDescription = implementation.1
+            transaction.usesCatalogBatch = implementation.3
             try transaction.refresh(); return transaction
         }
     }
