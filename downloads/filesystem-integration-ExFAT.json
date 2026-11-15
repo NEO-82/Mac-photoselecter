@@ -3,7 +3,7 @@
   "bytesAndTagsPreserved" : true,
   "files" : 368,
   "format" : "exfat",
-  "method" : "NSFileCoordinator + FSRenameUnicode (호환 모드)",
+  "method" : "NSFileCoordinator + FileManager.moveItem (호환 모드)",
   "physicalDevice" : false,
   "realSonySamplePreserved" : true
 }

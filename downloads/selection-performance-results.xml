@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <testsuites>
-<testsuite name="TestResults" errors="0" tests="1" failures="0" time="3.1496815">
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testMultiSelectionThreeThousandMarqueeOffscreenAndAutoScrollPerformance" time="3.1496815">
+<testsuite name="TestResults" errors="0" tests="1" failures="0" time="2.425044708">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testMultiSelectionThreeThousandMarqueeOffscreenAndAutoScrollPerformance" time="2.425044708">
 </testcase>
 </testsuite>
 </testsuites>
