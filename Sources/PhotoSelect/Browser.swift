@@ -637,6 +637,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         tree.showHidden.toggle(); sender.state = tree.showHidden ? .on : .off
         if let currentFolder, let lease { loadFolder(currentFolder, lease: lease) }
     }
+    @objc func changeClickZoom(_ sender: NSMenuItem) {
+        ClickZoomPreference.save(sender.tag)
+        viewer?.canvas.needsDisplay = true
+    }
     @objc func changeAppearance(_ sender: NSMenuItem) {
         UserDefaults.standard.set(sender.tag, forKey: "appearancePreference")
         NSApp.appearance = sender.tag == 1 ? NSAppearance(named: .aqua) : sender.tag == 2 ? NSAppearance(named: .darkAqua) : nil
@@ -732,6 +736,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         guard !finishingTagWrites, !fileManagementActive, NSApp.modalWindow == nil else { return false }
         switch menuItem.action {
+        case #selector(changeClickZoom(_:)):
+            menuItem.state = menuItem.tag == ClickZoomPreference.percent() ? .on : .off
+            return true
         case #selector(changeAppearance(_:)):
             let saved = UserDefaults.standard.object(forKey: "appearancePreference") as? Int ?? 2
             menuItem.state = menuItem.tag == saved ? .on : .off

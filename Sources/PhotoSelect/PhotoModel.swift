@@ -120,14 +120,27 @@ enum WindowLayout {
 }
 
 // All coordinates here are in view points. One source pixel occupies 1/backingScale points.
+enum ClickZoomPreference {
+    static let key = "clickZoomPercent"
+    static let choices = Array(stride(from: 100, through: 200, by: 10))
+    static func percent(in defaults: UserDefaults = .standard) -> Int {
+        let saved = defaults.integer(forKey: key)
+        return choices.contains(saved) ? saved : 100
+    }
+    static func save(_ percent: Int, in defaults: UserDefaults = .standard) {
+        guard choices.contains(percent) else { return }
+        defaults.set(percent, forKey: key)
+    }
+}
+
 enum ZoomGeometry {
-    static func rect(image: CGSize, view: CGSize, cursor: CGPoint, backingScale: CGFloat) -> CGRect {
+    static func rect(image: CGSize, view: CGSize, cursor: CGPoint, backingScale: CGFloat, magnification: CGFloat = 1) -> CGRect {
         let fit = min(view.width / image.width, view.height / image.height)
         let origin = CGPoint(x: (view.width - image.width * fit) / 2,
                              y: (view.height - image.height * fit) / 2)
         let u = min(1, max(0, (cursor.x - origin.x) / (image.width * fit)))
         let v = min(1, max(0, (cursor.y - origin.y) / (image.height * fit)))
-        let size = CGSize(width: image.width / backingScale, height: image.height / backingScale)
+        let size = CGSize(width: image.width * magnification / backingScale, height: image.height * magnification / backingScale)
         func offset(_ cursor: CGFloat, _ fraction: CGFloat, _ size: CGFloat, _ viewport: CGFloat) -> CGFloat {
             size <= viewport ? (viewport - size) / 2 : min(0, max(viewport - size, cursor - fraction * size))
         }

@@ -2,6 +2,37 @@ import XCTest
 @testable import PhotoSelect
 
 final class PhotoSelectTests: XCTestCase {
+    func testClickZoomAllPercentagesAcrossDisplayScales() {
+        let image = CGSize(width: 6000, height: 4000)
+        let view = CGSize(width: 1200, height: 800)
+        let cursor = CGPoint(x: 480, y: 320)
+        for backing: CGFloat in [1, 1.5, 2] {
+            for percent in ClickZoomPreference.choices {
+                let factor = CGFloat(percent) / 100
+                let rect = ZoomGeometry.rect(image: image, view: view, cursor: cursor,
+                                             backingScale: backing, magnification: factor)
+                XCTAssertEqual(rect.width * backing, image.width * factor, accuracy: 0.001)
+                XCTAssertEqual(rect.height * backing, image.height * factor, accuracy: 0.001)
+                // The image point under the cursor in Fit remains under it at every zoom.
+                XCTAssertEqual((cursor.x - rect.minX) / rect.width, 0.4, accuracy: 0.0001)
+                XCTAssertEqual((cursor.y - rect.minY) / rect.height, 0.4, accuracy: 0.0001)
+            }
+        }
+    }
+    func testClickZoomPreferencePersistsAndRejectsInvalidValues() {
+        let suite = "PhotoSelectTests.zoom." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        XCTAssertEqual(ClickZoomPreference.percent(in: defaults), 100)
+        for percent in ClickZoomPreference.choices {
+            ClickZoomPreference.save(percent, in: defaults)
+            XCTAssertEqual(ClickZoomPreference.percent(in: UserDefaults(suiteName: suite)!), percent)
+        }
+        ClickZoomPreference.save(205, in: defaults)
+        XCTAssertEqual(ClickZoomPreference.percent(in: defaults), 200)
+        defaults.set(999, forKey: ClickZoomPreference.key)
+        XCTAssertEqual(ClickZoomPreference.percent(in: defaults), 100)
+    }
     func testExtensionsAndRawJpegPair() {
         XCTAssertTrue(Photo.accepts(URL(fileURLWithPath: "/a/DSC001.ARW")))
         XCTAssertTrue(Photo.accepts(URL(fileURLWithPath: "/a/DSC001.JPG")))

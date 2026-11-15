@@ -70,18 +70,19 @@ final class PhotoCanvas: NSView {
         guard let decoded, let context = NSGraphicsContext.current?.cgContext else { return }
         let image = decoded.image
         let rect = Self.imageRect(for: decoded, view: bounds.size, cursor: cursor,
-                                  backingScale: window?.backingScaleFactor ?? 1, zoomed: pressed)
+                                  backingScale: window?.backingScaleFactor ?? 1, zoomed: pressed,
+                                  magnification: CGFloat(ClickZoomPreference.percent()) / 100)
         context.interpolationQuality = .high
         context.draw(image, in: rect)
     }
     // RAW sensor metadata may describe more pixels than its embedded JPEG.
     // Geometry must use the bitmap actually being drawn, including at 100%.
     static func imageRect(for decoded: DecodedImage, view: CGSize, cursor: CGPoint,
-                          backingScale: CGFloat, zoomed: Bool) -> CGRect {
+                          backingScale: CGFloat, zoomed: Bool, magnification: CGFloat = 1) -> CGRect {
         let size = CGSize(width: decoded.image.width, height: decoded.image.height)
         let scaleFactor = max(1, backingScale)
         if zoomed {
-            return ZoomGeometry.rect(image: size, view: view, cursor: cursor, backingScale: scaleFactor)
+            return ZoomGeometry.rect(image: size, view: view, cursor: cursor, backingScale: scaleFactor, magnification: magnification)
         }
         let fit = min(view.width / size.width, view.height / size.height)
         // Do not make a limited embedded preview look like a sensor-size image.

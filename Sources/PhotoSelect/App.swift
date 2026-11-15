@@ -73,6 +73,13 @@ enum AppMenus {
             let item = NSMenuItem(title: title, action: #selector(BrowserController.changeAppearance(_:)), keyEquivalent: "")
             item.target = browser; item.tag = tag; view.addItem(item)
         }
+        let zoom = NSMenu(title: "클릭 유지 확대 배율")
+        let zoomItem = NSMenuItem(title: zoom.title, action: nil, keyEquivalent: "")
+        zoomItem.submenu = zoom; view.addItem(zoomItem)
+        for percent in ClickZoomPreference.choices {
+            let item = NSMenuItem(title: "\(percent)%", action: #selector(BrowserController.changeClickZoom(_:)), keyEquivalent: "")
+            item.target = browser; item.tag = percent; zoom.addItem(item)
+        }
         let photo = submenu("사진")
         add(photo, "이전 사진", #selector(BrowserController.previousPhoto), target: browser)
         add(photo, "다음 사진", #selector(BrowserController.nextPhoto), target: browser)
