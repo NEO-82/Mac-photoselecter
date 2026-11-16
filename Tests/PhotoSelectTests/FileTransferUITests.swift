@@ -27,6 +27,7 @@ import XCTest
     }
     func testResponderCopyIncludesSelectedFolderPhotoAndDocument() throws {
         _ = NSApplication.shared
+        NSApp.setActivationPolicy(.regular)
         let root = try folder(), tags = TagStore(fileURL: try folder().appendingPathComponent("tags.json"))
         let folder = root.appendingPathComponent("Album")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -50,6 +51,7 @@ import XCTest
     }
     func testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal() throws {
         _ = NSApplication.shared
+        NSApp.setActivationPolicy(.regular)
         let source = try folder(), destination = try folder(), metadata = try folder().appendingPathComponent("tags.json")
         let raw = source.appendingPathComponent("DSC.ARW"), copy = destination.appendingPathComponent("DSC.ARW")
         let bytes = Data("original RAW test bytes".utf8); try bytes.write(to: raw)
