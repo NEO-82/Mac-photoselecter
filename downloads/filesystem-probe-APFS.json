@@ -7,10 +7,10 @@
       "exclusiveRename" : true,
       "formatFlags" : 10186463,
       "hardLinks" : true,
-      "interfaceFlags" : 28274631,
+      "interfaceFlags" : 11497415,
       "persistentFileIDs" : true,
       "validFormatFlags" : 134217727,
-      "validInterfaceFlags" : 33554431
+      "validInterfaceFlags" : 16777215
     },
     "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
@@ -26,10 +26,10 @@
       "exclusiveRename" : true,
       "formatFlags" : 10186463,
       "hardLinks" : true,
-      "interfaceFlags" : 28274631,
+      "interfaceFlags" : 11497415,
       "persistentFileIDs" : true,
       "validFormatFlags" : 134217727,
-      "validInterfaceFlags" : 33554431
+      "validInterfaceFlags" : 16777215
     },
     "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
@@ -45,10 +45,10 @@
       "exclusiveRename" : true,
       "formatFlags" : 10186463,
       "hardLinks" : true,
-      "interfaceFlags" : 28274631,
+      "interfaceFlags" : 11497415,
       "persistentFileIDs" : true,
       "validFormatFlags" : 134217727,
-      "validInterfaceFlags" : 33554431
+      "validInterfaceFlags" : 16777215
     },
     "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
