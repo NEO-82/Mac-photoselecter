@@ -212,7 +212,7 @@ final class ThumbnailItem: NSCollectionViewItem {
     var isCurrent = false { didSet { updateSelectionAppearance() } }
     override var highlightState: NSCollectionViewItem.HighlightState { didSet { updateSelectionAppearance() } }
     private func updateSelectionAppearance() {
-        let drop = highlightState == .forDrop
+        let drop = highlightState == .asDropTarget
         (view as? ProSurfaceView)?.fillColor = drop ? ProTheme.accent.withAlphaComponent(0.18) : (isSelected ? ProTheme.selection : .clear)
         view.wantsLayer = true; view.layer?.cornerRadius = 8
         view.layer?.borderWidth = drop ? 3 : (isCurrent ? 2 : 0)
