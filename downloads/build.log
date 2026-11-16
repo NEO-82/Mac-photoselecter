@@ -5,23 +5,21 @@ arm64
 Xcode 27.1
 Build version 27A9275
 Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
-/dev/disk2s5   190Gi   124Gi    42Gi    75%    1.5M  439M    0%   /System/Volumes/Data
+/dev/disk2s5   190Gi   123Gi    44Gi    74%    1.5M  456M    0%   /System/Volumes/Data
 7516192768
 CI display modes: 800x600, 960x540, 1024x576, 1024x768, 1280x720, 1280x960, 1344x756, 1344x1008, 1600x900, 1600x1200, 1920x1080, 640x480
 CI session display 1280x960: 0
 Configured CI visible area: (1280.0, 851.0)
 Independent worker visible area: (1280.0, 851.0)
 Building for debugging...
-[Pre-planning 1 / 95]
+[Planning 25 / 95]
 [Planning deferred tasks]
-[32 / 62] PhotoSelect
 [34 / 62]
 [36 / 64] PhotoSelect-product
-[38 / 137]
+[39 / 137]
 [43 / 137]
-[47 / 137]
-[49 / 137]
-[54 / 137]
+[48 / 137]
+[52 / 137]
 [57 / 137]
 [59 / 137]
 [60 / 137]
@@ -34,18 +32,37 @@ Building for debugging...
 [78 / 137]
 [81 / 137]
 [82 / 137]
-[86 / 137]
-[88 / 137]
+[87 / 137]
 [91 / 137]
-[94 / 137]
+[93 / 137]
 [95 / 137]
 [97 / 137]
 [100 / 137]
 [101 / 137]
 [104 / 137] PhotoSelect-product
-[108 / 137] PhotoSelect
+[107 / 137] PhotoSelect-product
 [114 / 137] PhotoSelect
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:911:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+ [0;36m900 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
+ [0;36m901 |[0;0m             }
+ [0;36m902 |[0;0m             DispatchQueue.main.async {
+     [0;36m|[0;0m                                      |- [1;39mnote: [1;39m'self' implicitly strongly captured here[0;0m
+     [0;36m|[0;0m                                      `- [1;39mnote: [1;39madd 'self' as a capture list item to silence[0;0m
+ [0;36m903 |[0;0m                 guard self.generation == token, !self.finishingTagWrites else { self.preparingRename = false; self.updateBadges(); return }
+ [0;36m904 |[0;0m                 switch result {
+     [0;36m:[0;0m
+ [0;36m909 |[0;0m                         self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal, selectedIDs: [])
+ [0;36m910 |[0;0m                     } else {
+ [0;36m911 |[0;0m                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
+     [0;36m|[0;0m                                                                                                                                                          |- [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+     [0;36m|[0;0m                                                                                                                                                          `- [1;39mnote: [1;39mexplicitly assign the capture list item to silence[0;0m
+ [0;36m912 |[0;0m                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
+ [0;36m913 |[0;0m                             self.preparingRename = false
+
+[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
 [115 / 137] PhotoSelectTests-product
+[118 / 137] PhotoSelect-product
+[118 / 137] PhotoSelectTests-product
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:911:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
  [0;36m900 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
  [0;36m901 |[0;0m             }
@@ -64,29 +81,7 @@ Building for debugging...
  [0;36m913 |[0;0m                             self.preparingRename = false
 
 [#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
-[116 / 137] PhotoSelectTests-product
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:911:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
- [0;36m900 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
- [0;36m901 |[0;0m             }
- [0;36m902 |[0;0m             DispatchQueue.main.async {
-     [0;36m|[0;0m                                      |- [1;39mnote: [1;39m'self' implicitly strongly captured here[0;0m
-     [0;36m|[0;0m                                      `- [1;39mnote: [1;39madd 'self' as a capture list item to silence[0;0m
- [0;36m903 |[0;0m                 guard self.generation == token, !self.finishingTagWrites else { self.preparingRename = false; self.updateBadges(); return }
- [0;36m904 |[0;0m                 switch result {
-     [0;36m:[0;0m
- [0;36m909 |[0;0m                         self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal, selectedIDs: [])
- [0;36m910 |[0;0m                     } else {
- [0;36m911 |[0;0m                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
-     [0;36m|[0;0m                                                                                                                                                          |- [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
-     [0;36m|[0;0m                                                                                                                                                          `- [1;39mnote: [1;39mexplicitly assign the capture list item to silence[0;0m
- [0;36m912 |[0;0m                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
- [0;36m913 |[0;0m                             self.preparingRename = false
-
-[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
-[119 / 137] PhotoSelectTests-product
-[122 / 137]
-[122 / 137] PhotoSelect-product
-[124 / 137] PhotoSelect-product
+[122 / 137] PhotoSelect
 [127 / 138] PhotoSelectTests-product
 [130 / 149]
 [131 / 149]
@@ -94,7 +89,6 @@ Building for debugging...
 [133 / 149]
 [134 / 149]
 [137 / 149] PhotoSelectTests-product
-[139 / 149] PhotoSelectTests-product
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:53:83: [1;33mwarning: [1;39m'activateIgnoringOtherApps' was deprecated in macOS 14.0: ignoringOtherApps is deprecated in macOS 14 and will have no effect.[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration\DeprecatedDeclaration]8;;\]
  [0;36m51 |[0;0m         NSApp.mainMenu = AppMenus.make(for: browser)
  [0;36m52 |[0;0m         NSApp.activate(ignoringOtherApps: true)
@@ -112,147 +106,27 @@ Building for debugging...
  [0;36m92 |[0;0m         waitUntil("browser key window; canBecomeKey=\(window.canBecomeKey), active=\(NSApp.isActive)") { NSApp.keyWindow === window }
 
 [#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[138 / 149] PhotoSelectTests-product
+[140 / 149] PhotoSelectTests-product
 [143 / 149] PhotoSelectTests-product
 [145 / 149] PhotoSelectTests-product
-Build complete! (46.83 sec)
+Build complete! (33.21 sec)
 [1/2] Testing PhotoSelectTests.FileTransferUITests/testResponderCopyIncludesSelectedFolderPhotoAndDocument
 [2/2] Testing PhotoSelectTests.FileTransferUITests/testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal
-Creating disposable filesystem image: APFS
-created: /Users/runner/work/_temp/js-filesystem-probe.JJymWP/APFS.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
-
-hdiutil: WARNING: 'hdiutil attach -nobrowse -mountpoint ...' is deprecated. Please use 'diskutil image attach --mountOptions nobrowse --mountPoint ...' instead.
-/dev/disk19         	GUID_partition_scheme          	
-/dev/disk19s1       	Apple_APFS                     	
-/dev/disk20         	EF57347C-0000-11AA-AA11-0030654	
-/dev/disk20s1       	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.JJymWP/mount-APFS
-   File System Personality:   APFS
-   Type (Bundle):             apfs
-["collision": "NSPOSIXErrorDomain:17", "volume": "mount-APFS", "api": "renamex-RENAME_EXCL", "bytesPreserved": true, "capabilities": ["validInterfaceFlags": 33554431, "capabilitiesAvailable": true, "formatFlags": 10186463, "persistentFileIDs": true, "validFormatFlags": 134217727, "exclusiveRename": true, "hardLinks": true, "interfaceFlags": 28274631], "move": "success", "identityStable": true, "collisionPreserved": true]
-["volume": "mount-APFS", "api": "renameatx-RENAME_EXCL", "bytesPreserved": true, "collision": "NSPOSIXErrorDomain:17", "move": "success", "identityStable": true, "capabilities": ["interfaceFlags": 28274631, "validInterfaceFlags": 33554431, "exclusiveRename": true, "persistentFileIDs": true, "validFormatFlags": 134217727, "hardLinks": true, "formatFlags": 10186463, "capabilitiesAvailable": true], "collisionPreserved": true]
-["capabilities": ["persistentFileIDs": true, "validFormatFlags": 134217727, "capabilitiesAvailable": true, "interfaceFlags": 28274631, "formatFlags": 10186463, "exclusiveRename": true, "validInterfaceFlags": 33554431, "hardLinks": true], "volume": "mount-APFS", "identityStable": true, "api": "link-unlink-diagnostic-only", "collision": "NSPOSIXErrorDomain:17", "move": "success", "bytesPreserved": true, "collisionPreserved": true]
-Building for debugging...
-Build complete! (0.35 sec)
-[1/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
-[2/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
-[3/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
-[4/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCompatibilityConsentCancelAndActualRename
-[5/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
-[6/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeContentIdentityRecovery
-[7/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCoordinatedProcessRace
-[8/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeExtendedAttributesAndOrphanSidecarCollision
-[9/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
-[10/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
-[11/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
-[12/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
-Building for debugging...
-[1 / 4]
-Build complete! (0.44 sec)
-[1/28] Testing PhotoSelectTests.FileCopyTests/testAppleDoubleDestinationCompanionIsNotOverwritten
-[2/28] Testing PhotoSelectTests.FileCopyTests/testBatchesOfFourteenOneHundredAndOneThousandFiles
-[3/28] Testing PhotoSelectTests.FileCopyTests/testCancellationAfterFirstItemReportsRemainingSources
-[4/28] Testing PhotoSelectTests.FileCopyTests/testCancellationBeforeStartCreatesNothing
-[5/28] Testing PhotoSelectTests.FileCopyTests/testCancellationWithinStreamingWriteNeverPublishesPartialFile
-[6/28] Testing PhotoSelectTests.FileCopyTests/testCaseAndUnicodeEquivalentNamesAreConservativelyRejected
-[7/28] Testing PhotoSelectTests.FileCopyTests/testCopyDoesNotTransferAppTagsOrChangeSourceTagDocument
-[8/28] Testing PhotoSelectTests.FileCopyTests/testExistingFileNeverOverwritten
-[9/28] Testing PhotoSelectTests.FileCopyTests/testExistingFolderIsNeverMerged
-[10/28] Testing PhotoSelectTests.FileCopyTests/testExtendedAttributesAndResourceForkPreserved
-[11/28] Testing PhotoSelectTests.FileCopyTests/testFallbackFolderFailureReportsVerifiedPartialFilesAndFailingChild
-[12/28] Testing PhotoSelectTests.FileCopyTests/testFallbackRacingExistingFileFailsExclusively
-[13/28] Testing PhotoSelectTests.FileCopyTests/testInjectedDiskFullDuringWriteDoesNotPublishOrChangeSource
-[14/28] Testing PhotoSelectTests.FileCopyTests/testInjectedReadErrorDoesNotPublishOrChangeSource
-[15/28] Testing PhotoSelectTests.FileCopyTests/testMissingSourceDoesNotPreventLaterSuccessfulCopies
-[16/28] Testing PhotoSelectTests.FileCopyTests/testMixedRawJpegAndDocumentRemainSeparateFiles
-[17/28] Testing PhotoSelectTests.FileCopyTests/testNestedFolderAndPackageContentsCopied
-[18/28] Testing PhotoSelectTests.FileCopyTests/testNestedProgressCountsFilesAndFolders
-[19/28] Testing PhotoSelectTests.FileCopyTests/testNonDirectoryAndMissingDestinationFailWithoutChangingSource
-[20/28] Testing PhotoSelectTests.FileCopyTests/testRacingExactNameCreationCannotBeOverwrittenAtPublication
-[21/28] Testing PhotoSelectTests.FileCopyTests/testRealSonySamplesCopyInBothDirectionsWithoutContentChanges
-[22/28] Testing PhotoSelectTests.FileCopyTests/testReverseDirectionFromTargetVolumeToInternalFolder
-[23/28] Testing PhotoSelectTests.FileCopyTests/testSameParentAndOwnDescendantAreRejected
-[24/28] Testing PhotoSelectTests.FileCopyTests/testSingleRawPreservesSourceAndVerifiesCopyBytesAndDate
-[25/28] Testing PhotoSelectTests.FileCopyTests/testStaleDestinationTagsClearedWithoutChangingSourceOrSiblingTags
-[26/28] Testing PhotoSelectTests.FileCopyTests/testStandardFileURLClipboardRoundTrip
-[27/28] Testing PhotoSelectTests.FileCopyTests/testSymlinkAndCycleDoNotTraverse
-[28/28] Testing PhotoSelectTests.FileCopyTests/testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback
-Verified 28 file copy checks against the mounted target volume, including reverse copy
-hdiutil: WARNING: 'hdiutil detach ...' is deprecated. Please use 'diskutil eject ...' instead.
-"disk19" ejected.
-Creating disposable filesystem image: HFS+
-created: /Users/runner/work/_temp/js-filesystem-probe.JJymWP/HFSplus.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
-
-hdiutil: WARNING: 'hdiutil attach -nobrowse -mountpoint ...' is deprecated. Please use 'diskutil image attach --mountOptions nobrowse --mountPoint ...' instead.
-/dev/disk19         	GUID_partition_scheme          	
-/dev/disk19s1       	Apple_HFS                      	/Users/runner/work/_temp/js-filesystem-probe.JJymWP/mount-HFSplus
-   File System Personality:   HFS+
-   Type (Bundle):             hfs
-["move": "success", "collisionPreserved": true, "volume": "mount-HFSplus", "identityStable": true, "collision": "NSPOSIXErrorDomain:17", "capabilities": ["capabilitiesAvailable": true, "formatFlags": 1928847, "persistentFileIDs": true, "hardLinks": true, "exclusiveRename": true, "validFormatFlags": 8224767, "validInterfaceFlags": 19431423, "interfaceFlags": 2650079], "bytesPreserved": true, "api": "renamex-RENAME_EXCL"]
-["move": "success", "identityStable": true, "volume": "mount-HFSplus", "collision": "NSPOSIXErrorDomain:17", "bytesPreserved": true, "capabilities": ["formatFlags": 1928847, "capabilitiesAvailable": true, "interfaceFlags": 2650079, "hardLinks": true, "validInterfaceFlags": 19431423, "exclusiveRename": true, "persistentFileIDs": true, "validFormatFlags": 8224767], "api": "renameatx-RENAME_EXCL", "collisionPreserved": true]
-["identityStable": true, "volume": "mount-HFSplus", "bytesPreserved": true, "api": "link-unlink-diagnostic-only", "move": "success", "capabilities": ["capabilitiesAvailable": true, "formatFlags": 1928847, "interfaceFlags": 2650079, "validFormatFlags": 8224767, "exclusiveRename": true, "hardLinks": true, "validInterfaceFlags": 19431423, "persistentFileIDs": true], "collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17"]
-Building for debugging...
-[Starting]
-[1 / 3] PhotoSelect-product
-Build complete! (0.52 sec)
-[1/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
-[2/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
-[3/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
-[4/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCompatibilityConsentCancelAndActualRename
-[5/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeConcurrentRenamesHaveExactlyOneWinner
-[6/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeContentIdentityRecovery
-[7/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCoordinatedProcessRace
-[8/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeExtendedAttributesAndOrphanSidecarCollision
-[9/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRenameCountsTimingAndModificationDates
-[10/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
-[11/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
-[12/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
-Building for debugging...
-[1 / 4]
-Build complete! (0.62 sec)
-[1/28] Testing PhotoSelectTests.FileCopyTests/testAppleDoubleDestinationCompanionIsNotOverwritten
-[2/28] Testing PhotoSelectTests.FileCopyTests/testBatchesOfFourteenOneHundredAndOneThousandFiles
-[3/28] Testing PhotoSelectTests.FileCopyTests/testCancellationAfterFirstItemReportsRemainingSources
-[4/28] Testing PhotoSelectTests.FileCopyTests/testCancellationBeforeStartCreatesNothing
-[5/28] Testing PhotoSelectTests.FileCopyTests/testCancellationWithinStreamingWriteNeverPublishesPartialFile
-[6/28] Testing PhotoSelectTests.FileCopyTests/testCaseAndUnicodeEquivalentNamesAreConservativelyRejected
-[7/28] Testing PhotoSelectTests.FileCopyTests/testCopyDoesNotTransferAppTagsOrChangeSourceTagDocument
-[8/28] Testing PhotoSelectTests.FileCopyTests/testExistingFileNeverOverwritten
-[9/28] Testing PhotoSelectTests.FileCopyTests/testExistingFolderIsNeverMerged
-[10/28] Testing PhotoSelectTests.FileCopyTests/testExtendedAttributesAndResourceForkPreserved
-[11/28] Testing PhotoSelectTests.FileCopyTests/testFallbackFolderFailureReportsVerifiedPartialFilesAndFailingChild
-[12/28] Testing PhotoSelectTests.FileCopyTests/testFallbackRacingExistingFileFailsExclusively
-[13/28] Testing PhotoSelectTests.FileCopyTests/testInjectedDiskFullDuringWriteDoesNotPublishOrChangeSource
-[14/28] Testing PhotoSelectTests.FileCopyTests/testInjectedReadErrorDoesNotPublishOrChangeSource
-[15/28] Testing PhotoSelectTests.FileCopyTests/testMissingSourceDoesNotPreventLaterSuccessfulCopies
-[16/28] Testing PhotoSelectTests.FileCopyTests/testMixedRawJpegAndDocumentRemainSeparateFiles
-[17/28] Testing PhotoSelectTests.FileCopyTests/testNestedFolderAndPackageContentsCopied
-[18/28] Testing PhotoSelectTests.FileCopyTests/testNestedProgressCountsFilesAndFolders
-[19/28] Testing PhotoSelectTests.FileCopyTests/testNonDirectoryAndMissingDestinationFailWithoutChangingSource
-[20/28] Testing PhotoSelectTests.FileCopyTests/testRacingExactNameCreationCannotBeOverwrittenAtPublication
-[21/28] Testing PhotoSelectTests.FileCopyTests/testRealSonySamplesCopyInBothDirectionsWithoutContentChanges
-[22/28] Testing PhotoSelectTests.FileCopyTests/testReverseDirectionFromTargetVolumeToInternalFolder
-[23/28] Testing PhotoSelectTests.FileCopyTests/testSameParentAndOwnDescendantAreRejected
-[24/28] Testing PhotoSelectTests.FileCopyTests/testSingleRawPreservesSourceAndVerifiesCopyBytesAndDate
-[25/28] Testing PhotoSelectTests.FileCopyTests/testStaleDestinationTagsClearedWithoutChangingSourceOrSiblingTags
-[26/28] Testing PhotoSelectTests.FileCopyTests/testStandardFileURLClipboardRoundTrip
-[27/28] Testing PhotoSelectTests.FileCopyTests/testSymlinkAndCycleDoNotTraverse
-[28/28] Testing PhotoSelectTests.FileCopyTests/testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback
-Verified 28 file copy checks against the mounted target volume, including reverse copy
-hdiutil: WARNING: 'hdiutil detach ...' is deprecated. Please use 'diskutil eject ...' instead.
-"disk19" ejected.
 Creating disposable filesystem image: ExFAT
-created: /Users/runner/work/_temp/js-filesystem-probe.JJymWP/ExFAT.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
+created: /Users/runner/work/_temp/js-filesystem-probe.wEf1QH/ExFAT.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
 
 hdiutil: WARNING: 'hdiutil attach -nobrowse -mountpoint ...' is deprecated. Please use 'diskutil image attach --mountOptions nobrowse --mountPoint ...' instead.
-/dev/disk19         	GUID_partition_scheme          	
-/dev/disk19s1       	Microsoft Basic Data           	/Users/runner/work/_temp/js-filesystem-probe.JJymWP/mount-ExFAT
+/dev/disk27         	GUID_partition_scheme          	
+/dev/disk27s1       	Microsoft Basic Data           	/Users/runner/work/_temp/js-filesystem-probe.wEf1QH/mount-ExFAT
    File System Personality:   ExFAT
    Type (Bundle):             exfat
-["move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "volume": "mount-ExFAT", "api": "renamex-RENAME_EXCL", "collision": "NSPOSIXErrorDomain:17", "capabilities": ["persistentFileIDs": false, "capabilitiesAvailable": true, "validInterfaceFlags": 2097151, "exclusiveRename": false, "validFormatFlags": 16777215, "formatFlags": 4206114, "hardLinks": false, "interfaceFlags": 1051584], "collisionPreserved": true]
-["api": "renameatx-RENAME_EXCL", "collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "volume": "mount-ExFAT", "capabilities": ["capabilitiesAvailable": true, "interfaceFlags": 1051584, "exclusiveRename": false, "formatFlags": 4206114, "hardLinks": false, "validFormatFlags": 16777215, "persistentFileIDs": false, "validInterfaceFlags": 2097151], "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported"]
-["volume": "mount-ExFAT", "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "capabilities": ["interfaceFlags": 1051584, "formatFlags": 4206114, "hardLinks": false, "capabilitiesAvailable": true, "persistentFileIDs": false, "validInterfaceFlags": 2097151, "exclusiveRename": false, "validFormatFlags": 16777215], "api": "link-unlink-diagnostic-only"]
+["move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "collision": "NSPOSIXErrorDomain:17", "capabilities": ["interfaceFlags": 1051584, "validInterfaceFlags": 2097151, "validFormatFlags": 16777215, "persistentFileIDs": false, "formatFlags": 4206114, "capabilitiesAvailable": true, "exclusiveRename": false, "hardLinks": false], "collisionPreserved": true, "volume": "mount-ExFAT", "api": "renamex-RENAME_EXCL"]
+["collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "api": "renameatx-RENAME_EXCL", "capabilities": ["hardLinks": false, "interfaceFlags": 1051584, "formatFlags": 4206114, "validInterfaceFlags": 2097151, "validFormatFlags": 16777215, "exclusiveRename": false, "capabilitiesAvailable": true, "persistentFileIDs": false], "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "volume": "mount-ExFAT"]
+["collision": "NSPOSIXErrorDomain:17", "capabilities": ["exclusiveRename": false, "validFormatFlags": 16777215, "validInterfaceFlags": 2097151, "capabilitiesAvailable": true, "interfaceFlags": 1051584, "persistentFileIDs": false, "hardLinks": false, "formatFlags": 4206114], "collisionPreserved": true, "move": "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported", "volume": "mount-ExFAT", "api": "link-unlink-diagnostic-only"]
 Building for debugging...
-[1 / 5] PhotoSelect-product
-Build complete! (0.52 sec)
+[1 / 4]
+Build complete! (0.38 sec)
 [1/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
 [2/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
 [3/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
@@ -267,8 +141,7 @@ Build complete! (0.52 sec)
 [12/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
 Building for debugging...
 [1 / 4]
-[1 / 5] PhotoSelect-product
-Build complete! (0.49 sec)
+Build complete! (0.63 sec)
 [1/28] Testing PhotoSelectTests.FileCopyTests/testAppleDoubleDestinationCompanionIsNotOverwritten
 [2/28] Testing PhotoSelectTests.FileCopyTests/testBatchesOfFourteenOneHundredAndOneThousandFiles
 [3/28] Testing PhotoSelectTests.FileCopyTests/testCancellationAfterFirstItemReportsRemainingSources
@@ -297,37 +170,37 @@ Build complete! (0.49 sec)
 [26/28] Testing PhotoSelectTests.FileCopyTests/testStandardFileURLClipboardRoundTrip
 [27/28] Testing PhotoSelectTests.FileCopyTests/testSymlinkAndCycleDoNotTraverse
 [28/28] Testing PhotoSelectTests.FileCopyTests/testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback
-Test Suite 'Selected tests' started at 2026-11-16 12:49:33.987.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-16 12:49:33.988.
-Test Suite 'FileCopyTests' started at 2026-11-16 12:49:33.988.
+Test Suite 'Selected tests' started at 2026-11-16 13:02:15.073.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-16 13:02:15.074.
+Test Suite 'FileCopyTests' started at 2026-11-16 13:02:15.074.
 Test Case '-[PhotoSelectTests.FileCopyTests testCancellationWithinStreamingWriteNeverPublishesPartialFile]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileCopyTests.swift:206: error: -[PhotoSelectTests.FileCopyTests testCancellationWithinStreamingWriteNeverPublishesPartialFile] : XCTAssertNil failed: "file:///Users/runner/work/_temp/js-filesystem-probe.JJymWP/mount-ExFAT/J-S-copy-test-73BF7D0B-9E4E-4A4F-9E33-B28D6B6BF521/.photoselect-copy-080DC79E-467C-4C2C-A741-E0115B84F293/"
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileCopyTests.swift:206: error: -[PhotoSelectTests.FileCopyTests testCancellationWithinStreamingWriteNeverPublishesPartialFile] : XCTAssertNil failed: "file:///Users/runner/work/_temp/js-filesystem-probe.wEf1QH/mount-ExFAT/J-S-copy-test-DBC5924B-E800-4B87-9B3D-E9D6D592DF03/.photoselect-copy-0DB91813-399A-4CF9-8375-84634BC9D113/"
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileCopyTests.swift:207: error: -[PhotoSelectTests.FileCopyTests testCancellationWithinStreamingWriteNeverPublishesPartialFile] : XCTAssertTrue failed
-Test Case '-[PhotoSelectTests.FileCopyTests testCancellationWithinStreamingWriteNeverPublishesPartialFile]' failed (0.623 seconds).
-Test Suite 'FileCopyTests' failed at 2026-11-16 12:49:34.612.
-	 Executed 1 test, with 2 failures (0 unexpected) in 0.623 (0.624) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-16 12:49:34.612.
-	 Executed 1 test, with 2 failures (0 unexpected) in 0.623 (0.624) seconds
-Test Suite 'Selected tests' failed at 2026-11-16 12:49:34.612.
-	 Executed 1 test, with 2 failures (0 unexpected) in 0.623 (0.625) seconds
+Test Case '-[PhotoSelectTests.FileCopyTests testCancellationWithinStreamingWriteNeverPublishesPartialFile]' failed (1.828 seconds).
+Test Suite 'FileCopyTests' failed at 2026-11-16 13:02:16.902.
+	 Executed 1 test, with 2 failures (0 unexpected) in 1.828 (1.828) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-16 13:02:16.902.
+	 Executed 1 test, with 2 failures (0 unexpected) in 1.828 (1.828) seconds
+Test Suite 'Selected tests' failed at 2026-11-16 13:02:16.902.
+	 Executed 1 test, with 2 failures (0 unexpected) in 1.828 (1.829) seconds
 
-Test Suite 'Selected tests' started at 2026-11-16 12:49:36.018.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-16 12:49:36.019.
-Test Suite 'FileCopyTests' started at 2026-11-16 12:49:36.019.
+Test Suite 'Selected tests' started at 2026-11-16 13:02:17.761.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-16 13:02:17.762.
+Test Suite 'FileCopyTests' started at 2026-11-16 13:02:17.762.
 Test Case '-[PhotoSelectTests.FileCopyTests testExtendedAttributesAndResourceForkPreserved]' started.
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileCopyTests.swift:53: error: -[PhotoSelectTests.FileCopyTests testExtendedAttributesAndResourceForkPreserved] : XCTAssertEqual failed: ("0") is not equal to ("1")
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileCopyTests.swift:53: error: -[PhotoSelectTests.FileCopyTests testExtendedAttributesAndResourceForkPreserved] : XCTAssertTrue failed
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileCopyTests.swift:53: error: -[PhotoSelectTests.FileCopyTests testExtendedAttributesAndResourceForkPreserved] : XCTAssertTrue failed - 메타데이터 복사 실패: /var/folders/x2/ddb4m3ln3jnd6cx47cgm0yn40000gn/T/2C4ACC73-1906-45ED-A5EB-E8ADF549CCBF/source/metadata.ARW → /Users/runner/work/_temp/js-filesystem-probe.wEf1QH/mount-ExFAT/J-S-copy-test-F12D3CB3-7781-4FCA-B636-364B68B46F39/.photoselect-copy-4C343700-6AB2-4306-9ED1-4EFE44B59297/metadata.ARW: The operation couldn’t be completed. Invalid argument
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileCopyTests.swift:58: error: -[PhotoSelectTests.FileCopyTests testExtendedAttributesAndResourceForkPreserved] : XCTAssertEqual failed: ("-1") is not equal to ("14")
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileCopyTests.swift:58: error: -[PhotoSelectTests.FileCopyTests testExtendedAttributesAndResourceForkPreserved] : XCTAssertEqual failed: ("-1") is not equal to ("14")
-Test Case '-[PhotoSelectTests.FileCopyTests testExtendedAttributesAndResourceForkPreserved]' failed (0.821 seconds).
-Test Suite 'FileCopyTests' failed at 2026-11-16 12:49:36.841.
-	 Executed 1 test, with 4 failures (0 unexpected) in 0.821 (0.821) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-16 12:49:36.841.
-	 Executed 1 test, with 4 failures (0 unexpected) in 0.821 (0.821) seconds
-Test Suite 'Selected tests' failed at 2026-11-16 12:49:36.841.
-	 Executed 1 test, with 4 failures (0 unexpected) in 0.821 (0.822) seconds
+Test Case '-[PhotoSelectTests.FileCopyTests testExtendedAttributesAndResourceForkPreserved]' failed (0.232 seconds).
+Test Suite 'FileCopyTests' failed at 2026-11-16 13:02:17.994.
+	 Executed 1 test, with 4 failures (0 unexpected) in 0.232 (0.232) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-16 13:02:17.994.
+	 Executed 1 test, with 4 failures (0 unexpected) in 0.232 (0.232) seconds
+Test Suite 'Selected tests' failed at 2026-11-16 13:02:17.994.
+	 Executed 1 test, with 4 failures (0 unexpected) in 0.232 (0.233) seconds
 
 Note: Some test targets reported failures:
   - PhotoSelectTests (XCTest)
 hdiutil: WARNING: 'hdiutil detach ...' is deprecated. Please use 'diskutil eject ...' instead.
-"disk19" ejected.
+"disk27" ejected.

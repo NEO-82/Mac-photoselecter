@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <testsuites>
-<testsuite name="TestResults" errors="0" tests="12" failures="0" time="157.67273437400002">
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles" time="2.973115041">
+<testsuite name="TestResults" errors="0" tests="12" failures="0" time="145.907280332">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles" time="3.201808167">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags" time="24.051518833">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags" time="19.944855375">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess" time="0.955928834">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess" time="1.732387375">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCompatibilityConsentCancelAndActualRename" time="4.66667075">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCompatibilityConsentCancelAndActualRename" time="2.106894459">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeConcurrentRenamesHaveExactlyOneWinner" time="25.894238125">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeConcurrentRenamesHaveExactlyOneWinner" time="21.848121083">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeContentIdentityRecovery" time="0.446965875">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeContentIdentityRecovery" time="0.524104625">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCoordinatedProcessRace" time="3.951860708">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCoordinatedProcessRace" time="4.070742666">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeExtendedAttributesAndOrphanSidecarCollision" time="0.72742875">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeExtendedAttributesAndOrphanSidecarCollision" time="0.681295958">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRenameCountsTimingAndModificationDates" time="91.303458625">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRenameCountsTimingAndModificationDates" time="89.624301416">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRollbackInterruptedRecoveryAndRemount" time="1.00831225">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRollbackInterruptedRecoveryAndRemount" time="0.533605875">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite" time="1.060756958">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite" time="0.995131416">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange" time="0.632479625">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange" time="0.644031917">
 </testcase>
 </testsuite>
 </testsuites>
