@@ -53,6 +53,14 @@ for name in names {
 }
 print("COPY_METADATA_DIRECT \(attributes(direct))")
 
+let packedBase = targetRoot.appendingPathComponent("packed.ARW")
+try data.write(to: packedBase)
+let packedSidecar = targetRoot.appendingPathComponent("._packed.ARW")
+let packResult = copyfile(source.path, packedSidecar.path, nil,
+    copyfile_flags_t(COPYFILE_METADATA | COPYFILE_PACK | COPYFILE_EXCL | COPYFILE_NOFOLLOW))
+let packError = packResult == 0 ? 0 : errno
+print("COPY_METADATA_PACK result=\(packResult) errno=\(packError) \(attributes(packedBase))")
+
 var rootBefore = stat(); _ = lstat(targetRoot.path, &rootBefore)
 let growth = targetRoot.appendingPathComponent("growth.ARW")
 let growing = open(growth.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
@@ -65,3 +73,5 @@ _ = buffer.withUnsafeBytes { Darwin.write(growing, $0.baseAddress, $0.count) }
 _ = fsync(growing)
 _ = fstat(growing, &after); _ = lstat(growth.path, &named); _ = lstat(targetRoot.path, &rootAfter)
 print("COPY_FILE_IDS before=\(before.st_ino) after=\(after.st_ino) path=\(named.st_ino) directoryBefore=\(rootBefore.st_ino) directoryAfter=\(rootAfter.st_ino)")
+let unlinkResult = unlink(growth.path)
+print("COPY_UNLINK_OPEN result=\(unlinkResult) errno=\(unlinkResult == 0 ? 0 : errno)")

@@ -113,80 +113,82 @@ final class FileCopyEngine {
             if cancellation.isCancelled {
                 report.cancelled = true; report.unprocessed = Array(sources[index...]); break
             }
-            let target = destination.appendingPathComponent(source.lastPathComponent)
-            var stage: URL?
-            var temporaryItems: [TemporaryItem] = []
-            let createdBefore = report.createdTargets.count
-            var verifiedFinalItems: [URL] = []
-            do {
-                guard source.isFileURL, destination.isFileURL else { throw CopyError("로컬 파일 URL만 복사할 수 있습니다.") }
-                try validate(source, destination: destination)
-                guard seen.insert(Self.nameKey(source.lastPathComponent)).inserted else { throw CopyError("선택 항목의 이름이 충돌합니다. 건너뛰었습니다.") }
-                var coordinationError: NSError?
-                var operationError: Error?
-                var performed = false
-                NSFileCoordinator().coordinate(readingItemAt: source, options: .withoutChanges,
-                    writingItemAt: destination, options: [], error: &coordinationError) { readURL, writeURL in
-                    do {
-                        let actualTarget = writeURL.appendingPathComponent(source.lastPathComponent)
-                        try self.validate(readURL, destination: writeURL)
-                        try self.requireUnused(actualTarget)
-                        let scratch = writeURL.appendingPathComponent(".photoselect-copy-" + UUID().uuidString, isDirectory: true)
-                        guard mkdir(scratch.path, 0o700) == 0 else { throw self.posixError() }
-                        stage = scratch
-                        if let item = TemporaryItem.capture(scratch) { temporaryItems.append(item) }
-                        let payload = scratch.appendingPathComponent(source.lastPathComponent)
-                        var lastUpdate = ProcessInfo.processInfo.systemUptime
-                        try self.copyTree(readURL, to: payload, cancellation: cancellation, onItem: {
-                            completed += 1
-                        }, onTemporaryCreated: { url, descriptor in
-                            if let item = TemporaryItem.capture(url, descriptor: descriptor) { temporaryItems.append(item) }
-                        }) { count in
-                            bytes += count
-                            let now = ProcessInfo.processInfo.systemUptime
-                            if now - lastUpdate >= 0.1 {
-                                lastUpdate = now
-                                progress(FileCopyProgress(completed: completed, total: total, bytes: bytes, name: source.lastPathComponent))
-                            }
-                        }
-                        try cancellation.check()
-                        try self.requireUnused(actualTarget)
-                        // Atomic exclusive publication where supported. No nonexclusive rename fallback.
+            autoreleasepool {
+                let target = destination.appendingPathComponent(source.lastPathComponent)
+                var stage: URL?
+                var temporaryItems: [TemporaryItem] = []
+                let createdBefore = report.createdTargets.count
+                var verifiedFinalItems: [URL] = []
+                do {
+                    guard source.isFileURL, destination.isFileURL else { throw CopyError("로컬 파일 URL만 복사할 수 있습니다.") }
+                    try validate(source, destination: destination)
+                    guard seen.insert(Self.nameKey(source.lastPathComponent)).inserted else { throw CopyError("선택 항목의 이름이 충돌합니다. 건너뛰었습니다.") }
+                    var coordinationError: NSError?
+                    var operationError: Error?
+                    var performed = false
+                    NSFileCoordinator().coordinate(readingItemAt: source, options: .withoutChanges,
+                        writingItemAt: destination, options: [], error: &coordinationError) { readURL, writeURL in
                         do {
-                            try self.publish(payload, actualTarget)
-                            report.createdTargets.append(actualTarget)
-                        } catch {
-                            let problem = error as NSError
-                            guard problem.domain == NSPOSIXErrorDomain,
-                                  [Int(ENOTSUP), Int(EINVAL), Int(ENOSYS)].contains(problem.code) else { throw error }
-                            // exFAT may not implement RENAME_EXCL. Create every final item
-                            // exclusively instead. A failed/cancelled publication may be visible
-                            // partially; preserve it and report its path, never delete user data.
-                            try self.copyTree(payload, to: actualTarget, cancellation: cancellation, onCreated: {
+                            let actualTarget = writeURL.appendingPathComponent(source.lastPathComponent)
+                            try self.validate(readURL, destination: writeURL)
+                            try self.requireUnused(actualTarget)
+                            let scratch = writeURL.appendingPathComponent(".photoselect-copy-" + UUID().uuidString, isDirectory: true)
+                            guard mkdir(scratch.path, 0o700) == 0 else { throw self.posixError() }
+                            stage = scratch
+                            if let item = TemporaryItem.capture(scratch) { temporaryItems.append(item) }
+                            let payload = scratch.appendingPathComponent(source.lastPathComponent)
+                            var lastUpdate = ProcessInfo.processInfo.systemUptime
+                            try self.copyTree(readURL, to: payload, cancellation: cancellation, temporaryStorage: true, onItem: {
+                                completed += 1
+                            }, onTemporaryCreated: { url, descriptor in
+                                if let item = TemporaryItem.capture(url, descriptor: descriptor) { temporaryItems.append(item) }
+                            }) { count in
+                                bytes += count
+                                let now = ProcessInfo.processInfo.systemUptime
+                                if now - lastUpdate >= 0.1 {
+                                    lastUpdate = now
+                                    progress(FileCopyProgress(completed: completed, total: total, bytes: bytes, name: source.lastPathComponent))
+                                }
+                            }
+                            try cancellation.check()
+                            try self.requireUnused(actualTarget)
+                            // Atomic exclusive publication where supported. No nonexclusive rename fallback.
+                            do {
+                                try self.publish(payload, actualTarget)
                                 report.createdTargets.append(actualTarget)
-                            }, onVerified: { verifiedFinalItems.append($0) }, onBytes: { _ in })
-                        }
-                        report.copied.append(actualTarget)
-                        performed = true
-                        try FileManager.default.removeItem(at: scratch)
-                        stage = nil
-                    } catch { operationError = error }
+                            } catch {
+                                let problem = error as NSError
+                                guard problem.domain == NSPOSIXErrorDomain,
+                                      [Int(ENOTSUP), Int(EINVAL), Int(ENOSYS)].contains(problem.code) else { throw error }
+                                // exFAT may not implement RENAME_EXCL. Create every final item
+                                // exclusively instead. A failed/cancelled publication may be visible
+                                // partially; preserve it and report its path, never delete user data.
+                                try self.copyTree(payload, to: actualTarget, cancellation: cancellation, onCreated: {
+                                    report.createdTargets.append(actualTarget)
+                                }, onVerified: { verifiedFinalItems.append($0) }, onBytes: { _ in })
+                            }
+                            report.copied.append(actualTarget)
+                            performed = true
+                            try FileManager.default.removeItem(at: scratch)
+                            stage = nil
+                        } catch { operationError = error }
+                    }
+                    if let operationError { throw operationError }
+                    if let coordinationError { throw coordinationError }
+                    guard performed else { throw CopyError("복사 조정을 시작하지 못했습니다.") }
+                } catch {
+                    if let scratch = stage, report.createdTargets.count == createdBefore,
+                       cancellation.isCancelled || isNoSpace(error) {
+                        // Unlink only entries recorded at exclusive creation, never
+                        // recursively remove an error-stage tree containing unknown files.
+                        if cleanupTemporary(temporaryItems, root: scratch) { stage = nil }
+                    }
+                    if !report.copied.contains(target) { report.verifiedPartialItems.append(contentsOf: verifiedFinalItems) }
+                    report.failures.append(FileCopyFailure(source: source, destination: target,
+                        message: error.localizedDescription, retainedTemporaryURL: stage))
                 }
-                if let operationError { throw operationError }
-                if let coordinationError { throw coordinationError }
-                guard performed else { throw CopyError("복사 조정을 시작하지 못했습니다.") }
-            } catch {
-                if let scratch = stage, report.createdTargets.count == createdBefore,
-                   cancellation.isCancelled || isNoSpace(error) {
-                    // Unlink only entries recorded at exclusive creation, never
-                    // recursively remove an error-stage tree containing unknown files.
-                    if cleanupTemporary(temporaryItems, root: scratch) { stage = nil }
-                }
-                if !report.copied.contains(target) { report.verifiedPartialItems.append(contentsOf: verifiedFinalItems) }
-                report.failures.append(FileCopyFailure(source: source, destination: target,
-                    message: error.localizedDescription, retainedTemporaryURL: stage))
+                progress(FileCopyProgress(completed: completed, total: total, bytes: bytes, name: source.lastPathComponent))
             }
-            progress(FileCopyProgress(completed: completed, total: total, bytes: bytes, name: source.lastPathComponent))
         }
         report.cancelled = cancellation.isCancelled
         return report
@@ -217,6 +219,14 @@ final class FileCopyEngine {
         }
         var info = stat()
         return lstat(root.path, &info) != 0 && errno == ENOENT
+    }
+
+    private func unlinkOwnedOpen(_ url: URL, descriptor: Int32) {
+        var opened = stat(), named = stat()
+        guard fstat(descriptor, &opened) == 0, lstat(url.path, &named) == 0,
+              opened.st_dev == named.st_dev, opened.st_ino == named.st_ino,
+              (named.st_mode & S_IFMT) == S_IFREG else { return }
+        _ = unlink(url.path)
     }
 
     private func countItems(_ url: URL, cancellation: FileCopyCancellation, depth: Int = 0) throws -> Int {
@@ -274,7 +284,7 @@ final class FileCopyEngine {
 
     private func copyTree(_ source: URL, to destination: URL, cancellation: FileCopyCancellation,
                           onCreated: () -> Void = {},
-                          depth: Int = 0, onItem: () -> Void = {},
+                          depth: Int = 0, temporaryStorage: Bool = false, onItem: () -> Void = {},
                           onVerified: (URL) -> Void = { _ in },
                           onTemporaryCreated: (URL, Int32?) -> Void = { _, _ in },
                           onBytes: (Int64) -> Void) throws {
@@ -302,13 +312,14 @@ final class FileCopyEngine {
                 let target = destination.appendingPathComponent(child.lastPathComponent)
                 do {
                     try copyTree(child, to: target, cancellation: cancellation,
-                                 depth: depth + 1, onItem: onItem, onVerified: onVerified,
+                                 depth: depth + 1, temporaryStorage: temporaryStorage, onItem: onItem, onVerified: onVerified,
                                  onTemporaryCreated: onTemporaryCreated, onBytes: onBytes)
                 } catch {
                     throw CopyError("실패한 항목: \(child.path)\n대상: \(target.path)\n" + error.localizedDescription, underlying: error)
                 }
             }
-            try metadata(source, to: destination)
+            try metadata(source, to: destination, cancellation: cancellation, temporaryStorage: temporaryStorage,
+                         onTemporaryCreated: onTemporaryCreated)
             let after = try directoryURLs(source)
             guard Set(children.map(\.lastPathComponent)) == Set(after.map(\.lastPathComponent)) else { throw CopyError("복사 중 원본 폴더 내용이 변경되었습니다.") }
         } else {
@@ -318,47 +329,56 @@ final class FileCopyEngine {
             defer { close(input) }
             var before = stat()
             guard fstat(input, &before) == 0, (before.st_mode & S_IFMT) == S_IFREG else { throw CopyError("원본 파일 유형이 변경되었습니다.") }
-            let output = open(destination.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
+            let output = open(destination.path, O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
             guard output >= 0 else { throw posixError() }
             onCreated()
             onTemporaryCreated(destination, output)
+            var transferError: Error?
             defer {
+                if temporaryStorage && (cancellation.isCancelled || transferError.map { isNoSpace($0) } == true) {
+                    // On exFAT a file's ID can change on close. Remove a cancelled
+                    // private stream while its exclusive descriptor still binds it.
+                    unlinkOwnedOpen(destination, descriptor: output)
+                }
                 // exFAT may assign a new file ID when an empty file first grows.
                 // Refresh ownership from the still-open descriptor before cleanup.
                 onTemporaryCreated(destination, output)
                 close(output)
             }
-            var buffer = [UInt8](repeating: 0, count: 1024 * 1024), hash = SHA256(), size: Int64 = 0
-            while true {
-                try cancellation.check()
-                let count = buffer.withUnsafeMutableBytes { self.readBuffer(input, $0.baseAddress!, $0.count) }
-                if count < 0 { if errno == EINTR { continue }; throw posixError() }
-                if count == 0 { break }
-                hash.update(data: Data(buffer.prefix(count)))
-                try buffer.withUnsafeBytes { raw in
-                    var offset = 0
-                    while offset < count {
-                        try cancellation.check()
-                        let written = self.writeBuffer(output, raw.baseAddress!.advanced(by: offset), count - offset)
-                        if written < 0 { if errno == EINTR { continue }; throw posixError() }
-                        guard written > 0 else { throw CopyError("대상 쓰기가 중단되었습니다.") }
-                        offset += written
+            do {
+                var buffer = [UInt8](repeating: 0, count: 1024 * 1024), hash = SHA256(), size: Int64 = 0
+                while true {
+                    try cancellation.check()
+                    let count = buffer.withUnsafeMutableBytes { self.readBuffer(input, $0.baseAddress!, $0.count) }
+                    if count < 0 { if errno == EINTR { continue }; throw posixError() }
+                    if count == 0 { break }
+                    autoreleasepool { hash.update(data: Data(buffer.prefix(count))) }
+                    try buffer.withUnsafeBytes { raw in
+                        var offset = 0
+                        while offset < count {
+                            try cancellation.check()
+                            let written = self.writeBuffer(output, raw.baseAddress!.advanced(by: offset), count - offset)
+                            if written < 0 { if errno == EINTR { continue }; throw posixError() }
+                            guard written > 0 else { throw CopyError("대상 쓰기가 중단되었습니다.") }
+                            offset += written
+                        }
                     }
+                    size += Int64(count); onBytes(Int64(count))
                 }
-                size += Int64(count); onBytes(Int64(count))
-            }
-            guard fsync(output) == 0 else { throw posixError() }
-            var after = stat()
-            guard fstat(input, &after) == 0, before.st_size == after.st_size, before.st_mtimespec.tv_sec == after.st_mtimespec.tv_sec,
-                  before.st_mtimespec.tv_nsec == after.st_mtimespec.tv_nsec,
-                  before.st_ctimespec.tv_sec == after.st_ctimespec.tv_sec, before.st_ctimespec.tv_nsec == after.st_ctimespec.tv_nsec,
-                  size == before.st_size else { throw CopyError("복사 중 원본 파일이 변경되었습니다.") }
-            var current = stat()
-            guard lstat(source.path, &current) == 0, current.st_dev == before.st_dev, current.st_ino == before.st_ino else {
-                throw CopyError("복사 중 원본 경로가 교체되었습니다.")
-            }
-            guard try digest(destination, cancellation: cancellation) == Data(hash.finalize()) else { throw CopyError("복사본 SHA-256 내용 검증 실패: " + destination.path) }
-            try metadata(input, to: output, source: source, destination: destination)
+                guard fsync(output) == 0 else { throw posixError() }
+                var after = stat()
+                guard fstat(input, &after) == 0, before.st_size == after.st_size, before.st_mtimespec.tv_sec == after.st_mtimespec.tv_sec,
+                      before.st_mtimespec.tv_nsec == after.st_mtimespec.tv_nsec,
+                      before.st_ctimespec.tv_sec == after.st_ctimespec.tv_sec, before.st_ctimespec.tv_nsec == after.st_ctimespec.tv_nsec,
+                      size == before.st_size else { throw CopyError("복사 중 원본 파일이 변경되었습니다.") }
+                var current = stat()
+                guard lstat(source.path, &current) == 0, current.st_dev == before.st_dev, current.st_ino == before.st_ino else {
+                    throw CopyError("복사 중 원본 경로가 교체되었습니다.")
+                }
+                guard try digest(destination, cancellation: cancellation) == Data(hash.finalize()) else { throw CopyError("복사본 SHA-256 내용 검증 실패: " + destination.path) }
+                try metadata(input, to: output, source: source, destination: destination, cancellation: cancellation,
+                             temporaryStorage: temporaryStorage, onTemporaryCreated: onTemporaryCreated)
+            } catch { transferError = error; throw error }
         }
         onItem()
         onVerified(destination)
@@ -370,25 +390,124 @@ final class FileCopyEngine {
         var hash = SHA256()
         while true {
             try cancellation.check()
-            let data = try handle.read(upToCount: 1024 * 1024) ?? Data()
-            if data.isEmpty { break }; hash.update(data: data)
+            let more = try autoreleasepool { () throws -> Bool in
+                guard let data = try handle.read(upToCount: 1024 * 1024), !data.isEmpty else { return false }
+                hash.update(data: data)
+                return true
+            }
+            if !more { break }
         }
         return Data(hash.finalize())
     }
 
-    private func metadata(_ source: URL, to destination: URL) throws {
-        guard copyfile(source.path, destination.path, nil, copyfile_flags_t(COPYFILE_METADATA | COPYFILE_NOFOLLOW)) == 0 else {
-            let error = posixError()
-            throw CopyError("메타데이터 복사 실패: \(source.path) → \(destination.path): " + error.localizedDescription, underlying: error)
-        }
+    private func metadata(_ source: URL, to destination: URL, cancellation: FileCopyCancellation,
+                          temporaryStorage: Bool, onTemporaryCreated: (URL, Int32?) -> Void) throws {
+        let input = open(source.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard input >= 0 else { throw posixError() }
+        defer { close(input) }
+        let output = open(destination.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard output >= 0 else { throw posixError() }
+        defer { close(output) }
+        try metadata(input, to: output, source: source, destination: destination, cancellation: cancellation,
+                     temporaryStorage: temporaryStorage, onTemporaryCreated: onTemporaryCreated)
     }
 
-    private func metadata(_ input: Int32, to output: Int32, source: URL, destination: URL) throws {
+    private func metadata(_ input: Int32, to output: Int32, source: URL, destination: URL,
+                          cancellation: FileCopyCancellation, temporaryStorage: Bool,
+                          onTemporaryCreated: (URL, Int32?) -> Void) throws {
         // Keep metadata bound to the same no-follow source and exclusively
         // created destination descriptors used for the verified data stream.
+        var filesystem = statfs()
+        guard fstatfs(output, &filesystem) == 0 else { throw posixError() }
+        let capacity = MemoryLayout.size(ofValue: filesystem.f_fstypename)
+        let format = withUnsafePointer(to: &filesystem.f_fstypename) {
+            $0.withMemoryRebound(to: CChar.self, capacity: capacity) { String(cString: $0) }
+        }
+        if format.lowercased() == "exfat" {
+            try packedMetadata(input, to: output, source: source, destination: destination,
+                               cancellation: cancellation, temporaryStorage: temporaryStorage,
+                               onTemporaryCreated: onTemporaryCreated)
+            return
+        }
         guard fcopyfile(input, output, nil, copyfile_flags_t(COPYFILE_METADATA)) == 0 else {
             let error = posixError()
             throw CopyError("파일 기술자 메타데이터 복사 실패: \(source.path) → \(destination.path): " + error.localizedDescription, underlying: error)
+        }
+    }
+
+    private let metadataLimit = 64 * 1024 * 1024
+
+    private func attributeNames(_ descriptor: Int32) throws -> [String] {
+        let count = flistxattr(descriptor, nil, 0, 0)
+        guard count >= 0 else { throw posixError() }
+        guard count <= 256 * 1024 else { throw CopyError("확장 속성 이름 목록이 안전 제한을 넘습니다.") }
+        if count == 0 { return [] }
+        var bytes = [UInt8](repeating: 0, count: count)
+        let actual = bytes.withUnsafeMutableBytes {
+            flistxattr(descriptor, $0.baseAddress?.assumingMemoryBound(to: CChar.self), $0.count, 0)
+        }
+        guard actual >= 0 else { throw posixError() }
+        return try bytes.prefix(actual).split(separator: 0).map {
+            guard let name = String(bytes: $0, encoding: .utf8) else { throw CopyError("확장 속성 이름을 읽지 못했습니다.") }
+            return name
+        }
+    }
+
+    private func attributeDigest(_ descriptor: Int32, name: String) throws -> (Int, Data) {
+        let size = fgetxattr(descriptor, name, nil, 0, 0, 0)
+        guard size >= 0 else { throw posixError() }
+        guard size <= metadataLimit else { throw CopyError("확장 속성/리소스 포크가 안전 메모리 제한(64 MiB)을 넘습니다: " + name) }
+        var bytes = Data(count: size)
+        let actual = bytes.withUnsafeMutableBytes { fgetxattr(descriptor, name, $0.baseAddress, $0.count, 0, 0) }
+        guard actual == size else { throw CopyError("확장 속성이 읽는 동안 변경되었습니다: " + name) }
+        return (size, Data(SHA256.hash(data: bytes)))
+    }
+
+    private func packedMetadata(_ input: Int32, to output: Int32, source: URL, destination: URL,
+                                cancellation: FileCopyCancellation, temporaryStorage: Bool,
+                                onTemporaryCreated: (URL, Int32?) -> Void) throws {
+        // exFAT rejects native ResourceFork setxattr (EINVAL), including through
+        // copyfile/fcopyfile. Use Apple's AppleDouble serializer, exclusively.
+        let names = try attributeNames(input)
+        var expected: [String: Data] = [:], total = 0
+        for name in names {
+            try cancellation.check()
+            let value = try autoreleasepool { try attributeDigest(input, name: name) }
+            total += value.0
+            guard total <= metadataLimit else { throw CopyError("파일 메타데이터 합계가 안전 메모리 제한(64 MiB)을 넘습니다.") }
+            expected[name] = value.1
+        }
+        let flags = copyfile_flags_t(COPYFILE_CHECK | COPYFILE_METADATA | COPYFILE_NOFOLLOW_SRC)
+        let check = copyfile(source.path, nil, nil, flags)
+        guard check >= 0 else { throw posixError() }
+        if !names.isEmpty || (UInt32(check) & UInt32(COPYFILE_ACL)) != 0 {
+            let sidecar = destination.deletingLastPathComponent().appendingPathComponent("._" + destination.lastPathComponent)
+            let packed = open(sidecar.path, O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
+            guard packed >= 0 else { throw posixError() }
+            onTemporaryCreated(sidecar, packed)
+            var packingError: Error?
+            defer {
+                if temporaryStorage && (cancellation.isCancelled || packingError.map { isNoSpace($0) } == true) {
+                    unlinkOwnedOpen(sidecar, descriptor: packed)
+                }
+                onTemporaryCreated(sidecar, packed)
+                close(packed)
+            }
+            do {
+                guard fcopyfile(input, packed, nil, copyfile_flags_t(COPYFILE_METADATA | COPYFILE_PACK)) == 0 else { throw posixError() }
+                guard fsync(packed) == 0 else { throw posixError() }
+                for (name, digest) in expected {
+                    try cancellation.check()
+                    let actual = try autoreleasepool { try attributeDigest(output, name: name).1 }
+                    guard actual == digest else { throw CopyError("복사본 확장 속성/리소스 포크 SHA-256 검증 실패: " + name) }
+                }
+            } catch { packingError = error; throw error }
+        }
+        guard fcopyfile(input, output, nil, copyfile_flags_t(COPYFILE_STAT)) == 0 else { throw posixError() }
+        var kind = stat()
+        guard fstat(output, &kind) == 0 else { throw posixError() }
+        if (kind.st_mode & S_IFMT) == S_IFREG {
+            guard fsync(output) == 0 else { throw posixError() }
         }
     }
 }
