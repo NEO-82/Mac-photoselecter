@@ -1541,6 +1541,8 @@ final class BrowserUITests: XCTestCase {
         grid.toggleTag?() // Input received after exit starts must not enqueue a late write.
         wait(for: [finished], timeout: 5)
         XCTAssertFalse(preview.tagMarker.isHidden)
+        let saved = try JSONSerialization.jsonObject(with: Data(contentsOf: file)) as! [String: Any]
+        XCTAssertEqual(saved["taggedPaths"] as? [String], [TagStore.key(root.appendingPathComponent("1.jpg"))])
         first.close()
         let second = BrowserController(tagStore: TagStore(fileURL: file), initialFolder: root)
         defer { second.close() }
@@ -1549,6 +1551,7 @@ final class BrowserUITests: XCTestCase {
         waitUntil("new browser restores red badge") {
             secondPreview.imageView.image != nil && !secondPreview.tagMarker.isHidden
         }
+        print("TAG_RESTORE filename=\(secondPreview.filename.stringValue) detail=\(secondPreview.detail.stringValue) image=\(secondPreview.imageView.image != nil) hidden=\(secondPreview.tagMarker.isHidden) saved=\(saved)")
     }
     @MainActor
     func testStandardMenusDisablePhotoActionsUntilFolderHasPhotos() throws {
