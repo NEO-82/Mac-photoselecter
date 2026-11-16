@@ -28,6 +28,7 @@ import XCTest
     func testResponderCopyIncludesSelectedFolderPhotoAndDocument() throws {
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.regular)
+        NSApp.finishLaunching()
         let root = try folder(), tags = TagStore(fileURL: try folder().appendingPathComponent("tags.json"))
         let folder = root.appendingPathComponent("Album")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -38,8 +39,11 @@ import XCTest
         let window = try XCTUnwrap(browser.window)
         let grid = try XCTUnwrap(descendants(try XCTUnwrap(window.contentView)).compactMap { $0 as? PhotoCollectionView }.first)
         waitUntil("mixed browser ready") { grid.numberOfItems(inSection: 0) == 3 && !browser.sorting }
+        NSApp.mainMenu = AppMenus.make(for: browser)
         NSApp.activate(ignoringOtherApps: true)
-        window.makeKeyAndOrderFront(nil); window.makeFirstResponder(grid)
+        window.makeKeyAndOrderFront(nil); window.makeKey()
+        waitUntil("browser key window; canBecomeKey=\(window.canBecomeKey), active=\(NSApp.isActive)") { NSApp.keyWindow === window }
+        XCTAssertTrue(window.makeFirstResponder(grid))
         try click(grid, item: 0); try click(grid, item: 1, flags: .command); try click(grid, item: 2, flags: .command)
         XCTAssertEqual(grid.selectionIndexPaths.count, 3)
         let copy = NSMenuItem(title: "copy", action: #selector(BrowserController.copyFiles(_:)), keyEquivalent: "")
@@ -52,6 +56,7 @@ import XCTest
     func testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal() throws {
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.regular)
+        NSApp.finishLaunching()
         let source = try folder(), destination = try folder(), metadata = try folder().appendingPathComponent("tags.json")
         let raw = source.appendingPathComponent("DSC.ARW"), copy = destination.appendingPathComponent("DSC.ARW")
         let bytes = Data("original RAW test bytes".utf8); try bytes.write(to: raw)
@@ -63,15 +68,18 @@ import XCTest
         let browser = BrowserController(tagStore: store, initialFolder: destination)
         browser.showWindow(nil)
         defer {
-            if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
+            if let parent = browser.window, let sheet = parent.attachedSheet { parent.endSheet(sheet); sheet.orderOut(nil) }
             browser.close(); NSPasteboard.general.clearContents()
         }
         let window = try XCTUnwrap(browser.window)
         let grid = try XCTUnwrap(descendants(try XCTUnwrap(window.contentView)).compactMap { $0 as? PhotoCollectionView }.first)
         XCTAssertTrue(FileClipboard.write([raw]))
         let paste = NSMenuItem(title: "paste", action: #selector(BrowserController.pasteFiles(_:)), keyEquivalent: "")
+        NSApp.mainMenu = AppMenus.make(for: browser)
         NSApp.activate(ignoringOtherApps: true)
-        window.makeKeyAndOrderFront(nil); window.makeFirstResponder(grid)
+        window.makeKeyAndOrderFront(nil); window.makeKey()
+        waitUntil("browser key window; canBecomeKey=\(window.canBecomeKey), active=\(NSApp.isActive)") { NSApp.keyWindow === window }
+        XCTAssertTrue(window.makeFirstResponder(grid))
         waitUntil("paste destination and tags ready") { browser.validateMenuItem(paste) }
         waitUntil("existing photo selectable") { grid.numberOfItems(inSection: 0) == 1 && !browser.sorting }
         try click(grid, item: 0)
