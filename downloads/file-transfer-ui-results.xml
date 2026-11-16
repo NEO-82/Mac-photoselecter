@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <testsuites>
-<testsuite name="TestResults" errors="0" tests="2" failures="2" time="33.085122883">
-<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderCopyIncludesSelectedFolderPhotoAndDocument" time="12.416718786">
-<failure message="failed"></failure>
+<testsuite name="TestResults" errors="0" tests="2" failures="2" time="53.974603083000005">
+<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderCopyIncludesSelectedFolderPhotoAndDocument" time="22.601858042">
+<failure message="failure"></failure>
 </testcase>
-<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal" time="20.668404097">
-<failure message="failed"></failure>
+<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal" time="31.372745041">
+<failure message="failure"></failure>
 </testcase>
 </testsuite>
 </testsuites>

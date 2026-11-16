@@ -1,138 +1,139 @@
 ProductName:		macOS
-ProductVersion:		15.7.9
-BuildVersion:		24G830
-x86_64
-Xcode 16.4
-Build version 16F6
+ProductVersion:		27.2
+BuildVersion:		26B123
+arm64
+Xcode 27.1
+Build version 27A9275
 Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
-/dev/disk1s1   325Gi   202Gi   108Gi    66%    2.2M  1.1G    0%   /System/Volumes/Data
-15032385536
+/dev/disk2s5   190Gi   123Gi    43Gi    74%    1.5M  456M    0%   /System/Volumes/Data
+7516192768
+CI display modes: 800x600, 960x540, 1024x576, 1024x768, 1280x720, 1280x960, 1344x756, 1344x1008, 1600x900, 1600x1200, 1920x1080, 640x480
+CI session display 1280x960: 0
+Configured CI visible area: (1280.0, 851.0)
+Independent worker visible area: (1280.0, 851.0)
 Building for debugging...
-[0/11] /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/x86_64-apple-macosx/debug/PhotoSelectPackageTests.derived/runner.swift
-[1/11] Write sources
-[4/11] Write PhotoSelect-entitlement.plist
-[5/11] Write swift-version--79AA4F9932D1E87A.txt
-[7/19] Emitting module PhotoSelect
-[8/19] Compiling PhotoSelect App.swift
-[9/19] Compiling PhotoSelect BatchRename.swift
-[10/19] Compiling PhotoSelect BatchRenameWindow.swift
-[11/19] Compiling PhotoSelect Browser.swift
-[12/19] Compiling PhotoSelect EmbeddedPreview.swift
-[13/19] Compiling PhotoSelect FileCopy.swift
-[14/19] Compiling PhotoSelect FileTransferUI.swift
-[15/25] Compiling PhotoSelect FolderTree.swift
-[16/25] Compiling PhotoSelect ImagePipeline.swift
-[17/25] Compiling PhotoSelect PhotoActions.swift
-[18/25] Compiling PhotoSelect PhotoModel.swift
-[19/25] Compiling PhotoSelect PhotoSorting.swift
-[20/25] Compiling PhotoSelect Viewer.swift
-[20/25] Write Objects.LinkFileList
-[21/25] Linking PhotoSelect
-[22/25] Applying PhotoSelect
-[24/33] Emitting module PhotoSelectTests
-[25/33] Compiling PhotoSelectTests BatchRenameTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-64 |         browser.showWindow(nil)
-65 |         defer {
-66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
-   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-67 |             browser.close(); NSPasteboard.general.clearContents()
-68 |         }
-[26/33] Compiling PhotoSelectTests BrowserUITests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-64 |         browser.showWindow(nil)
-65 |         defer {
-66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
-   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-67 |             browser.close(); NSPasteboard.general.clearContents()
-68 |         }
-[27/33] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-64 |         browser.showWindow(nil)
-65 |         defer {
-66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
-   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-67 |             browser.close(); NSPasteboard.general.clearContents()
-68 |         }
-[28/33] Compiling PhotoSelectTests FileCopyTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-64 |         browser.showWindow(nil)
-65 |         defer {
-66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
-   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-67 |             browser.close(); NSPasteboard.general.clearContents()
-68 |         }
-[29/33] Compiling PhotoSelectTests FileTransferUITests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-64 |         browser.showWindow(nil)
-65 |         defer {
-66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
-   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-67 |             browser.close(); NSPasteboard.general.clearContents()
-68 |         }
-[30/33] Compiling PhotoSelectTests FilesystemRenameTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-64 |         browser.showWindow(nil)
-65 |         defer {
-66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
-   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-67 |             browser.close(); NSPasteboard.general.clearContents()
-68 |         }
-[31/33] Compiling PhotoSelectTests FolderTreeTests.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-64 |         browser.showWindow(nil)
-65 |         defer {
-66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
-   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
-67 |             browser.close(); NSPasteboard.general.clearContents()
-68 |         }
-[32/39] Compiling PhotoSelectTests ImagePipelineTests.swift
-[33/39] Compiling PhotoSelectTests PhotoActionsTests.swift
-[34/39] Compiling PhotoSelectTests PhotoSelectTests.swift
-[35/39] Compiling PhotoSelectTests PhotoSortingTests.swift
-[36/39] Compiling PhotoSelectTests ViewerInteractionTests.swift
-[37/39] Compiling PhotoSelectTests WindowLayoutTests.swift
-[38/41] Emitting module PhotoSelectPackageTests
-[39/41] Compiling PhotoSelectPackageTests runner.swift
-[39/41] Write Objects.LinkFileList
-[40/41] Linking PhotoSelectPackageTests
-Build complete! (86.26s)
+[Pre-planning 1 / 95]
+[Planning deferred tasks]
+[34 / 62]
+[36 / 64] PhotoSelect
+[39 / 137]
+[43 / 137]
+[47 / 137]
+[49 / 137]
+[53 / 137]
+[57 / 137]
+[59 / 137]
+[60 / 137]
+[63 / 137]
+[65 / 137]
+[67 / 137]
+[69 / 137]
+[72 / 137]
+[76 / 137]
+[78 / 137]
+[81 / 137]
+[82 / 137]
+[86 / 137]
+[90 / 137]
+[93 / 137]
+[95 / 137]
+[97 / 137]
+[100 / 137]
+[101 / 137]
+[104 / 137] PhotoSelect-product
+[108 / 137] PhotoSelect
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:911:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+ [0;36m900 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
+ [0;36m901 |[0;0m             }
+ [0;36m902 |[0;0m             DispatchQueue.main.async {
+     [0;36m|[0;0m                                      |- [1;39mnote: [1;39m'self' implicitly strongly captured here[0;0m
+     [0;36m|[0;0m                                      `- [1;39mnote: [1;39madd 'self' as a capture list item to silence[0;0m
+ [0;36m903 |[0;0m                 guard self.generation == token, !self.finishingTagWrites else { self.preparingRename = false; self.updateBadges(); return }
+ [0;36m904 |[0;0m                 switch result {
+     [0;36m:[0;0m
+ [0;36m909 |[0;0m                         self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal, selectedIDs: [])
+ [0;36m910 |[0;0m                     } else {
+ [0;36m911 |[0;0m                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
+     [0;36m|[0;0m                                                                                                                                                          |- [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+     [0;36m|[0;0m                                                                                                                                                          `- [1;39mnote: [1;39mexplicitly assign the capture list item to silence[0;0m
+ [0;36m912 |[0;0m                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
+ [0;36m913 |[0;0m                             self.preparingRename = false
+
+[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
+[114 / 137] PhotoSelect
+[116 / 137] PhotoSelectTests-product
+[118 / 137] PhotoSelect
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:911:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+ [0;36m900 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
+ [0;36m901 |[0;0m             }
+ [0;36m902 |[0;0m             DispatchQueue.main.async {
+     [0;36m|[0;0m                                      |- [1;39mnote: [1;39m'self' implicitly strongly captured here[0;0m
+     [0;36m|[0;0m                                      `- [1;39mnote: [1;39madd 'self' as a capture list item to silence[0;0m
+ [0;36m903 |[0;0m                 guard self.generation == token, !self.finishingTagWrites else { self.preparingRename = false; self.updateBadges(); return }
+ [0;36m904 |[0;0m                 switch result {
+     [0;36m:[0;0m
+ [0;36m909 |[0;0m                         self.presentRename(folder: folder, photos: [], names: [], orderTitle: order.title, lease: lease, volume: volume, recovery: journal, selectedIDs: [])
+ [0;36m910 |[0;0m                     } else {
+ [0;36m911 |[0;0m                         self.renamePreparation = self.sortMetadata.prepare(value.1.filter(RenamePlan.isTargetPhoto), order: order, lease: lease) { [weak self] sorted in
+     [0;36m|[0;0m                                                                                                                                                          |- [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
+     [0;36m|[0;0m                                                                                                                                                          `- [1;39mnote: [1;39mexplicitly assign the capture list item to silence[0;0m
+ [0;36m912 |[0;0m                             guard let self, self.generation == token, !self.finishingTagWrites else { return }
+ [0;36m913 |[0;0m                             self.preparingRename = false
+
+[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
+[121 / 137] PhotoSelectTests-product
+[122 / 137]
+[122 / 137] PhotoSelect-product
+[124 / 137] PhotoSelect-product
+[127 / 138] PhotoSelectTests-product
+[130 / 149]
+[131 / 149]
+[132 / 149]
+[133 / 149]
+[134 / 149]
+[137 / 149] PhotoSelectTests-product
+[138 / 149] PhotoSelectTests-product
+[139 / 149] PhotoSelectTests-product
+[143 / 149] PhotoSelectTests-product
+[145 / 149] PhotoSelectTests-product
+[147 / 149] PhotoSelectTests-product
+Build complete! (50.89 sec)
 [1/2] Testing PhotoSelectTests.FileTransferUITests/testResponderCopyIncludesSelectedFolderPhotoAndDocument
 [2/2] Testing PhotoSelectTests.FileTransferUITests/testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal
-Test Suite 'Selected tests' started at 2026-11-16 11:48:35.628.
-Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-16 11:48:35.630.
-Test Suite 'FileTransferUITests' started at 2026-11-16 11:48:35.630.
+Test Suite 'Selected tests' started at 2026-11-16 12:33:11.262.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-16 12:33:11.267.
+Test Suite 'FileTransferUITests' started at 2026-11-16 12:33:11.267.
 Test Case '-[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:16: error: -[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument] : XCTAssertTrue failed - browser key window; canBecomeKey=true, active=false
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:16: error: -[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument] : XCTAssertTrue failed - copy selection and tags ready
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:47: error: -[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument] : XCTAssertTrue failed
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:48: error: -[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument] : XCTAssertEqual failed: ("[]") is not equal to ("["/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/31EAD13A-B852-48BD-A4DF-35D1CC09DDC2/Album", "/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/31EAD13A-B852-48BD-A4DF-35D1CC09DDC2/DSC.ARW", "/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/31EAD13A-B852-48BD-A4DF-35D1CC09DDC2/notes.txt"]")
-Test Case '-[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument]' failed (12.294 seconds).
-Test Suite 'FileTransferUITests' failed at 2026-11-16 11:48:47.925.
-	 Executed 1 test, with 3 failures (0 unexpected) in 12.294 (12.295) seconds
-Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-16 11:48:47.925.
-	 Executed 1 test, with 3 failures (0 unexpected) in 12.294 (12.295) seconds
-Test Suite 'Selected tests' failed at 2026-11-16 11:48:47.925.
-	 Executed 1 test, with 3 failures (0 unexpected) in 12.294 (12.297) seconds
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:51: error: -[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument] : XCTAssertTrue failed
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:52: error: -[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument] : XCTAssertEqual failed: ("[]") is not equal to ("["/var/folders/x2/ddb4m3ln3jnd6cx47cgm0yn40000gn/T/B187C19A-F127-4DDA-801E-5BE4CC56046E/Album", "/var/folders/x2/ddb4m3ln3jnd6cx47cgm0yn40000gn/T/B187C19A-F127-4DDA-801E-5BE4CC56046E/DSC.ARW", "/var/folders/x2/ddb4m3ln3jnd6cx47cgm0yn40000gn/T/B187C19A-F127-4DDA-801E-5BE4CC56046E/notes.txt"]")
+Test Case '-[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument]' failed (22.383 seconds).
+Test Suite 'FileTransferUITests' failed at 2026-11-16 12:33:33.651.
+	 Executed 1 test, with 4 failures (0 unexpected) in 22.383 (22.383) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-16 12:33:33.651.
+	 Executed 1 test, with 4 failures (0 unexpected) in 22.383 (22.384) seconds
+Test Suite 'Selected tests' failed at 2026-11-16 12:33:33.651.
+	 Executed 1 test, with 4 failures (0 unexpected) in 22.383 (22.389) seconds
 
-Test Suite 'Selected tests' started at 2026-11-16 11:48:48.056.
-Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-16 11:48:48.059.
-Test Suite 'FileTransferUITests' started at 2026-11-16 11:48:48.059.
+Test Suite 'Selected tests' started at 2026-11-16 12:33:34.035.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-16 12:33:34.038.
+Test Suite 'FileTransferUITests' started at 2026-11-16 12:33:34.038.
 Test Case '-[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:16: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertTrue failed - browser key window; canBecomeKey=true, active=false
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:16: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertTrue failed - paste destination and tags ready
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:80: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertTrue failed
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:81: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertFalse failed - Copy excludes destructive file operations
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:88: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertTrue failed
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:89: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertFalse failed - Copy excludes destructive file operations
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:16: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertTrue failed - copy result displayed
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:83: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertEqual failed: threw error "Error Domain=NSCocoaErrorDomain Code=260 "The file “DSC.ARW” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/75DABA32-EAE8-4618-9B47-126FD14CB97E/DSC.ARW, NSURL=file:///var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/75DABA32-EAE8-4618-9B47-126FD14CB97E/DSC.ARW, NSUnderlyingError=0x600001bf5410 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}"
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:85: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertEqual failed: ("Optional(Set(["/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/221D4729-6B35-4FF6-AE0C-29070C67C046/DSC.ARW", "/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/75DABA32-EAE8-4618-9B47-126FD14CB97E/DSC.ARW"]))") is not equal to ("Optional(Set(["/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/221D4729-6B35-4FF6-AE0C-29070C67C046/DSC.ARW"]))")
-Test Case '-[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal]' failed (20.562 seconds).
-Test Suite 'FileTransferUITests' failed at 2026-11-16 11:49:08.622.
-	 Executed 1 test, with 6 failures (1 unexpected) in 20.562 (20.563) seconds
-Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-16 11:49:08.622.
-	 Executed 1 test, with 6 failures (1 unexpected) in 20.562 (20.563) seconds
-Test Suite 'Selected tests' failed at 2026-11-16 11:49:08.622.
-	 Executed 1 test, with 6 failures (1 unexpected) in 20.562 (20.566) seconds
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:91: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertEqual failed: threw error "Error Domain=NSCocoaErrorDomain Code=260 "The file “DSC.ARW” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/var/folders/x2/ddb4m3ln3jnd6cx47cgm0yn40000gn/T/B659D070-C7F7-4F50-B498-180A6D810F2A/DSC.ARW, NSURL=file:///var/folders/x2/ddb4m3ln3jnd6cx47cgm0yn40000gn/T/B659D070-C7F7-4F50-B498-180A6D810F2A/DSC.ARW, NSUnderlyingError=0x76e3c512c0 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}"
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:93: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertEqual failed: ("Optional(Set(["/var/folders/x2/ddb4m3ln3jnd6cx47cgm0yn40000gn/T/B659D070-C7F7-4F50-B498-180A6D810F2A/DSC.ARW", "/var/folders/x2/ddb4m3ln3jnd6cx47cgm0yn40000gn/T/0B18ECEF-DDDE-4F4C-B140-409F6181D8F9/DSC.ARW"]))") is not equal to ("Optional(Set(["/var/folders/x2/ddb4m3ln3jnd6cx47cgm0yn40000gn/T/0B18ECEF-DDDE-4F4C-B140-409F6181D8F9/DSC.ARW"]))")
+Test Case '-[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal]' failed (30.926 seconds).
+Test Suite 'FileTransferUITests' failed at 2026-11-16 12:34:04.965.
+	 Executed 1 test, with 7 failures (1 unexpected) in 30.926 (30.927) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-16 12:34:04.965.
+	 Executed 1 test, with 7 failures (1 unexpected) in 30.926 (30.927) seconds
+Test Suite 'Selected tests' failed at 2026-11-16 12:34:04.965.
+	 Executed 1 test, with 7 failures (1 unexpected) in 30.926 (30.930) seconds
 
-◇ Test run started.
-↳ Testing Library Version: 124.4
-↳ Target Platform: x86_64-apple-macos14.0
-✔ Test run with 0 tests passed after 0.001 seconds.
+Note: Some test targets reported failures:
+  - PhotoSelectTests (XCTest)
