@@ -12,7 +12,16 @@ import XCTest
     private func descendants(_ view: NSView) -> [NSView] { [view] + view.subviews.flatMap(descendants) }
     private func waitUntil(_ label: String, _ predicate: () -> Bool) {
         let deadline = Date().addingTimeInterval(10)
-        while !predicate() && Date() < deadline { RunLoop.current.run(until: Date().addingTimeInterval(0.02)) }
+        while !predicate() && Date() < deadline {
+            // Activation/key-window events require AppKit dispatch, not just the
+            // Foundation run loop used by the existing view-only tests.
+            for _ in 0..<64 {
+                guard let event = NSApp.nextEvent(matching: .any, until: Date(), inMode: .default, dequeue: true) else { break }
+                NSApp.sendEvent(event)
+            }
+            NSApp.updateWindows()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+        }
         XCTAssertTrue(predicate(), label)
     }
     private func click(_ grid: PhotoCollectionView, item: Int, flags: NSEvent.ModifierFlags = []) throws {
@@ -41,6 +50,7 @@ import XCTest
         waitUntil("mixed browser ready") { grid.numberOfItems(inSection: 0) == 3 && !browser.sorting }
         NSApp.mainMenu = AppMenus.make(for: browser)
         NSApp.activate(ignoringOtherApps: true)
+        _ = NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         window.makeKeyAndOrderFront(nil); window.makeKey()
         waitUntil("browser key window; canBecomeKey=\(window.canBecomeKey), active=\(NSApp.isActive)") { NSApp.keyWindow === window }
         XCTAssertTrue(window.makeFirstResponder(grid))
@@ -77,6 +87,7 @@ import XCTest
         let paste = NSMenuItem(title: "paste", action: #selector(BrowserController.pasteFiles(_:)), keyEquivalent: "")
         NSApp.mainMenu = AppMenus.make(for: browser)
         NSApp.activate(ignoringOtherApps: true)
+        _ = NSRunningApplication.current.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
         window.makeKeyAndOrderFront(nil); window.makeKey()
         waitUntil("browser key window; canBecomeKey=\(window.canBecomeKey), active=\(NSApp.isActive)") { NSApp.keyWindow === window }
         XCTAssertTrue(window.makeFirstResponder(grid))
