@@ -14,6 +14,7 @@ struct FileCopyReport {
     var createdTargets: [URL] = []
     var failures: [FileCopyFailure] = []
     var unprocessed: [URL] = []
+    var verifiedPartialItems: [URL] = []
     var cancelled = false
 }
 
@@ -94,6 +95,7 @@ final class FileCopyEngine {
             }
             let target = destination.appendingPathComponent(source.lastPathComponent)
             var stage: URL?
+            var verifiedFinalItems: [URL] = []
             do {
                 guard source.isFileURL, destination.isFileURL else { throw CopyError("로컬 파일 URL만 복사할 수 있습니다.") }
                 try validate(source, destination: destination)
@@ -137,7 +139,7 @@ final class FileCopyEngine {
                             // partially; preserve it and report its path, never delete user data.
                             try self.copyTree(payload, to: actualTarget, cancellation: cancellation, onCreated: {
                                 report.createdTargets.append(actualTarget)
-                            }, onBytes: { _ in })
+                            }, onVerified: { verifiedFinalItems.append($0) }, onBytes: { _ in })
                         }
                         report.copied.append(actualTarget)
                         performed = true
@@ -149,6 +151,7 @@ final class FileCopyEngine {
                 if let coordinationError { throw coordinationError }
                 guard performed else { throw CopyError("복사 조정을 시작하지 못했습니다.") }
             } catch {
+                if !report.copied.contains(target) { report.verifiedPartialItems.append(contentsOf: verifiedFinalItems) }
                 report.failures.append(FileCopyFailure(source: source, destination: target,
                     message: error.localizedDescription, retainedTemporaryURL: stage))
             }
@@ -218,6 +221,7 @@ final class FileCopyEngine {
     private func copyTree(_ source: URL, to destination: URL, cancellation: FileCopyCancellation,
                           onCreated: () -> Void = {},
                           depth: Int = 0, onItem: () -> Void = {},
+                          onVerified: (URL) -> Void = { _ in },
                           onBytes: (Int64) -> Void) throws {
         try cancellation.check()
         guard depth < 128 else { throw CopyError("폴더 깊이가 안전 제한(128)을 넘습니다.") }
@@ -239,8 +243,13 @@ final class FileCopyEngine {
                     throw CopyError("연결된 원본이 없는 AppleDouble 파일은 검토가 필요합니다: " + child.path)
                 }
                 guard keys.insert(Self.nameKey(child.lastPathComponent)).inserted else { throw CopyError("폴더 내부 이름 충돌: " + child.path) }
-                try copyTree(child, to: destination.appendingPathComponent(child.lastPathComponent), cancellation: cancellation,
-                             depth: depth + 1, onItem: onItem, onBytes: onBytes)
+                let target = destination.appendingPathComponent(child.lastPathComponent)
+                do {
+                    try copyTree(child, to: target, cancellation: cancellation,
+                                 depth: depth + 1, onItem: onItem, onVerified: onVerified, onBytes: onBytes)
+                } catch {
+                    throw CopyError("실패한 항목: \(child.path)\n대상: \(target.path)\n" + error.localizedDescription)
+                }
             }
             try metadata(source, to: destination)
             let after = try directoryURLs(source)
@@ -289,6 +298,7 @@ final class FileCopyEngine {
             try metadata(source, to: destination)
         }
         onItem()
+        onVerified(destination)
     }
 
     private func digest(_ url: URL, cancellation: FileCopyCancellation) throws -> Data {

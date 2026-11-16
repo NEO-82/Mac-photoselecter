@@ -65,7 +65,8 @@ final class CopyProgressController: NSWindowController {
             return message
         }
         let pending = report.unprocessed.map { "미처리: " + $0.path }.joined(separator: "\n")
-        text.string = [successes, failures.joined(separator: "\n\n"), pending].joined(separator: "\n")
+        let partial = report.verifiedPartialItems.map { "실패한 폴더 안의 검증된 부분 결과(폴더 전체 완료 아님): " + $0.path }.joined(separator: "\n")
+        text.string = [successes, failures.joined(separator: "\n\n"), partial, pending].joined(separator: "\n")
         let scroll = NSScrollView(frame: text.frame); scroll.hasVerticalScroller = true
         scroll.documentView = text; alert.accessoryView = scroll
         if let parent { alert.beginSheetModal(for: parent) } else { alert.runModal() }

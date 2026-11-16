@@ -172,6 +172,25 @@ final class FileCopyTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: target.appendingPathComponent("DSC.ARW").path))
         XCTAssertEqual(try Data(contentsOf: raw), Data("original bytes".utf8))
     }
+    func testFallbackFolderFailureReportsVerifiedPartialFilesAndFailingChild() throws {
+        let (source, target) = try folders(), album = source.appendingPathComponent("album")
+        try FileManager.default.createDirectory(at: album, withIntermediateDirectories: true)
+        let files = try ["a.txt", "b.txt"].map { try file(album, $0) }
+        var writes = 0
+        let engine = FileCopyEngine(publish: { _, _ in
+            throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP))
+        }, write: { descriptor, buffer, count in
+            writes += 1
+            if writes == 4 { errno = ENOSPC; return -1 }
+            return Darwin.write(descriptor, buffer, count)
+        })
+        let report = engine.run([album], to: target)
+        XCTAssertTrue(report.copied.isEmpty); XCTAssertEqual(report.failures.count, 1)
+        XCTAssertEqual(report.verifiedPartialItems.count, 1)
+        XCTAssertTrue(report.failures[0].message.contains("실패한 항목:"))
+        if let verified = report.verifiedPartialItems.first { XCTAssertEqual(try Data(contentsOf: verified), Data("original bytes".utf8)) }
+        for url in files { XCTAssertEqual(try Data(contentsOf: url), Data("original bytes".utf8)) }
+    }
     func testCancellationWithinStreamingWriteNeverPublishesPartialFile() throws {
         let (source, target) = try folders(), bytes = Data(repeating: 73, count: 3 * 1024 * 1024)
         let raw = try file(source, "DSC.ARW", data: bytes), cancellation = FileCopyCancellation()
