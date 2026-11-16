@@ -85,6 +85,30 @@ final class TagStore {
         }
     }
     // Complete after already queued writes and their main-queue callbacks.
+    // Copies have new paths and must not inherit stale tags from deleted files.
+    // Operate on the serialized store, rather than a possibly stale UI snapshot.
+    func clearTagsForCopiedRoots(_ roots: [URL], completion: @escaping (Result<Set<String>, Error>) -> Void) {
+        queue.async {
+            let result = Result { () throws -> Set<String> in
+                try self.ensureLoaded()
+                let keys = roots.map(Self.key)
+                let updated = self.paths.filter { path in
+                    !keys.contains { path == $0 || path.hasPrefix($0 + "/") }
+                }
+                if updated != self.paths {
+                    let data = try JSONEncoder().encode(Document(version: 1, taggedPaths: updated.sorted()))
+                    try FileManager.default.createDirectory(at: self.fileURL.deletingLastPathComponent(),
+                        withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+                    try self.writeData(data, self.fileURL)
+                    self.paths = updated
+                }
+                return self.paths
+            }
+            DispatchQueue.main.async { completion(result) }
+        }
+    }
+
+    // Complete after already queued writes and their main-queue callbacks.
     // The caller stops accepting new tags before requesting normal app exit.
     func finishPendingWrites(completion: @escaping () -> Void) {
         queue.async { DispatchQueue.main.async(execute: completion) }

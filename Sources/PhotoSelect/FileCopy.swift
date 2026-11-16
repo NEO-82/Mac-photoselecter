@@ -154,10 +154,31 @@ final class FileCopyEngine {
         guard depth < 128 else { throw CopyError("폴더 깊이가 안전 제한(128)을 넘습니다.") }
         let info = try FileManager.default.attributesOfItem(atPath: url.path)
         guard info[.type] as? FileAttributeType == .typeDirectory else { return 1 }
-        let children = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
+        let children = try directoryURLs(url)
         return try children.filter { !$0.lastPathComponent.hasPrefix("._") }.reduce(1) {
             $0 + (try countItems($1, cancellation: cancellation, depth: depth + 1))
         }
+    }
+
+    // Foundation directory enumeration can omit AppleDouble entries on macOS.
+    // Collision decisions must include the actual on-disk names, including orphans.
+    private func directoryURLs(_ folder: URL) throws -> [URL] {
+        guard let directory = opendir(folder.path) else { throw posixError() }
+        defer { closedir(directory) }
+        var urls: [URL] = []
+        while true {
+            errno = 0
+            guard let pointer = readdir(directory) else {
+                if errno != 0 { throw posixError() }
+                break
+            }
+            var entry = pointer.pointee
+            let name = withUnsafePointer(to: &entry.d_name) {
+                $0.withMemoryRebound(to: CChar.self, capacity: Int(MAXNAMLEN) + 1) { String(cString: $0) }
+            }
+            if name != "." && name != ".." { urls.append(folder.appendingPathComponent(name)) }
+        }
+        return urls
     }
 
     private func validate(_ source: URL, destination: URL) throws {
@@ -172,7 +193,7 @@ final class FileCopyEngine {
     }
 
     private func requireUnused(_ target: URL) throws {
-        let names = try FileManager.default.contentsOfDirectory(atPath: target.deletingLastPathComponent().path)
+        let names = try directoryURLs(target.deletingLastPathComponent()).map(\.lastPathComponent)
         let key = Self.nameKey(target.lastPathComponent)
         // Account conservatively for AppleDouble companions on removable filesystems.
         guard !names.contains(where: { Self.nameKey($0) == key || Self.nameKey($0) == Self.nameKey("._" + target.lastPathComponent) }) else {
@@ -193,7 +214,7 @@ final class FileCopyEngine {
         if type == .typeDirectory {
             guard mkdir(destination.path, 0o700) == 0 else { throw posixError() }
             onCreated()
-            let children = try FileManager.default.contentsOfDirectory(at: source, includingPropertiesForKeys: nil)
+            let children = try directoryURLs(source)
             var keys = Set<String>()
             let names = Set(children.map(\.lastPathComponent))
             for child in children {
@@ -208,7 +229,7 @@ final class FileCopyEngine {
                              depth: depth + 1, onItem: onItem, onBytes: onBytes)
             }
             try metadata(source, to: destination)
-            let after = try FileManager.default.contentsOfDirectory(at: source, includingPropertiesForKeys: nil)
+            let after = try directoryURLs(source)
             guard Set(children.map(\.lastPathComponent)) == Set(after.map(\.lastPathComponent)) else { throw CopyError("복사 중 원본 폴더 내용이 변경되었습니다.") }
         } else {
             guard !source.lastPathComponent.hasPrefix("._") else { throw CopyError("AppleDouble 메타데이터 파일은 단독 복사하지 않습니다.") }

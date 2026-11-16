@@ -1379,7 +1379,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             let keys = self.taggedPaths.filter { key in
                 report.createdTargets.contains { root in key == TagStore.key(root) || key.hasPrefix(TagStore.key(root) + "/") }
             }
-            self.tagStore.updatePaths(removing: Set(keys), adding: []) { result in
+            self.tagStore.clearTagsForCopiedRoots(report.createdTargets) { result in
                 var finalReport = report
                 switch result {
                 case .success(let paths): self.taggedPaths = paths
@@ -1393,6 +1393,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 }
                 self.copyCancellation = nil; self.copyProgress = nil; self.updateBadges()
                 if let pending = self.pendingExit {
+                    progress.close()
                     self.pendingExit = nil; self.finishPendingTagWrites(completion: pending); return
                 }
                 self.tree.refresh()

@@ -218,4 +218,25 @@ final class FileCopyTests: XCTestCase {
         }
         wait(for: [loaded], timeout: 5)
     }
+    @MainActor func testStaleDestinationTagsClearedWithoutChangingSourceOrSiblingTags() throws {
+        let (source, target) = try folders()
+        let raw = try file(source, "DSC.ARW")
+        let copiedFolder = target.appendingPathComponent("copied-folder")
+        let stale = copiedFolder.appendingPathComponent("DSC.ARW")
+        let sibling = target.appendingPathComponent("copied-folder-other/keep.JPG")
+        let store = TagStore(fileURL: source.deletingLastPathComponent().appendingPathComponent("tags.json"))
+        let tagged = expectation(description: "prepare tags"); tagged.expectedFulfillmentCount = 3
+        for url in [raw, stale, sibling] { store.toggle(url) { _ in tagged.fulfill() } }
+        wait(for: [tagged], timeout: 5)
+        let cleared = expectation(description: "clear stale destination subtree")
+        store.clearTagsForCopiedRoots([copiedFolder]) { result in
+            XCTAssertEqual(try? result.get(), Set([TagStore.key(raw), TagStore.key(sibling)])); cleared.fulfill()
+        }
+        wait(for: [cleared], timeout: 5)
+        let reloaded = expectation(description: "persisted without original tag loss")
+        TagStore(fileURL: source.deletingLastPathComponent().appendingPathComponent("tags.json")).load { result in
+            XCTAssertEqual(try? result.get(), Set([TagStore.key(raw), TagStore.key(sibling)])); reloaded.fulfill()
+        }
+        wait(for: [reloaded], timeout: 5)
+    }
 }
