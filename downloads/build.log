@@ -7,17 +7,6 @@ Build version 16F6
 Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
 /dev/disk1s1   325Gi   202Gi   108Gi    66%    2.2M  1.1G    0%   /System/Volumes/Data
 15032385536
-Creating disposable filesystem image: APFS
-created: /Users/runner/work/_temp/js-filesystem-probe.tWu2UE/APFS.sparseimage
-/dev/disk2          	GUID_partition_scheme          	
-/dev/disk2s1        	Apple_APFS                     	
-/dev/disk3          	EF57347C-0000-11AA-AA11-0030654	
-/dev/disk3s1        	41504653-0000-11AA-AA11-0030654	/Users/runner/work/_temp/js-filesystem-probe.tWu2UE/mount-APFS
-   File System Personality:   APFS
-   Type (Bundle):             apfs
-["collisionPreserved": true, "collision": "NSPOSIXErrorDomain:17", "api": "renamex-RENAME_EXCL", "volume": "mount-APFS", "move": "success", "identityStable": true, "capabilities": ["persistentFileIDs": true, "formatFlags": 10186463, "validFormatFlags": 134217727, "interfaceFlags": 11497415, "capabilitiesAvailable": true, "exclusiveRename": true, "validInterfaceFlags": 16777215, "hardLinks": true], "bytesPreserved": true]
-["capabilities": ["hardLinks": true, "exclusiveRename": true, "formatFlags": 10186463, "interfaceFlags": 11497415, "validInterfaceFlags": 16777215, "capabilitiesAvailable": true, "persistentFileIDs": true, "validFormatFlags": 134217727], "collision": "NSPOSIXErrorDomain:17", "api": "renameatx-RENAME_EXCL", "identityStable": true, "volume": "mount-APFS", "bytesPreserved": true, "move": "success", "collisionPreserved": true]
-["volume": "mount-APFS", "api": "link-unlink-diagnostic-only", "move": "success", "bytesPreserved": true, "collision": "NSPOSIXErrorDomain:17", "capabilities": ["validFormatFlags": 134217727, "persistentFileIDs": true, "interfaceFlags": 11497415, "validInterfaceFlags": 16777215, "capabilitiesAvailable": true, "exclusiveRename": true, "formatFlags": 10186463, "hardLinks": true], "collisionPreserved": true, "identityStable": true]
 Building for debugging...
 [0/11] /Users/runner/work/Mac-photoselecter/Mac-photoselecter/.build/x86_64-apple-macosx/debug/PhotoSelectPackageTests.derived/runner.swift
 [1/11] Write sources
@@ -25,66 +14,125 @@ Building for debugging...
 [5/11] Write swift-version--79AA4F9932D1E87A.txt
 [7/19] Emitting module PhotoSelect
 [8/19] Compiling PhotoSelect App.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:215:39: error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 213 |     override var highlightState: NSCollectionViewItem.HighlightState { didSet { updateSelectionAppearance() } }
- 214 |     private func updateSelectionAppearance() {
- 215 |         let drop = highlightState == .forDrop
-     |                                       `- error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 216 |         (view as? ProSurfaceView)?.fillColor = drop ? ProTheme.accent.withAlphaComponent(0.18) : (isSelected ? ProTheme.selection : .clear)
- 217 |         view.wantsLayer = true; view.layer?.cornerRadius = 8
 [9/19] Compiling PhotoSelect BatchRename.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:215:39: error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 213 |     override var highlightState: NSCollectionViewItem.HighlightState { didSet { updateSelectionAppearance() } }
- 214 |     private func updateSelectionAppearance() {
- 215 |         let drop = highlightState == .forDrop
-     |                                       `- error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 216 |         (view as? ProSurfaceView)?.fillColor = drop ? ProTheme.accent.withAlphaComponent(0.18) : (isSelected ? ProTheme.selection : .clear)
- 217 |         view.wantsLayer = true; view.layer?.cornerRadius = 8
 [10/19] Compiling PhotoSelect BatchRenameWindow.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:215:39: error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 213 |     override var highlightState: NSCollectionViewItem.HighlightState { didSet { updateSelectionAppearance() } }
- 214 |     private func updateSelectionAppearance() {
- 215 |         let drop = highlightState == .forDrop
-     |                                       `- error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 216 |         (view as? ProSurfaceView)?.fillColor = drop ? ProTheme.accent.withAlphaComponent(0.18) : (isSelected ? ProTheme.selection : .clear)
- 217 |         view.wantsLayer = true; view.layer?.cornerRadius = 8
 [11/19] Compiling PhotoSelect Browser.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:215:39: error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 213 |     override var highlightState: NSCollectionViewItem.HighlightState { didSet { updateSelectionAppearance() } }
- 214 |     private func updateSelectionAppearance() {
- 215 |         let drop = highlightState == .forDrop
-     |                                       `- error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 216 |         (view as? ProSurfaceView)?.fillColor = drop ? ProTheme.accent.withAlphaComponent(0.18) : (isSelected ? ProTheme.selection : .clear)
- 217 |         view.wantsLayer = true; view.layer?.cornerRadius = 8
 [12/19] Compiling PhotoSelect EmbeddedPreview.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:215:39: error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 213 |     override var highlightState: NSCollectionViewItem.HighlightState { didSet { updateSelectionAppearance() } }
- 214 |     private func updateSelectionAppearance() {
- 215 |         let drop = highlightState == .forDrop
-     |                                       `- error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 216 |         (view as? ProSurfaceView)?.fillColor = drop ? ProTheme.accent.withAlphaComponent(0.18) : (isSelected ? ProTheme.selection : .clear)
- 217 |         view.wantsLayer = true; view.layer?.cornerRadius = 8
 [13/19] Compiling PhotoSelect FileCopy.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:215:39: error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 213 |     override var highlightState: NSCollectionViewItem.HighlightState { didSet { updateSelectionAppearance() } }
- 214 |     private func updateSelectionAppearance() {
- 215 |         let drop = highlightState == .forDrop
-     |                                       `- error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 216 |         (view as? ProSurfaceView)?.fillColor = drop ? ProTheme.accent.withAlphaComponent(0.18) : (isSelected ? ProTheme.selection : .clear)
- 217 |         view.wantsLayer = true; view.layer?.cornerRadius = 8
 [14/19] Compiling PhotoSelect FileTransferUI.swift
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:215:39: error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 213 |     override var highlightState: NSCollectionViewItem.HighlightState { didSet { updateSelectionAppearance() } }
- 214 |     private func updateSelectionAppearance() {
- 215 |         let drop = highlightState == .forDrop
-     |                                       `- error: type 'NSCollectionViewItem.HighlightState' has no member 'forDrop'
- 216 |         (view as? ProSurfaceView)?.fillColor = drop ? ProTheme.accent.withAlphaComponent(0.18) : (isSelected ? ProTheme.selection : .clear)
- 217 |         view.wantsLayer = true; view.layer?.cornerRadius = 8
 [15/25] Compiling PhotoSelect FolderTree.swift
 [16/25] Compiling PhotoSelect ImagePipeline.swift
 [17/25] Compiling PhotoSelect PhotoActions.swift
 [18/25] Compiling PhotoSelect PhotoModel.swift
 [19/25] Compiling PhotoSelect PhotoSorting.swift
 [20/25] Compiling PhotoSelect Viewer.swift
-error: fatalError
-"disk2" ejected.
+[20/25] Write Objects.LinkFileList
+[21/25] Linking PhotoSelect
+[22/25] Applying PhotoSelect
+[24/33] Emitting module PhotoSelectTests
+[25/33] Compiling PhotoSelectTests BatchRenameTests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+64 |         browser.showWindow(nil)
+65 |         defer {
+66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
+   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+67 |             browser.close(); NSPasteboard.general.clearContents()
+68 |         }
+[26/33] Compiling PhotoSelectTests BrowserUITests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+64 |         browser.showWindow(nil)
+65 |         defer {
+66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
+   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+67 |             browser.close(); NSPasteboard.general.clearContents()
+68 |         }
+[27/33] Compiling PhotoSelectTests EmbeddedPreviewTests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+64 |         browser.showWindow(nil)
+65 |         defer {
+66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
+   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+67 |             browser.close(); NSPasteboard.general.clearContents()
+68 |         }
+[28/33] Compiling PhotoSelectTests FileCopyTests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+64 |         browser.showWindow(nil)
+65 |         defer {
+66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
+   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+67 |             browser.close(); NSPasteboard.general.clearContents()
+68 |         }
+[29/33] Compiling PhotoSelectTests FileTransferUITests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+64 |         browser.showWindow(nil)
+65 |         defer {
+66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
+   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+67 |             browser.close(); NSPasteboard.general.clearContents()
+68 |         }
+[30/33] Compiling PhotoSelectTests FilesystemRenameTests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+64 |         browser.showWindow(nil)
+65 |         defer {
+66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
+   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+67 |             browser.close(); NSPasteboard.general.clearContents()
+68 |         }
+[31/33] Compiling PhotoSelectTests FolderTreeTests.swift
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:66:66: warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+64 |         browser.showWindow(nil)
+65 |         defer {
+66 |             if let sheet = browser.window?.attachedSheet { NSApp.endSheet(sheet); sheet.orderOut(nil) }
+   |                                                                  `- warning: 'endSheet' was deprecated in macOS 10.10: Use -[NSWindow endSheet:] instead
+67 |             browser.close(); NSPasteboard.general.clearContents()
+68 |         }
+[32/39] Compiling PhotoSelectTests ImagePipelineTests.swift
+[33/39] Compiling PhotoSelectTests PhotoActionsTests.swift
+[34/39] Compiling PhotoSelectTests PhotoSelectTests.swift
+[35/39] Compiling PhotoSelectTests PhotoSortingTests.swift
+[36/39] Compiling PhotoSelectTests ViewerInteractionTests.swift
+[37/39] Compiling PhotoSelectTests WindowLayoutTests.swift
+[38/41] Emitting module PhotoSelectPackageTests
+[39/41] Compiling PhotoSelectPackageTests runner.swift
+[39/41] Write Objects.LinkFileList
+[40/41] Linking PhotoSelectPackageTests
+Build complete! (86.26s)
+[1/2] Testing PhotoSelectTests.FileTransferUITests/testResponderCopyIncludesSelectedFolderPhotoAndDocument
+[2/2] Testing PhotoSelectTests.FileTransferUITests/testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal
+Test Suite 'Selected tests' started at 2026-11-16 11:48:35.628.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-16 11:48:35.630.
+Test Suite 'FileTransferUITests' started at 2026-11-16 11:48:35.630.
+Test Case '-[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:16: error: -[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument] : XCTAssertTrue failed - copy selection and tags ready
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:47: error: -[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument] : XCTAssertTrue failed
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:48: error: -[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument] : XCTAssertEqual failed: ("[]") is not equal to ("["/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/31EAD13A-B852-48BD-A4DF-35D1CC09DDC2/Album", "/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/31EAD13A-B852-48BD-A4DF-35D1CC09DDC2/DSC.ARW", "/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/31EAD13A-B852-48BD-A4DF-35D1CC09DDC2/notes.txt"]")
+Test Case '-[PhotoSelectTests.FileTransferUITests testResponderCopyIncludesSelectedFolderPhotoAndDocument]' failed (12.294 seconds).
+Test Suite 'FileTransferUITests' failed at 2026-11-16 11:48:47.925.
+	 Executed 1 test, with 3 failures (0 unexpected) in 12.294 (12.295) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-16 11:48:47.925.
+	 Executed 1 test, with 3 failures (0 unexpected) in 12.294 (12.295) seconds
+Test Suite 'Selected tests' failed at 2026-11-16 11:48:47.925.
+	 Executed 1 test, with 3 failures (0 unexpected) in 12.294 (12.297) seconds
+
+Test Suite 'Selected tests' started at 2026-11-16 11:48:48.056.
+Test Suite 'PhotoSelectPackageTests.xctest' started at 2026-11-16 11:48:48.059.
+Test Suite 'FileTransferUITests' started at 2026-11-16 11:48:48.059.
+Test Case '-[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:16: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertTrue failed - paste destination and tags ready
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:80: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertTrue failed
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:81: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertFalse failed - Copy excludes destructive file operations
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:16: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertTrue failed - copy result displayed
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:83: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertEqual failed: threw error "Error Domain=NSCocoaErrorDomain Code=260 "The file “DSC.ARW” couldn’t be opened because there is no such file." UserInfo={NSFilePath=/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/75DABA32-EAE8-4618-9B47-126FD14CB97E/DSC.ARW, NSURL=file:///var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/75DABA32-EAE8-4618-9B47-126FD14CB97E/DSC.ARW, NSUnderlyingError=0x600001bf5410 {Error Domain=NSPOSIXErrorDomain Code=2 "No such file or directory"}}"
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FileTransferUITests.swift:85: error: -[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal] : XCTAssertEqual failed: ("Optional(Set(["/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/221D4729-6B35-4FF6-AE0C-29070C67C046/DSC.ARW", "/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/75DABA32-EAE8-4618-9B47-126FD14CB97E/DSC.ARW"]))") is not equal to ("Optional(Set(["/var/folders/20/jp1_0n3n7kndh6rnbqb5344m0000gn/T/221D4729-6B35-4FF6-AE0C-29070C67C046/DSC.ARW"]))")
+Test Case '-[PhotoSelectTests.FileTransferUITests testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal]' failed (20.562 seconds).
+Test Suite 'FileTransferUITests' failed at 2026-11-16 11:49:08.622.
+	 Executed 1 test, with 6 failures (1 unexpected) in 20.562 (20.563) seconds
+Test Suite 'PhotoSelectPackageTests.xctest' failed at 2026-11-16 11:49:08.622.
+	 Executed 1 test, with 6 failures (1 unexpected) in 20.562 (20.563) seconds
+Test Suite 'Selected tests' failed at 2026-11-16 11:49:08.622.
+	 Executed 1 test, with 6 failures (1 unexpected) in 20.562 (20.566) seconds
+
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: x86_64-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.
