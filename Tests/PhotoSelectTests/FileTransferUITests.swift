@@ -44,7 +44,7 @@ import XCTest
         let copy = NSMenuItem(title: "copy", action: #selector(BrowserController.copyFiles(_:)), keyEquivalent: "")
         waitUntil("copy selection and tags ready") { browser.validateMenuItem(copy) }
         XCTAssertTrue(NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: nil))
-        XCTAssertEqual(Set(FileClipboard.read(.general)), Set([folder, photo, document]))
+        XCTAssertEqual(Set(FileClipboard.read(.general).map(TagStore.key)), Set([folder, photo, document].map(TagStore.key)))
         XCTAssertEqual(try Data(contentsOf: photo), Data("source".utf8))
         XCTAssertEqual(try Data(contentsOf: document), Data("source".utf8))
     }
