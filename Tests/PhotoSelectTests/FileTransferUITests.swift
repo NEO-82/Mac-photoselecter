@@ -53,6 +53,7 @@ import XCTest
         let source = try folder(), destination = try folder(), metadata = try folder().appendingPathComponent("tags.json")
         let raw = source.appendingPathComponent("DSC.ARW"), copy = destination.appendingPathComponent("DSC.ARW")
         let bytes = Data("original RAW test bytes".utf8); try bytes.write(to: raw)
+        try Data("existing JPEG test bytes".utf8).write(to: destination.appendingPathComponent("keep.JPG"))
         let store = TagStore(fileURL: metadata), tagged = expectation(description: "tags queued")
         tagged.expectedFulfillmentCount = 2
         for url in [raw, copy] { store.toggle(url) { _ in tagged.fulfill() } }
@@ -70,8 +71,11 @@ import XCTest
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil); window.makeFirstResponder(grid)
         waitUntil("paste destination and tags ready") { browser.validateMenuItem(paste) }
-        XCTAssertTrue(NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: nil))
+        waitUntil("existing photo selectable") { grid.numberOfItems(inSection: 0) == 1 && !browser.sorting }
+        try click(grid, item: 0)
         let trash = NSMenuItem(title: "trash", action: #selector(BrowserController.trashFromMenu), keyEquivalent: "")
+        XCTAssertTrue(browser.validateMenuItem(trash))
+        XCTAssertTrue(NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: nil))
         XCTAssertFalse(browser.validateMenuItem(trash), "Copy excludes destructive file operations")
         waitUntil("copy result displayed") { window.attachedSheet != nil }
         XCTAssertEqual(try Data(contentsOf: raw), bytes); XCTAssertEqual(try Data(contentsOf: copy), bytes)

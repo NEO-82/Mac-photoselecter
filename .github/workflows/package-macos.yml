@@ -29,7 +29,7 @@ jobs:
     # The compatibility branch matches the user's macOS 27.0.1 on Apple Silicon.
     # Keep the existing Intel/macOS 15 regression path on the delivery branch.
     runs-on: ${{ github.ref_name == 'codex/macos-installer-download' && 'macos-15-intel' || 'xcode-27' }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: write
     steps:

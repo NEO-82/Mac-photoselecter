@@ -44,12 +44,17 @@ struct CopyError: LocalizedError {
 final class FileCopyEngine {
     private let queue = DispatchQueue(label: "dev.photoselect.copy", qos: .utility)
     private let publish: (URL, URL) throws -> Void
+    private let readBuffer: (Int32, UnsafeMutableRawPointer, Int) -> Int
+    private let writeBuffer: (Int32, UnsafeRawPointer, Int) -> Int
 
     init(publish: @escaping (URL, URL) throws -> Void = { source, target in
         guard renamex_np(source.path, target.path, UInt32(RENAME_EXCL)) == 0 else {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
-    }) { self.publish = publish }
+    }, read: @escaping (Int32, UnsafeMutableRawPointer, Int) -> Int = { Darwin.read($0, $1, $2) },
+       write: @escaping (Int32, UnsafeRawPointer, Int) -> Int = { Darwin.write($0, $1, $2) }) {
+        self.publish = publish; self.readBuffer = read; self.writeBuffer = write
+    }
 
     static func nameKey(_ name: String) -> String {
         name.precomposedStringWithCanonicalMapping.folding(options: [.caseInsensitive], locale: Locale(identifier: "en_US_POSIX"))
@@ -74,7 +79,13 @@ final class FileCopyEngine {
     func run(_ sources: [URL], to destination: URL, cancellation: FileCopyCancellation = FileCopyCancellation(),
              progress: @escaping (FileCopyProgress) -> Void = { _ in }) -> FileCopyReport {
         var report = FileCopyReport(), seen = Set<String>(), bytes: Int64 = 0
-        let total = sources.reduce(0) { $0 + ((try? countItems($1, cancellation: cancellation)) ?? 1) }
+        let total = sources.reduce(0) { count, source in
+            guard source.isFileURL, destination.isFileURL else { return count + 1 }
+            do {
+                try validate(source, destination: destination)
+                return count + (try countItems(source, cancellation: cancellation))
+            } catch { return count + 1 }
+        }
         var completed = 0
         for (index, source) in sources.enumerated() {
             if cancellation.isCancelled {
@@ -84,6 +95,7 @@ final class FileCopyEngine {
             var stage: URL?
             do {
                 guard source.isFileURL, destination.isFileURL else { throw CopyError("로컬 파일 URL만 복사할 수 있습니다.") }
+                try validate(source, destination: destination)
                 guard seen.insert(Self.nameKey(source.lastPathComponent)).inserted else { throw CopyError("선택 항목의 이름이 충돌합니다. 건너뛰었습니다.") }
                 var coordinationError: NSError?
                 var operationError: Error?
@@ -186,7 +198,8 @@ final class FileCopyEngine {
         guard values.isDirectory == true, values.isSymbolicLink != true else { throw CopyError("대상은 실제 폴더여야 합니다.") }
         let from = source.resolvingSymlinksInPath().standardizedFileURL.path
         let to = destination.resolvingSymlinksInPath().standardizedFileURL.path
-        guard to != from, !to.hasPrefix(from + "/"),
+        let descendantPrefix = from.hasSuffix("/") ? from : from + "/"
+        guard to != from, !to.hasPrefix(descendantPrefix),
               source.deletingLastPathComponent().resolvingSymlinksInPath().standardizedFileURL != destination.resolvingSymlinksInPath().standardizedFileURL else {
             throw CopyError("같은 폴더 또는 원본 자신의 하위 폴더에는 복사하지 않습니다.")
         }
@@ -245,7 +258,7 @@ final class FileCopyEngine {
             var buffer = [UInt8](repeating: 0, count: 1024 * 1024), hash = SHA256(), size: Int64 = 0
             while true {
                 try cancellation.check()
-                let count = read(input, &buffer, buffer.count)
+                let count = buffer.withUnsafeMutableBytes { self.readBuffer(input, $0.baseAddress!, $0.count) }
                 if count < 0 { if errno == EINTR { continue }; throw posixError() }
                 if count == 0 { break }
                 hash.update(data: Data(buffer.prefix(count)))
@@ -253,7 +266,7 @@ final class FileCopyEngine {
                     var offset = 0
                     while offset < count {
                         try cancellation.check()
-                        let written = write(output, raw.baseAddress!.advanced(by: offset), count - offset)
+                        let written = self.writeBuffer(output, raw.baseAddress!.advanced(by: offset), count - offset)
                         if written < 0 { if errno == EINTR { continue }; throw posixError() }
                         guard written > 0 else { throw CopyError("대상 쓰기가 중단되었습니다.") }
                         offset += written

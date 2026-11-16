@@ -20,7 +20,7 @@ final class FileCopyTests: XCTestCase {
         let url = parent.appendingPathComponent(name); try data.write(to: url); return url
     }
     private func unsupportedPublisher() -> FileCopyEngine {
-        FileCopyEngine { _, _ in throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP)) }
+        FileCopyEngine(publish: { _, _ in throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP)) })
     }
     func testSingleRawPreservesSourceAndVerifiesCopyBytesAndDate() throws {
         let (source, target) = try folders()
@@ -126,11 +126,12 @@ final class FileCopyTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: sidecar), bytes)
     }
     func testSameParentAndOwnDescendantAreRejected() throws {
-        let (source, _) = try folders(), raw = try file(source, "DSC.ARW")
+        let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
         let child = source.appendingPathComponent("child")
         try FileManager.default.createDirectory(at: child, withIntermediateDirectories: true)
         XCTAssertEqual(FileCopyEngine().run([raw], to: source).failures.count, 1)
         XCTAssertEqual(FileCopyEngine().run([source], to: child).failures.count, 1)
+        XCTAssertEqual(FileCopyEngine().run([URL(fileURLWithPath: "/")], to: target).failures.count, 1)
         XCTAssertTrue(FileManager.default.fileExists(atPath: raw.path))
     }
     func testSymlinkAndCycleDoNotTraverse() throws {
@@ -154,6 +155,33 @@ final class FileCopyTests: XCTestCase {
         let report = FileCopyEngine().run([raw], to: target, cancellation: cancel)
         XCTAssertTrue(report.cancelled); XCTAssertTrue(report.copied.isEmpty)
         XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: target.path).isEmpty)
+    }
+    func testInjectedDiskFullDuringWriteDoesNotPublishOrChangeSource() throws {
+        let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
+        let engine = FileCopyEngine(write: { _, _, _ in errno = ENOSPC; return -1 })
+        let report = engine.run([raw], to: target)
+        XCTAssertEqual(report.failures.count, 1); XCTAssertTrue(report.copied.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: target.appendingPathComponent("DSC.ARW").path))
+        XCTAssertEqual(try Data(contentsOf: raw), Data("original bytes".utf8))
+    }
+    func testInjectedReadErrorDoesNotPublishOrChangeSource() throws {
+        let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
+        let engine = FileCopyEngine(read: { _, _, _ in errno = EIO; return -1 })
+        let report = engine.run([raw], to: target)
+        XCTAssertEqual(report.failures.count, 1); XCTAssertTrue(report.copied.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: target.appendingPathComponent("DSC.ARW").path))
+        XCTAssertEqual(try Data(contentsOf: raw), Data("original bytes".utf8))
+    }
+    func testCancellationWithinStreamingWriteNeverPublishesPartialFile() throws {
+        let (source, target) = try folders(), bytes = Data(repeating: 73, count: 3 * 1024 * 1024)
+        let raw = try file(source, "DSC.ARW", data: bytes), cancellation = FileCopyCancellation()
+        let engine = FileCopyEngine(write: { descriptor, buffer, count in
+            let written = Darwin.write(descriptor, buffer, count); cancellation.cancel(); return written
+        })
+        let report = engine.run([raw], to: target, cancellation: cancellation)
+        XCTAssertTrue(report.cancelled); XCTAssertEqual(report.failures.count, 1); XCTAssertTrue(report.copied.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: target.appendingPathComponent("DSC.ARW").path))
+        XCTAssertEqual(try Data(contentsOf: raw), bytes)
     }
     func testCancellationAfterFirstItemReportsRemainingSources() throws {
         let (source, target) = try folders()
@@ -187,12 +215,12 @@ final class FileCopyTests: XCTestCase {
     func testRacingExactNameCreationCannotBeOverwrittenAtPublication() throws {
         let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
         let bytes = Data("concurrent writer".utf8)
-        let engine = FileCopyEngine { staged, final in
+        let engine = FileCopyEngine(publish: { staged, final in
             try bytes.write(to: final, options: .withoutOverwriting)
             guard renamex_np(staged.path, final.path, UInt32(RENAME_EXCL)) == 0 else {
                 throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
             }
-        }
+        })
         let report = engine.run([raw], to: target)
         XCTAssertEqual(report.failures.count, 1); XCTAssertTrue(report.copied.isEmpty)
         XCTAssertTrue(report.createdTargets.isEmpty)
@@ -209,10 +237,10 @@ final class FileCopyTests: XCTestCase {
     func testFallbackRacingExistingFileFailsExclusively() throws {
         let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
         let bytes = Data("concurrent writer".utf8)
-        let engine = FileCopyEngine { _, final in
+        let engine = FileCopyEngine(publish: { _, final in
             try bytes.write(to: final, options: .withoutOverwriting)
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP))
-        }
+        })
         let report = engine.run([raw], to: target)
         XCTAssertTrue(report.copied.isEmpty); XCTAssertEqual(report.failures.count, 1)
         XCTAssertTrue(report.createdTargets.isEmpty)
@@ -234,7 +262,7 @@ final class FileCopyTests: XCTestCase {
             print("COPY_COUNT=\(count) ELAPSED_SECONDS=\(ProcessInfo.processInfo.systemUptime - start) synthetic small files, not RAW throughput")
         }
     }
-    @MainActor func testStandardFileURLClipboardRoundTripAndCopyOnlyDragMasks() throws {
+    @MainActor func testStandardFileURLClipboardRoundTrip() throws {
         let (source, _) = try folders(), raw = try file(source, "DSC.ARW"), text = try file(source, "notes.txt")
         let board = NSPasteboard.withUniqueName(); defer { board.releaseGlobally() }
         XCTAssertTrue(FileClipboard.write([raw, text], to: board))
