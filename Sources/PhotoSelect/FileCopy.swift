@@ -203,11 +203,17 @@ final class FileCopyEngine {
     }
 
     private func cleanupTemporary(_ items: [TemporaryItem], root: URL) -> Bool {
-        guard items.first?.url == root, items.first?.stillOwned() == true else { return false }
+        guard let first = items.first, first.url == root else { return false }
+        var rootInfo = stat()
+        guard lstat(root.path, &rootInfo) == 0, rootInfo.st_dev == first.device,
+              (rootInfo.st_mode & S_IFMT) == S_IFDIR else { return false }
         for item in items where item.directory && item.stillOwned() { _ = chmod(item.url.path, 0o700) }
-        for item in items.reversed() where item.stillOwned() {
-            if item.directory { _ = rmdir(item.url.path) }
-            else { _ = unlink(item.url.path) }
+        for item in items.reversed() {
+            if item.directory {
+                // Directory IDs may change on exFAT. rmdir never recursively
+                // deletes entries and preserves any unknown children.
+                _ = rmdir(item.url.path)
+            } else if item.stillOwned() { _ = unlink(item.url.path) }
         }
         var info = stat()
         return lstat(root.path, &info) != 0 && errno == ENOENT
@@ -352,7 +358,7 @@ final class FileCopyEngine {
                 throw CopyError("복사 중 원본 경로가 교체되었습니다.")
             }
             guard try digest(destination, cancellation: cancellation) == Data(hash.finalize()) else { throw CopyError("복사본 SHA-256 내용 검증 실패: " + destination.path) }
-            try metadata(source, to: destination)
+            try metadata(input, to: output, source: source, destination: destination)
         }
         onItem()
         onVerified(destination)
@@ -374,6 +380,15 @@ final class FileCopyEngine {
         guard copyfile(source.path, destination.path, nil, copyfile_flags_t(COPYFILE_METADATA | COPYFILE_NOFOLLOW)) == 0 else {
             let error = posixError()
             throw CopyError("메타데이터 복사 실패: \(source.path) → \(destination.path): " + error.localizedDescription, underlying: error)
+        }
+    }
+
+    private func metadata(_ input: Int32, to output: Int32, source: URL, destination: URL) throws {
+        // Keep metadata bound to the same no-follow source and exclusively
+        // created destination descriptors used for the verified data stream.
+        guard fcopyfile(input, output, nil, copyfile_flags_t(COPYFILE_METADATA)) == 0 else {
+            let error = posixError()
+            throw CopyError("파일 기술자 메타데이터 복사 실패: \(source.path) → \(destination.path): " + error.localizedDescription, underlying: error)
         }
     }
 }

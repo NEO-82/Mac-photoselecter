@@ -57,6 +57,9 @@ for fs in ExFAT APFS HFS+; do
     hdiutil create -size 2g -type SPARSE -layout GPTSPUD -fs "$fs" -volname "J-S-$label" "$image"
     hdiutil attach -nobrowse -mountpoint "$mount_path" "$image"
     diskutil info "$mount_path" | sed -n '/File System Personality/p;/Type (Bundle)/p;/Read-Only Volume/p'
+    if [[ "$fs" == ExFAT ]]; then
+        xcrun swift scripts/probe-copy-metadata.swift "$mount_path"
+    fi
     xcrun swift scripts/probe-rename-filesystems.swift "$mount_path" ".build/filesystem-probe-$label.json"
     PHOTOSELECT_RENAME_TEST_VOLUME="$mount_path" PHOTOSELECT_RENAME_TEST_IMAGE="$image" \
         PHOTOSELECT_RENAME_TEST_REPORT="$PWD/.build/filesystem-integration-$label.json" \
