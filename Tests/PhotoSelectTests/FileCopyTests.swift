@@ -163,6 +163,8 @@ final class FileCopyTests: XCTestCase {
         XCTAssertEqual(report.failures.count, 1); XCTAssertTrue(report.copied.isEmpty)
         XCTAssertFalse(FileManager.default.fileExists(atPath: target.appendingPathComponent("DSC.ARW").path))
         XCTAssertEqual(try Data(contentsOf: raw), Data("original bytes".utf8))
+        XCTAssertNil(report.failures[0].retainedTemporaryURL)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: target.path).isEmpty)
     }
     func testInjectedReadErrorDoesNotPublishOrChangeSource() throws {
         let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
@@ -201,6 +203,8 @@ final class FileCopyTests: XCTestCase {
         XCTAssertTrue(report.cancelled); XCTAssertEqual(report.failures.count, 1); XCTAssertTrue(report.copied.isEmpty)
         XCTAssertFalse(FileManager.default.fileExists(atPath: target.appendingPathComponent("DSC.ARW").path))
         XCTAssertEqual(try Data(contentsOf: raw), bytes)
+        XCTAssertNil(report.failures[0].retainedTemporaryURL)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: target.path).isEmpty)
     }
     func testCancellationAfterFirstItemReportsRemainingSources() throws {
         let (source, target) = try folders()

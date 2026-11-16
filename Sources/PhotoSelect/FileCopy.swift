@@ -35,7 +35,8 @@ final class FileCopyCancellation {
 
 struct CopyError: LocalizedError {
     let message: String
-    init(_ message: String) { self.message = message }
+    let underlying: Error?
+    init(_ message: String, underlying: Error? = nil) { self.message = message; self.underlying = underlying }
     var errorDescription: String? { message }
 }
 
@@ -43,6 +44,22 @@ struct CopyError: LocalizedError {
 /// The browser excludes rename/trash while this worker runs. NSFileCoordinator
 /// additionally serializes cooperating processes; it is not a filesystem lock.
 final class FileCopyEngine {
+    private struct TemporaryItem {
+        let url: URL
+        let device: dev_t
+        let inode: ino_t
+        let directory: Bool
+        static func capture(_ url: URL) -> TemporaryItem? {
+            var info = stat()
+            guard lstat(url.path, &info) == 0 else { return nil }
+            return TemporaryItem(url: url, device: info.st_dev, inode: info.st_ino,
+                                 directory: (info.st_mode & S_IFMT) == S_IFDIR)
+        }
+        func stillOwned() -> Bool {
+            var info = stat()
+            return lstat(url.path, &info) == 0 && info.st_dev == device && info.st_ino == inode
+        }
+    }
     private let queue = DispatchQueue(label: "dev.photoselect.copy", qos: .utility)
     private let publish: (URL, URL) throws -> Void
     private let readBuffer: (Int32, UnsafeMutableRawPointer, Int) -> Int
@@ -95,6 +112,8 @@ final class FileCopyEngine {
             }
             let target = destination.appendingPathComponent(source.lastPathComponent)
             var stage: URL?
+            var temporaryItems: [TemporaryItem] = []
+            let createdBefore = report.createdTargets.count
             var verifiedFinalItems: [URL] = []
             do {
                 guard source.isFileURL, destination.isFileURL else { throw CopyError("로컬 파일 URL만 복사할 수 있습니다.") }
@@ -112,10 +131,13 @@ final class FileCopyEngine {
                         let scratch = writeURL.appendingPathComponent(".photoselect-copy-" + UUID().uuidString, isDirectory: true)
                         guard mkdir(scratch.path, 0o700) == 0 else { throw self.posixError() }
                         stage = scratch
+                        if let item = TemporaryItem.capture(scratch) { temporaryItems.append(item) }
                         let payload = scratch.appendingPathComponent(source.lastPathComponent)
                         var lastUpdate = ProcessInfo.processInfo.systemUptime
                         try self.copyTree(readURL, to: payload, cancellation: cancellation, onItem: {
                             completed += 1
+                        }, onTemporaryCreated: { url in
+                            if let item = TemporaryItem.capture(url) { temporaryItems.append(item) }
                         }) { count in
                             bytes += count
                             let now = ProcessInfo.processInfo.systemUptime
@@ -151,6 +173,12 @@ final class FileCopyEngine {
                 if let coordinationError { throw coordinationError }
                 guard performed else { throw CopyError("복사 조정을 시작하지 못했습니다.") }
             } catch {
+                if let scratch = stage, report.createdTargets.count == createdBefore,
+                   cancellation.isCancelled || isNoSpace(error) {
+                    // Unlink only entries recorded at exclusive creation, never
+                    // recursively remove an error-stage tree containing unknown files.
+                    if cleanupTemporary(temporaryItems, root: scratch) { stage = nil }
+                }
                 if !report.copied.contains(target) { report.verifiedPartialItems.append(contentsOf: verifiedFinalItems) }
                 report.failures.append(FileCopyFailure(source: source, destination: target,
                     message: error.localizedDescription, retainedTemporaryURL: stage))
@@ -163,6 +191,23 @@ final class FileCopyEngine {
 
     private func posixError(_ code: Int32 = errno) -> Error {
         NSError(domain: NSPOSIXErrorDomain, code: Int(code), userInfo: nil)
+    }
+
+    private func isNoSpace(_ error: Error) -> Bool {
+        if let copy = error as? CopyError, let underlying = copy.underlying { return isNoSpace(underlying) }
+        let problem = error as NSError
+        return problem.domain == NSPOSIXErrorDomain && problem.code == Int(ENOSPC)
+    }
+
+    private func cleanupTemporary(_ items: [TemporaryItem], root: URL) -> Bool {
+        guard items.first?.url == root, items.first?.stillOwned() == true else { return false }
+        for item in items where item.directory && item.stillOwned() { _ = chmod(item.url.path, 0o700) }
+        for item in items.reversed() where item.stillOwned() {
+            if item.directory { _ = rmdir(item.url.path) }
+            else { _ = unlink(item.url.path) }
+        }
+        var info = stat()
+        return lstat(root.path, &info) != 0 && errno == ENOENT
     }
 
     private func countItems(_ url: URL, cancellation: FileCopyCancellation, depth: Int = 0) throws -> Int {
@@ -222,6 +267,7 @@ final class FileCopyEngine {
                           onCreated: () -> Void = {},
                           depth: Int = 0, onItem: () -> Void = {},
                           onVerified: (URL) -> Void = { _ in },
+                          onTemporaryCreated: (URL) -> Void = { _ in },
                           onBytes: (Int64) -> Void) throws {
         try cancellation.check()
         guard depth < 128 else { throw CopyError("폴더 깊이가 안전 제한(128)을 넘습니다.") }
@@ -232,6 +278,7 @@ final class FileCopyEngine {
         if type == .typeDirectory {
             guard mkdir(destination.path, 0o700) == 0 else { throw posixError() }
             onCreated()
+            onTemporaryCreated(destination)
             let children = try directoryURLs(source)
             var keys = Set<String>()
             let names = Set(children.map(\.lastPathComponent))
@@ -246,9 +293,10 @@ final class FileCopyEngine {
                 let target = destination.appendingPathComponent(child.lastPathComponent)
                 do {
                     try copyTree(child, to: target, cancellation: cancellation,
-                                 depth: depth + 1, onItem: onItem, onVerified: onVerified, onBytes: onBytes)
+                                 depth: depth + 1, onItem: onItem, onVerified: onVerified,
+                                 onTemporaryCreated: onTemporaryCreated, onBytes: onBytes)
                 } catch {
-                    throw CopyError("실패한 항목: \(child.path)\n대상: \(target.path)\n" + error.localizedDescription)
+                    throw CopyError("실패한 항목: \(child.path)\n대상: \(target.path)\n" + error.localizedDescription, underlying: error)
                 }
             }
             try metadata(source, to: destination)
@@ -264,6 +312,7 @@ final class FileCopyEngine {
             let output = open(destination.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
             guard output >= 0 else { throw posixError() }
             onCreated()
+            onTemporaryCreated(destination)
             defer { close(output) }
             var buffer = [UInt8](repeating: 0, count: 1024 * 1024), hash = SHA256(), size: Int64 = 0
             while true {
