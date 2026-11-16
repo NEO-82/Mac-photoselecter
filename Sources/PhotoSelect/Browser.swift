@@ -7,6 +7,8 @@ final class PhotoCollectionView: NSCollectionView {
     var toggleTag: (() -> Void)?
     var clearSelection: (() -> Void)?
     var photoPaths: Set<IndexPath> = []
+    var itemPaths: Set<IndexPath> = []
+    var dragURLs: ((Set<IndexPath>) -> [URL])?
     private(set) var interactionPath: IndexPath?
     var clickSelection: ((IndexPath, NSEvent.ModifierFlags) -> Set<IndexPath>)?
     var marqueeChanged: ((Set<IndexPath>, Bool) -> Void)?
@@ -16,6 +18,27 @@ final class PhotoCollectionView: NSCollectionView {
     private(set) var marqueeCosts: [[String: Double]] = []
     private(set) var applyingSelection = false
     private var knownSelectionPaths: Set<IndexPath> = []
+    private var dragOrigin: NSPoint?
+    private var collapseOnMouseUp: (() -> Void)?
+    override func mouseUp(with event: NSEvent) {
+        let collapse = collapseOnMouseUp
+        collapseOnMouseUp = nil; dragOrigin = nil
+        collapse?()
+    }
+    override func mouseDragged(with event: NSEvent) {
+        guard let origin = dragOrigin else { return }
+        let point = convert(event.locationInWindow, from: nil)
+        guard hypot(point.x - origin.x, point.y - origin.y) >= 4,
+              let urls = dragURLs?(knownSelectionPaths), !urls.isEmpty else { return }
+        dragOrigin = nil; collapseOnMouseUp = nil
+        let image = NSImage(systemSymbolName: "doc.on.doc", accessibilityDescription: "복사")
+        let items = urls.enumerated().map { index, url -> NSDraggingItem in
+            let item = NSDraggingItem(pasteboardWriter: url as NSURL)
+            item.setDraggingFrame(NSRect(x: origin.x + CGFloat(index % 8) * 3, y: origin.y, width: 40, height: 40), contents: image)
+            return item
+        }
+        beginDraggingSession(with: items, event: event, source: CopyDragSource.shared)
+    }
     func noteSelection(_ paths: Set<IndexPath>) { knownSelectionPaths = paths }
     func captureNativeSelection() { knownSelectionPaths = selectionIndexPaths }
     func applySelection(_ paths: Set<IndexPath>) {
@@ -50,11 +73,23 @@ final class PhotoCollectionView: NSCollectionView {
     override func mouseDown(with event: NSEvent) {
         let origin = convert(event.locationInWindow, from: nil)
         window?.makeFirstResponder(self)
+        dragOrigin = nil; collapseOnMouseUp = nil
         interactionPath = indexPathForItem(at: origin)
-        if event.clickCount == 1, let path = interactionPath, photoPaths.contains(path), let clickSelection {
-            let paths = clickSelection(path, event.modifierFlags)
-            applySelection(paths)
-            marqueeChanged?(paths, true); return
+        if event.clickCount == 1, let path = interactionPath, itemPaths.contains(path), let clickSelection {
+            dragOrigin = origin
+            collapseOnMouseUp = nil
+            let modifiers = event.modifierFlags
+            if knownSelectionPaths.contains(path), modifiers.intersection([.command, .shift]).isEmpty {
+                collapseOnMouseUp = { [weak self] in
+                    guard let self else { return }
+                    let paths = clickSelection(path, modifiers)
+                    self.applySelection(paths); self.marqueeChanged?(paths, true)
+                }
+            } else {
+                let paths = clickSelection(path, modifiers)
+                applySelection(paths); marqueeChanged?(paths, true)
+            }
+            return
         }
         guard indexPathForItem(at: origin) == nil, event.clickCount == 1, let window else {
             super.mouseDown(with: event); return
@@ -296,6 +331,11 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private var renameWindow: BatchRenameWindow?
     private var preparingRename = false
     private var renameBusy = false
+    private let copyEngine = FileCopyEngine()
+    private var copyCancellation: FileCopyCancellation?
+    private var copyProgress: CopyProgressController?
+    private var copyActive: Bool { copyCancellation != nil }
+
     private var renamePreparation: Operation?
     private var pendingExit: (() -> Void)?
     private var folderLoading = false
@@ -316,11 +356,13 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private let trashService: PhotoTrash
     private var taggedPaths: Set<String> = []
     private var tagStorageError: String?
+    private var tagsLoaded = false
     private var finishingTagWrites = false
     private var list = PhotoList()
     private var entries: [BrowserEntry] = []
     private var selectedURL: URL?
     private(set) var selectedPhotoIDs: Set<String> = []
+    private var selectedOtherIDs: Set<String> = []
     private var selectionAnchorID: String?
     private var selectionPaths: Set<IndexPath> = []
     private var photoIndexByID: [String: IndexPath] = [:]
@@ -441,10 +483,21 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             let anchor = self.selectionAnchorID.flatMap { self.photoIndexByID[$0] } ?? clicked
             if self.selectionAnchorID == nil { self.selectionAnchorID = self.entries[clicked.item].selectionID }
             let range = Set((min(anchor.item, clicked.item)...max(anchor.item, clicked.item)).compactMap { index -> IndexPath? in
-                self.entries[index].isPhoto ? IndexPath(item: index, section: 0) : nil
+                IndexPath(item: index, section: 0)
             })
             return modifiers.contains(.command) ? self.selectionPaths.union(range) : range
         }
+        grid.dragURLs = { [weak self] paths in
+            guard let self, !self.fileManagementActive, !self.copyActive, !self.isTrashing else { return [] }
+            return paths.sorted().compactMap { self.entries.indices.contains($0.item) ? self.entries[$0.item].url : nil }
+        }
+        grid.registerForDraggedTypes([.fileURL])
+        tree.onDrop = { [weak self] urls, target in self?.beginCopy(urls, to: target) ?? false }
+        tree.canDrop = { [weak self] target in
+            guard let self else { return false }
+            return self.canBeginCopy && target.isDirectory
+        }
+        tree.dropHint = { [weak self] url in self?.setStatus("복사 대상: " + url.path) }
         grid.toggleTag = { [weak self] in self?.toggleCurrentTag() }
         let photoScroll = NSScrollView(); photoScroll.hasVerticalScroller = true; photoScroll.documentView = grid
         photoScroll.backgroundColor = ProTheme.canvas
@@ -514,6 +567,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             guard let self else { return }
             switch result {
             case .success(let paths):
+                self.tagsLoaded = true
                 self.taggedPaths = paths
                 if self.taggedOnlyButton.state == .on { self.applyTagFilter() }
                 else { self.updateBadges() }
@@ -746,12 +800,14 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             return true
         case #selector(toggleHiddenFiles(_:)):
             menuItem.state = tree.showHidden ? .on : .off; return true
+        case #selector(copyFiles(_:)): return canBeginCopy && !copySelection.isEmpty && NSApp.keyWindow === window
+        case #selector(pasteFiles(_:)): return canBeginCopy && currentFolder != nil && !FileClipboard.read(.general).isEmpty && NSApp.keyWindow === window
         case #selector(openFolder): return true
         case #selector(parentFolder): return up.isEnabled
         case #selector(refreshFolder): return currentFolder != nil
         case #selector(previousPhoto): return (list.selectedIndex ?? 0) > 0
         case #selector(nextPhoto): return list.selectedIndex.map { $0 + 1 < list.photos.count } ?? false
-        case #selector(trashFromMenu): return (NSApp.keyWindow === viewer?.window ? list.selectedPhoto != nil : !selectedPhotoIDs.isEmpty) && !isTrashing
+        case #selector(trashFromMenu): return !copyActive && (NSApp.keyWindow === viewer?.window ? list.selectedPhoto != nil : !selectedPhotoIDs.isEmpty) && !isTrashing
         case #selector(openSelectedPhoto): return selectedURL != nil && (list.selectedPhoto != nil || entries.contains { $0.url == selectedURL && $0.isDirectory })
         case #selector(toggleTagFromMenu): return list.selectedPhoto != nil
         default: return false
@@ -759,7 +815,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     func finishPendingTagWrites(completion: @escaping () -> Void) {
         finishingTagWrites = true
-        if renameBusy || bulkTrashActive { pendingExit = completion; updateBadges(); return }
+        if renameBusy || bulkTrashActive || copyActive { copyCancellation?.cancel(); pendingExit = completion; updateBadges(); return }
         renamePreparation?.cancel()
         imageGeneration = UUID(); pipeline.clear(); thumbnails.clear()
         sortRequest?.cancel(); sortGeneration = UUID()
@@ -767,7 +823,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         tagStore.finishPendingWrites(completion: completion)
     }
     private func loadFolder(_ url: URL, lease: FolderLease, preserving: URL? = nil, preserveImages: Bool = false) {
-        if currentFolder.map(TagStore.key) != TagStore.key(url) { selectedPhotoIDs = []; selectionAnchorID = nil }
+        if currentFolder.map(TagStore.key) != TagStore.key(url) { selectedPhotoIDs = []; selectedOtherIDs = []; selectionAnchorID = nil }
         let requestedFile = finderSelection
         finderSelection = nil
         let preserving = requestedFile ?? preserving
@@ -812,9 +868,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             }
         }
     }
-    func windowShouldClose(_ sender: NSWindow) -> Bool { !fileManagementActive && !isTrashing }
+    func windowShouldClose(_ sender: NSWindow) -> Bool { !fileManagementActive && !isTrashing && !copyActive }
     @objc func openBatchRename() {
-        guard !fileManagementActive, !sorting, !isTrashing, !finishingTagWrites, let folder = currentFolder, let lease else { return }
+        guard !fileManagementActive, !copyActive, !sorting, !isTrashing, !finishingTagWrites, let folder = currentFolder, let lease else { return }
         preparingRename = true; updateBadges(); let token = generation
         let order = appliedSortOrder, volume = BatchRenameEngine.volume(folder).0
         let selectedIDs = selectedPhotoIDs
@@ -923,14 +979,17 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             ? allEntries.filter { $0.isPhoto && taggedPaths.contains(TagStore.key($0.url)) }
             : allEntries
         photoIndexByID = [:]; grid.photoPaths = []
+        grid.itemPaths = Set(entries.indices.map { IndexPath(item: $0, section: 0) })
         photoIDByItem = entries.map { $0.isPhoto ? $0.selectionID : nil }
-        for (index, entry) in entries.enumerated() where entry.isPhoto {
+        for (index, entry) in entries.enumerated() {
             let path = IndexPath(item: index, section: 0)
-            photoIndexByID[entry.selectionID] = path; grid.photoPaths.insert(path)
+            photoIndexByID[entry.selectionID] = path
+            if entry.isPhoto { grid.photoPaths.insert(path) }
         }
+        selectedOtherIDs.formIntersection(Set(photoIndexByID.keys))
         selectedPhotoIDs.formIntersection(Set(photoIndexByID.keys))
         if let anchor = selectionAnchorID, photoIndexByID[anchor] == nil { selectionAnchorID = nil }
-        selectionPaths = Set(selectedPhotoIDs.compactMap { photoIndexByID[$0] })
+        selectionPaths = Set(selectedPhotoIDs.union(selectedOtherIDs).compactMap { photoIndexByID[$0] })
         list.replace(with: entries.filter(\.isPhoto).map { Photo(url: $0.url) })
         if list.photos.isEmpty { viewer?.close() }
         if let index = list.photos.firstIndex(where: { $0.url == previousURL }) {
@@ -992,7 +1051,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         guard !fileManagementActive else { return }
         grid.noteSelection(paths)
         let previous = selectionPaths
-        selectionPaths = paths.intersection(grid.photoPaths)
+        selectionPaths = paths.intersection(grid.itemPaths)
+        selectedOtherIDs = Set(selectionPaths.compactMap {
+            entries.indices.contains($0.item) && !entries[$0.item].isPhoto ? entries[$0.item].selectionID : nil
+        })
         for path in previous.subtracting(selectionPaths) where photoIDByItem.indices.contains(path.item) {
             if let id = photoIDByItem[path.item] { selectedPhotoIDs.remove(id) }
         }
@@ -1000,7 +1062,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             if let id = photoIDByItem[path.item] { selectedPhotoIDs.insert(id) }
         }
         if updatePreview { updateBadges() }
-        else { trashButton.isEnabled = !selectedPhotoIDs.isEmpty && !isTrashing && !fileManagementActive }
+        else { trashButton.isEnabled = !selectedPhotoIDs.isEmpty && !isTrashing && !fileManagementActive && !copyActive }
         updateSelectionStatus()
         guard updatePreview, !grid.isMarqueeTracking else { return }
         let current = entries.firstIndex { $0.url == selectedURL }.map { IndexPath(item: $0, section: 0) }
@@ -1013,7 +1075,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         updateSelectionStatus()
     }
     private func updateSelectionStatus() {
-        if !selectedPhotoIDs.isEmpty { setStatus("\(selectedPhotoIDs.count)장 선택") }
+        if !selectionPaths.isEmpty { setStatus("\(selectionPaths.count)개 선택") }
         else { setStatus(taggedOnlyButton.state == .on ? "태그된 사진만 보기" : "모든 항목") }
     }
     func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt path: IndexPath) -> NSCollectionViewItem {
@@ -1182,8 +1244,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     private func updateBadges() {
         showButton.isEnabled = list.selectedPhoto != nil && !fileManagementActive
         tagButton.isEnabled = list.selectedPhoto != nil && !finishingTagWrites && !fileManagementActive
-        trashButton.isEnabled = !selectedPhotoIDs.isEmpty && !isTrashing && !fileManagementActive
-        renameButton.isEnabled = currentFolder != nil && !fileManagementActive && !sorting && !folderLoading && !finishingTagWrites && !isTrashing
+        trashButton.isEnabled = !selectedPhotoIDs.isEmpty && !isTrashing && !fileManagementActive && !copyActive
+        renameButton.isEnabled = currentFolder != nil && !fileManagementActive && !sorting && !folderLoading && !finishingTagWrites && !isTrashing && !copyActive
         for button in sortButtons { button.isEnabled = !fileManagementActive && !folderLoading && !finishingTagWrites }
         taggedOnlyButton.isEnabled = !fileManagementActive
         let tagged = list.selectedPhoto.map { taggedPaths.contains(TagStore.key($0.url)) } ?? false
@@ -1211,6 +1273,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         }
     }
     private func trashBrowserSelection() {
+        guard !copyActive else { return }
         guard !isTrashing, !fileManagementActive, !finishingTagWrites, let lease else { return }
         let targets = entries.filter { $0.isPhoto && selectedPhotoIDs.contains($0.selectionID) }
         guard !targets.isEmpty else { return }
@@ -1268,7 +1331,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         }
     }
     private func trashCurrentPhoto() {
-        guard !isTrashing, !fileManagementActive, let photo = list.selectedPhoto, let lease else { return }
+        guard !isTrashing, !fileManagementActive, !copyActive, let photo = list.selectedPhoto, let lease else { return }
         isTrashing = true; updateBadges(); let token = generation
         actionMessage = "휴지통으로 옮기는 중…"; updateHUD()
         trashService.trash(photo, lease: lease) { [weak self] result in
@@ -1287,6 +1350,92 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                 self.setStatus(completion)
             }
         }
+    }
+    private var canBeginCopy: Bool {
+        !copyActive && !fileManagementActive && !isTrashing && !finishingTagWrites && !folderLoading && tagsLoaded && tagStorageError == nil
+    }
+    private var copySelection: [URL] {
+        grid.selectionIndexPaths.sorted().compactMap { entries.indices.contains($0.item) ? entries[$0.item].url : nil }
+    }
+    @objc func copyFiles(_ sender: Any?) {
+        guard canBeginCopy, NSApp.keyWindow === window else { return }
+        if FileClipboard.write(copySelection) { setStatus("선택 항목을 복사했습니다. Finder 또는 대상 폴더에서 ⌘V") }
+    }
+    @objc func pasteFiles(_ sender: Any?) {
+        guard NSApp.keyWindow === window, let folder = currentFolder else { return }
+        _ = beginCopy(FileClipboard.read(.general), to: folder)
+    }
+    @discardableResult private func beginCopy(_ urls: [URL], to destination: URL) -> Bool {
+        guard canBeginCopy, !urls.isEmpty else { return false }
+        let cancellation = FileCopyCancellation()
+        copyCancellation = cancellation
+        let progress = CopyProgressController(destination: destination, cancellation: cancellation)
+        copyProgress = progress; progress.showWindow(nil); updateBadges()
+        copyEngine.start(urls, to: destination, cancellation: cancellation, progress: { [weak progress] value in
+            progress?.update(value)
+        }) { [weak self] report in
+            guard let self else { return }
+            // Clear stale path tags only for destinations created by this operation.
+            let keys = self.taggedPaths.filter { key in
+                report.createdTargets.contains { root in key == TagStore.key(root) || key.hasPrefix(TagStore.key(root) + "/") }
+            }
+            self.tagStore.updatePaths(removing: Set(keys), adding: []) { result in
+                var finalReport = report
+                switch result {
+                case .success(let paths): self.taggedPaths = paths
+                case .failure(let error):
+                    self.taggedPaths.subtract(keys)
+                    self.tagStorageError = error.localizedDescription
+                    self.setStatus("복사본 태그 정리 실패: " + error.localizedDescription, error: true)
+                    finalReport.failures.append(FileCopyFailure(source: destination, destination: destination,
+                        message: "파일 복사는 완료됐으나 복사본의 과거 경로 태그를 저장소에서 제거하지 못했습니다. 태그 저장 권한을 복구한 뒤 다시 확인하세요: " + error.localizedDescription,
+                        retainedTemporaryURL: nil))
+                }
+                self.copyCancellation = nil; self.copyProgress = nil; self.updateBadges()
+                if let pending = self.pendingExit {
+                    self.pendingExit = nil; self.finishPendingTagWrites(completion: pending); return
+                }
+                self.tree.refresh()
+                if let folder = self.currentFolder, TagStore.key(folder) == TagStore.key(destination), let lease = self.lease {
+                    // Read the new list without suspending or emptying decoded caches.
+                    let token = self.generation, showHidden = self.tree.showHidden
+                    DispatchQueue.global(qos: .utility).async {
+                        let result = Result { try withExtendedLifetime(lease) { try BrowserEntry.read(folder, showHidden: showHidden) } }
+                        DispatchQueue.main.async {
+                            guard self.generation == token else { return }
+                            if case .success(let entries) = result { self.allEntries = entries; self.applyCurrentSort() }
+                            else if case .failure(let error) = result { self.setStatus(error.localizedDescription, error: true) }
+                        }
+                    }
+                }
+                progress.finish(finalReport, parent: self.window)
+            }
+        }
+        return true
+    }
+    private func gridDropTarget(_ dragging: NSDraggingInfo) -> (IndexPath, URL)? {
+        guard canBeginCopy, !FileClipboard.read(dragging.draggingPasteboard).isEmpty else { return nil }
+        let point = grid.convert(dragging.draggingLocation, from: nil)
+        if let path = grid.indexPathForItem(at: point) {
+            guard entries.indices.contains(path.item), entries[path.item].isDirectory else { return nil }
+            return (path, entries[path.item].url)
+        }
+        guard let currentFolder else { return nil }
+        return (IndexPath(item: entries.count, section: 0), currentFolder)
+    }
+    func collectionView(_ collectionView: NSCollectionView, validateDrop draggingInfo: NSDraggingInfo,
+                        proposedIndexPath proposedDropIndexPath: AutoreleasingUnsafeMutablePointer<NSIndexPath>,
+                        dropOperation proposedDropOperation: UnsafeMutablePointer<NSCollectionView.DropOperation>) -> NSDragOperation {
+        guard let (path, target) = gridDropTarget(draggingInfo) else { return [] }
+        proposedDropIndexPath.pointee = path as NSIndexPath
+        proposedDropOperation.pointee = path.item < entries.count ? .on : .before
+        setStatus("복사 대상: " + target.path)
+        return .copy
+    }
+    func collectionView(_ collectionView: NSCollectionView, acceptDrop draggingInfo: NSDraggingInfo,
+                        indexPath: IndexPath, dropOperation: NSCollectionView.DropOperation) -> Bool {
+        guard let (_, target) = gridDropTarget(draggingInfo) else { return false }
+        return beginCopy(FileClipboard.read(draggingInfo.draggingPasteboard), to: target)
     }
     private func reportActionError(_ message: String, target: URL) {
         setStatus(message, error: true)

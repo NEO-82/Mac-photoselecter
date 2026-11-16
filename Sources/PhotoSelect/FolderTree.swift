@@ -47,6 +47,9 @@ private final class FolderRowView: NSTableRowView {
 final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate {
     let view = FileOutlineView()
     var onSelect: ((FolderNode) -> Void)?
+    var onDrop: (([URL], URL) -> Bool)?
+    var canDrop: ((FolderNode) -> Bool)?
+    var dropHint: ((URL) -> Void)?
     private(set) var roots: [FolderNode]
     var showHidden = false { didSet { if oldValue != showHidden { refresh(all: true) } } }
     private let directoryReader: (URL) throws -> [URL]
@@ -82,6 +85,7 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
         view.autoresizingMask = [.width]
         view.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
         view.dataSource = self; view.delegate = self
+        view.registerForDraggedTypes([.fileURL])
         view.allowsEmptySelection = false
         view.reloadData()
     }
@@ -283,6 +287,19 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
     }
     func outlineView(_ outlineView: NSOutlineView, rowViewForItem item: Any) -> NSTableRowView? {
         FolderRowView()
+    }
+    func outlineView(_ outlineView: NSOutlineView, validateDrop info: NSDraggingInfo,
+                     proposedItem item: Any?, proposedChildIndex index: Int) -> NSDragOperation {
+        guard let node = item as? FolderNode, node.isDirectory, canDrop?(node) == true,
+              !FileClipboard.read(info.draggingPasteboard).isEmpty else { return [] }
+        outlineView.setDropItem(node, dropChildIndex: NSOutlineViewDropOnItemIndex)
+        dropHint?(node.url)
+        return .copy
+    }
+    func outlineView(_ outlineView: NSOutlineView, acceptDrop info: NSDraggingInfo,
+                     item: Any?, childIndex index: Int) -> Bool {
+        guard let node = item as? FolderNode, node.isDirectory, canDrop?(node) == true else { return false }
+        return onDrop?(FileClipboard.read(info.draggingPasteboard), node.url) ?? false
     }
     func outlineViewSelectionDidChange(_ notification: Notification) {
         guard !suppressSelection, let node = view.item(atRow: view.selectedRow) as? FolderNode else { return }
