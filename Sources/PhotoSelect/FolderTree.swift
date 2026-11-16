@@ -51,7 +51,7 @@ private final class FolderRowView: NSTableRowView {
 final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate {
     let view = FileOutlineView()
     var onSelect: ((FolderNode) -> Void)?
-    var onDrop: (([URL], URL) -> Bool)?
+    var onDrop: (([URL], URL, FolderLease) -> Bool)?
     var canDrop: ((FolderNode) -> Bool)?
     var dropHint: ((URL) -> Void)?
     private(set) var roots: [FolderNode]
@@ -93,7 +93,7 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
         view.filePaste = { [weak self] in
             guard let self, let node = self.view.item(atRow: self.view.selectedRow) as? FolderNode,
                   node.isDirectory, self.canDrop?(node) == true else { return }
-            _ = self.onDrop?(FileClipboard.read(.general), node.url)
+            _ = self.onDrop?(FileClipboard.read(.general), node.url, node.lease)
         }
         view.fileCopy = { [weak self] in
             guard let self, let node = self.view.item(atRow: self.view.selectedRow) as? FolderNode,
@@ -313,7 +313,7 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
     func outlineView(_ outlineView: NSOutlineView, acceptDrop info: NSDraggingInfo,
                      item: Any?, childIndex index: Int) -> Bool {
         guard let node = item as? FolderNode, node.isDirectory, canDrop?(node) == true else { return false }
-        return onDrop?(FileClipboard.read(info.draggingPasteboard), node.url) ?? false
+        return onDrop?(FileClipboard.read(info.draggingPasteboard), node.url, node.lease) ?? false
     }
     func outlineViewSelectionDidChange(_ notification: Notification) {
         guard !suppressSelection, let node = view.item(atRow: view.selectedRow) as? FolderNode else { return }

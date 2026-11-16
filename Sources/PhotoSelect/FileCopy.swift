@@ -61,12 +61,13 @@ final class FileCopyEngine {
     }
 
     func start(_ sources: [URL], to destination: URL, cancellation: FileCopyCancellation,
+               retaining retainedLeases: [FolderLease] = [],
                progress: @escaping (FileCopyProgress) -> Void,
                completion: @escaping (FileCopyReport) -> Void) {
         // Retain security-scoped access until the last worker access, including verification.
-        let leases = (sources + [destination]).map { FolderLease($0) }
         queue.async {
-            let report = withExtendedLifetime(leases) {
+            let leases = (sources + [destination]).map { FolderLease($0) }
+            let report = withExtendedLifetime(retainedLeases + leases) {
                 self.run(sources, to: destination, cancellation: cancellation) { value in
                     DispatchQueue.main.async { progress(value) }
                 }

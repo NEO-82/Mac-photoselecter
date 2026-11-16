@@ -509,7 +509,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         grid.copyAction = { [weak self] in self?.copyFiles(nil) }
         grid.pasteAction = { [weak self] in self?.pasteFiles(nil) }
         grid.registerForDraggedTypes([.fileURL])
-        tree.onDrop = { [weak self] urls, target in self?.beginCopy(urls, to: target) ?? false }
+        tree.onDrop = { [weak self] urls, target, targetLease in self?.beginCopy(urls, to: target, retaining: targetLease) ?? false }
         tree.canDrop = { [weak self] target in
             guard let self else { return false }
             return self.canBeginCopy && target.isDirectory
@@ -1388,13 +1388,14 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         guard NSApp.keyWindow === window, let folder = currentFolder else { return }
         _ = beginCopy(FileClipboard.read(.general), to: folder)
     }
-    @discardableResult private func beginCopy(_ urls: [URL], to destination: URL) -> Bool {
+    @discardableResult private func beginCopy(_ urls: [URL], to destination: URL, retaining targetLease: FolderLease? = nil) -> Bool {
         guard canBeginCopy, !urls.isEmpty else { return false }
         let cancellation = FileCopyCancellation()
         copyCancellation = cancellation
         let progress = CopyProgressController(destination: destination, cancellation: cancellation)
         copyProgress = progress; progress.showWindow(nil); updateBadges()
-        copyEngine.start(urls, to: destination, cancellation: cancellation, progress: { [weak progress] value in
+        copyEngine.start(urls, to: destination, cancellation: cancellation,
+                         retaining: [lease, targetLease].compactMap { $0 }, progress: { [weak progress] value in
             progress?.update(value)
         }) { [weak self] report in
             guard let self else { return }
