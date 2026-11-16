@@ -12,7 +12,7 @@ on:
         default: '0.7.4'
         type: string
       runner:
-        description: 'macOS runner (auto uses Apple Silicon for the delivery branch)'
+        description: 'macOS runner (auto uses the previously verified xcode-27 Apple Silicon image)'
         required: false
         default: auto
         type: choice
@@ -32,9 +32,10 @@ env:
 
 jobs:
   package:
-    # Native Apple Silicon delivery; the Intel regression runner remains selectable.
-    # Hosted Intel acquisition failed before executing build 103.
-    runs-on: ${{ inputs.runner != '' && inputs.runner != 'auto' && inputs.runner || (github.ref_name == 'codex/macos-installer-download' && 'macos-15' || 'xcode-27') }}
+    # Match the previously verified macOS 27 Apple Silicon path.
+    # Hosted macOS 15 Intel/ARM acquisition failed before builds 103/104 ran.
+    # Both macOS 15 targets remain available through the manual runner input.
+    runs-on: ${{ inputs.runner != '' && inputs.runner != 'auto' && inputs.runner || 'xcode-27' }}
     timeout-minutes: 45
     permissions:
       contents: write
