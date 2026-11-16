@@ -65,8 +65,8 @@ enum AppMenus {
         add(file, "창 닫기", #selector(NSWindow.performClose(_:)), key: "w")
 
         let edit = submenu("편집")
-        add(edit, "파일 복사", #selector(BrowserController.copyFiles(_:)), key: "c", target: browser)
-        add(edit, "파일 붙여넣기", #selector(BrowserController.pasteFiles(_:)), key: "v", target: browser)
+        add(edit, "복사", #selector(NSText.copy(_:)), key: "c")
+        add(edit, "붙여넣기", #selector(NSText.paste(_:)), key: "v")
         add(edit, "모두 선택", #selector(NSText.selectAll(_:)), key: "a")
         let view = submenu("보기")
         add(view, "선택 사진 크게 보기", #selector(BrowserController.openSelectedPhoto), key: "\r", modifiers: [], target: browser)

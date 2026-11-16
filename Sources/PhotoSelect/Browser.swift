@@ -9,6 +9,14 @@ final class PhotoCollectionView: NSCollectionView {
     var photoPaths: Set<IndexPath> = []
     var itemPaths: Set<IndexPath> = []
     var dragURLs: ((Set<IndexPath>) -> [URL])?
+    var copyAction: (() -> Void)?
+    var pasteAction: (() -> Void)?
+    @objc func copy(_ sender: Any?) { copyAction?() }
+    @objc func paste(_ sender: Any?) { pasteAction?() }
+    var copyDropOutline = false { didSet { needsDisplay = true } }
+    override func draggingExited(_ sender: NSDraggingInfo?) {
+        copyDropOutline = false; super.draggingExited(sender)
+    }
     private(set) var interactionPath: IndexPath?
     var clickSelection: ((IndexPath, NSEvent.ModifierFlags) -> Set<IndexPath>)?
     var marqueeChanged: ((Set<IndexPath>, Bool) -> Void)?
@@ -166,6 +174,11 @@ final class PhotoCollectionView: NSCollectionView {
     }
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
+        if copyDropOutline {
+            ProTheme.accent.setStroke()
+            let outline = NSBezierPath(rect: visibleRect.insetBy(dx: 3, dy: 3))
+            outline.lineWidth = 3; outline.stroke()
+        }
         if let rect = marqueeRect {
             ProTheme.accent.withAlphaComponent(0.12).setFill(); NSBezierPath(rect: rect).fill()
             ProTheme.accent.setStroke(); let border = NSBezierPath(rect: rect); border.lineWidth = 1; border.stroke()
@@ -197,10 +210,12 @@ final class ThumbnailItem: NSCollectionViewItem {
     var request: Operation?
     var representedURL: URL?
     var isCurrent = false { didSet { updateSelectionAppearance() } }
+    override var highlightState: NSCollectionViewItem.HighlightState { didSet { updateSelectionAppearance() } }
     private func updateSelectionAppearance() {
-        (view as? ProSurfaceView)?.fillColor = isSelected ? ProTheme.selection : .clear
+        let drop = highlightState == .forDrop
+        (view as? ProSurfaceView)?.fillColor = drop ? ProTheme.accent.withAlphaComponent(0.18) : (isSelected ? ProTheme.selection : .clear)
         view.wantsLayer = true; view.layer?.cornerRadius = 8
-        view.layer?.borderWidth = isCurrent ? 2 : 0
+        view.layer?.borderWidth = drop ? 3 : (isCurrent ? 2 : 0)
         view.layer?.borderColor = ProTheme.accent.cgColor
     }
     let tagMarker = TagMarkerView()
@@ -491,6 +506,8 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             guard let self, !self.fileManagementActive, !self.copyActive, !self.isTrashing else { return [] }
             return paths.sorted().compactMap { self.entries.indices.contains($0.item) ? self.entries[$0.item].url : nil }
         }
+        grid.copyAction = { [weak self] in self?.copyFiles(nil) }
+        grid.pasteAction = { [weak self] in self?.pasteFiles(nil) }
         grid.registerForDraggedTypes([.fileURL])
         tree.onDrop = { [weak self] urls, target in self?.beginCopy(urls, to: target) ?? false }
         tree.canDrop = { [weak self] target in
@@ -957,7 +974,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         applyCurrentSort()
         window?.makeFirstResponder(grid)
     }
-    private func applyCurrentSort() {
+    private func applyCurrentSort(restoreScroll: NSPoint? = nil) {
         sortRequest?.cancel(); sortGeneration = UUID(); let token = sortGeneration
         guard let lease else { appliedSortOrder = sortOrder; applyTagFilter(); return }
         sorting = true; updateBadges()
@@ -965,6 +982,12 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         sortRequest = sortMetadata.prepare(allEntries, order: sortOrder, lease: lease) { [weak self] prepared in
             guard let self, self.sortGeneration == token else { return }
             self.sorting = false; self.appliedSortOrder = self.sortOrder; self.allEntries = prepared; self.applyTagFilter()
+            if let restoreScroll, let scroll = self.grid.enclosingScrollView {
+                self.grid.layoutSubtreeIfNeeded()
+                var rect = scroll.contentView.bounds; rect.origin = restoreScroll
+                scroll.contentView.scroll(to: scroll.contentView.constrainBoundsRect(rect).origin)
+                scroll.reflectScrolledClipView(scroll.contentView)
+            }
         }
     }
     @objc private func changeTagFilter() {
@@ -1404,7 +1427,10 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
                         let result = Result { try withExtendedLifetime(lease) { try BrowserEntry.read(folder, showHidden: showHidden) } }
                         DispatchQueue.main.async {
                             guard self.generation == token else { return }
-                            if case .success(let entries) = result { self.allEntries = entries; self.applyCurrentSort() }
+                            if case .success(let entries) = result {
+                                self.allEntries = entries
+                                self.applyCurrentSort(restoreScroll: self.grid.enclosingScrollView?.contentView.bounds.origin)
+                            }
                             else if case .failure(let error) = result { self.setStatus(error.localizedDescription, error: true) }
                         }
                     }
@@ -1427,7 +1453,9 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     func collectionView(_ collectionView: NSCollectionView, validateDrop draggingInfo: NSDraggingInfo,
                         proposedIndexPath proposedDropIndexPath: AutoreleasingUnsafeMutablePointer<NSIndexPath>,
                         dropOperation proposedDropOperation: UnsafeMutablePointer<NSCollectionView.DropOperation>) -> NSDragOperation {
+        grid.copyDropOutline = false
         guard let (path, target) = gridDropTarget(draggingInfo) else { return [] }
+        grid.copyDropOutline = path.item == entries.count
         proposedDropIndexPath.pointee = path as NSIndexPath
         proposedDropOperation.pointee = path.item < entries.count ? .on : .before
         setStatus("복사 대상: " + target.path)
@@ -1435,6 +1463,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
     }
     func collectionView(_ collectionView: NSCollectionView, acceptDrop draggingInfo: NSDraggingInfo,
                         indexPath: IndexPath, dropOperation: NSCollectionView.DropOperation) -> Bool {
+        grid.copyDropOutline = false
         guard let (_, target) = gridDropTarget(draggingInfo) else { return false }
         return beginCopy(FileClipboard.read(draggingInfo.draggingPasteboard), to: target)
     }

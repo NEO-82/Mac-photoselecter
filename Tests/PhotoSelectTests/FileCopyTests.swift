@@ -42,6 +42,46 @@ final class FileCopyTests: XCTestCase {
         XCTAssertEqual(report.copied.count, 3); XCTAssertTrue(report.failures.isEmpty)
         for url in urls { XCTAssertEqual(try Data(contentsOf: url), try Data(contentsOf: target.appendingPathComponent(url.lastPathComponent))) }
     }
+    func testExtendedAttributesAndResourceForkPreserved() throws {
+        let (source, target) = try folders(), raw = try file(source, "metadata.ARW")
+        let marker = Data("metadata bytes".utf8)
+        for name in ["dev.photoselect.copy-test", "com.apple.ResourceFork"] {
+            let result = marker.withUnsafeBytes { setxattr(raw.path, name, $0.baseAddress, $0.count, 0, 0) }
+            XCTAssertEqual(result, 0)
+        }
+        let report = FileCopyEngine().run([raw], to: target)
+        XCTAssertEqual(report.copied.count, 1); XCTAssertTrue(report.failures.isEmpty)
+        for url in [raw, target.appendingPathComponent("metadata.ARW")] {
+            for name in ["dev.photoselect.copy-test", "com.apple.ResourceFork"] {
+                var bytes = [UInt8](repeating: 0, count: 128)
+                let count = getxattr(url.path, name, &bytes, bytes.count, 0, 0)
+                XCTAssertEqual(count, marker.count)
+                if count >= 0 { XCTAssertEqual(Data(bytes.prefix(count)), marker) }
+            }
+        }
+    }
+    func testRealSonySamplesCopyInBothDirectionsWithoutContentChanges() throws {
+        guard let samples = ProcessInfo.processInfo.environment["PHOTOSELECT_ARW_SAMPLE_DIRECTORY"] else {
+            throw XCTSkip("실제 Sony ARW fixture 경로가 지정되지 않았습니다.")
+        }
+        func digest(_ url: URL) throws -> Data {
+            let input = try FileHandle(forReadingFrom: url); defer { try? input.close() }
+            var hash = SHA256()
+            while let data = try input.read(upToCount: 1024 * 1024), !data.isEmpty { hash.update(data: data) }
+            return Data(hash.finalize())
+        }
+        let (internalFolder, volume) = try folders()
+        let urls = ["Sony-A7M3.arw", "Sony-A7M4.ARW"].map { URL(fileURLWithPath: samples).appendingPathComponent($0) }
+        let before = try urls.map(digest)
+        let outbound = FileCopyEngine().run(urls, to: volume)
+        XCTAssertEqual(outbound.copied.count, 2); XCTAssertTrue(outbound.failures.isEmpty)
+        let copied = urls.map { volume.appendingPathComponent($0.lastPathComponent) }
+        XCTAssertEqual(try copied.map(digest), before)
+        let inbound = FileCopyEngine().run(copied, to: internalFolder)
+        XCTAssertEqual(inbound.copied.count, 2); XCTAssertTrue(inbound.failures.isEmpty)
+        XCTAssertEqual(try urls.map(digest), before)
+        XCTAssertEqual(try urls.map { try digest(internalFolder.appendingPathComponent($0.lastPathComponent)) }, before)
+    }
     func testNestedFolderAndPackageContentsCopied() throws {
         let (source, target) = try folders()
         let package = source.appendingPathComponent("Album.bundle")

@@ -68,6 +68,8 @@ jobs:
               'testVolumeContentIdentityRecovery',
               'testVolumeCompatibilityConsentCancelAndActualRename',
               'testContentJournalRejectsMiddleByteChangesAndAmbiguousAliases',
+              'testResponderCopyIncludesSelectedFolderPhotoAndDocument',
+              'testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal',
               'testEverySavedZoomRendersAtSelectedSizeAndSurvivesDeleteAndNavigation',
               'testVolumeRenameCountsTimingAndModificationDates',
           }

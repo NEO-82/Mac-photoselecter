@@ -24,6 +24,10 @@ final class FolderNode: NSObject {
 // Keep AppKit's target/action and hit testing for disclosure. Supplying a real
 // NSTableCellView below prevents content views from covering its reserved gutter.
 final class FileOutlineView: NSOutlineView {
+    var filePaste: (() -> Void)?
+    var fileCopy: (() -> Void)?
+    @objc func paste(_ sender: Any?) { filePaste?() }
+    @objc func copy(_ sender: Any?) { fileCopy?() }
     override func makeView(withIdentifier identifier: NSUserInterfaceItemIdentifier, owner: Any?) -> NSView? {
         let result = super.makeView(withIdentifier: identifier, owner: owner)
         if identifier == NSOutlineView.disclosureButtonIdentifier, let button = result as? NSButton {
@@ -86,6 +90,16 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
         view.columnAutoresizingStyle = .lastColumnOnlyAutoresizingStyle
         view.dataSource = self; view.delegate = self
         view.registerForDraggedTypes([.fileURL])
+        view.filePaste = { [weak self] in
+            guard let self, let node = self.view.item(atRow: self.view.selectedRow) as? FolderNode,
+                  node.isDirectory, self.canDrop?(node) == true else { return }
+            _ = self.onDrop?(FileClipboard.read(.general), node.url)
+        }
+        view.fileCopy = { [weak self] in
+            guard let self, let node = self.view.item(atRow: self.view.selectedRow) as? FolderNode,
+                  self.canDrop?(node) == true else { return }
+            FileClipboard.write([node.url])
+        }
         view.allowsEmptySelection = false
         view.reloadData()
     }
