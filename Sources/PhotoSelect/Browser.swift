@@ -594,8 +594,18 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
             }
         }
         volumeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didUnmountNotification,
-            object: nil, queue: .main) { [weak self] _ in
+            object: nil, queue: .main) { [weak self] notification in
                 guard let self else { return }
+                if let volume = notification.userInfo?[NSWorkspace.volumeURLUserInfoKey] as? URL {
+                    guard let folder = self.currentFolder else { return }
+                    let root = TagStore.key(volume.resolvingSymlinksInPath())
+                    let path = TagStore.key(folder.resolvingSymlinksInPath())
+                    let prefix = root.hasSuffix("/") ? root : root + "/"
+                    // An unrelated removable disk must not cancel this folder's
+                    // decode or blank a visible image. Missing provenance still
+                    // takes the existing conservative invalidation path.
+                    guard path == root || path.hasPrefix(prefix) else { return }
+                }
                 self.pipeline.clear(); self.thumbnails.clear(); self.tree.refresh(all: true)
                 self.sortRequest?.cancel(); self.sortGeneration = UUID(); self.sorting = false; self.folderLoading = false
                 self.renamePreparation?.cancel(); self.sortMetadata.clear()

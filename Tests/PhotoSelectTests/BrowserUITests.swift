@@ -1171,6 +1171,17 @@ final class BrowserUITests: XCTestCase {
         let grid = try XCTUnwrap(views.compactMap { $0 as? PhotoCollectionView }.first)
         let preview = try XCTUnwrap(views.compactMap { $0 as? PreviewPane }.first)
         waitUntil("photo ready before simulated device change") { preview.imageView.image != nil }
+        let heldImage = try XCTUnwrap(preview.imageView.image)
+        let appliedCount = browser.navigationSamples.count
+        grid.toggleTag?()
+        waitUntil("tag ready before unrelated device change") { !preview.tagMarker.isHidden }
+        // A sibling path is deliberately not a descendant, even when its name
+        // starts with the current folder name. No physical disk is touched.
+        NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didUnmountNotification,
+            object: nil, userInfo: [NSWorkspace.volumeURLUserInfoKey: root.appendingPathExtension("unrelated")])
+        XCTAssertTrue(preview.imageView.image === heldImage)
+        XCTAssertFalse(preview.tagMarker.isHidden)
+        XCTAssertEqual(browser.navigationSamples.count, appliedCount)
         // This posts only the observer notification; it never unmounts a device.
         NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didUnmountNotification,
             object: nil, userInfo: [NSWorkspace.volumeURLUserInfoKey: root])
