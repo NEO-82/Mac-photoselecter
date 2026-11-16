@@ -2,8 +2,8 @@
   "allRenamed" : true,
   "bytesAndTagsPreserved" : true,
   "files" : 368,
-  "format" : "exfat",
-  "method" : "NSFileCoordinator + FileManager.moveItem (호환 모드)",
+  "format" : "apfs",
+  "method" : "renamex_np(RENAME_EXCL)",
   "physicalDevice" : false,
   "realSonySamplePreserved" : true
 }
