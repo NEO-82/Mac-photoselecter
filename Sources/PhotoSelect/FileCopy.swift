@@ -13,6 +13,7 @@ struct FileCopyReport {
     var copied: [URL] = []
     var createdTargets: [URL] = []
     var failures: [FileCopyFailure] = []
+    var unprocessed: [URL] = []
     var cancelled = false
 }
 
@@ -75,8 +76,10 @@ final class FileCopyEngine {
         var report = FileCopyReport(), seen = Set<String>(), bytes: Int64 = 0
         let total = sources.reduce(0) { $0 + ((try? countItems($1, cancellation: cancellation)) ?? 1) }
         var completed = 0
-        for source in sources {
-            if cancellation.isCancelled { report.cancelled = true; break }
+        for (index, source) in sources.enumerated() {
+            if cancellation.isCancelled {
+                report.cancelled = true; report.unprocessed = Array(sources[index...]); break
+            }
             let target = destination.appendingPathComponent(source.lastPathComponent)
             var stage: URL?
             do {

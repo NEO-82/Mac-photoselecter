@@ -54,13 +54,18 @@ final class CopyProgressController: NSWindowController {
         close()
         let alert = NSAlert()
         alert.messageText = report.cancelled ? "복사를 취소했습니다" : "복사 결과"
-        alert.informativeText = "성공 \(report.copied.count)개 · 실패/건너뜀 \(report.failures.count)개. 원본은 유지했습니다."
+        alert.informativeText = "성공 \(report.copied.count)개 · 실패/건너뜀 \(report.failures.count)개 · 미처리 \(report.unprocessed.count)개. 원본은 유지했습니다."
         let text = NSTextView(frame: NSRect(x: 0, y: 0, width: 540, height: 240))
         text.isEditable = false
-        text.string = report.copied.map { "완료: " + $0.path }.joined(separator: "\n") + "\n" + report.failures.map {
-            "실패/건너뜀: \($0.source.path)\n대상(부분 결과가 남을 수 있음): \($0.destination.path)\n\($0.message)" +
-                ($0.retainedTemporaryURL.map { "\n검토용 임시 데이터 보존: " + $0.path } ?? "")
-        }.joined(separator: "\n\n")
+        let successes = report.copied.map { "완료: " + $0.path }.joined(separator: "\n")
+        let failures: [String] = report.failures.map { failure in
+            var message = "실패/건너뜀: \(failure.source.path)\n"
+            message += "대상(부분 결과가 남을 수 있음): \(failure.destination.path)\n\(failure.message)"
+            if let temporary = failure.retainedTemporaryURL { message += "\n검토용 임시 데이터 보존: " + temporary.path }
+            return message
+        }
+        let pending = report.unprocessed.map { "미처리: " + $0.path }.joined(separator: "\n")
+        text.string = [successes, failures.joined(separator: "\n\n"), pending].joined(separator: "\n")
         let scroll = NSScrollView(frame: text.frame); scroll.hasVerticalScroller = true
         scroll.documentView = text; alert.accessoryView = scroll
         if let parent { alert.beginSheetModal(for: parent) } else { alert.runModal() }

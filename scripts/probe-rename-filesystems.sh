@@ -68,6 +68,16 @@ cases = list(ET.parse(sys.argv[1]).getroot().iter('testcase'))
 assert len(cases) == 12, len(cases)
 assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
 PYTEST
+    PHOTOSELECT_COPY_TEST_VOLUME="$mount_path" \
+        xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FileCopyTests \
+        --xunit-output ".build/filecopy-$label-results.xml"
+    python3 - ".build/filecopy-$label-results.xml" <<'PYCOPY'
+import sys, xml.etree.ElementTree as ET
+cases = list(ET.parse(sys.argv[1]).getroot().iter('testcase'))
+assert len(cases) == 21, len(cases)
+assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
+print('Verified 21 file copy checks against the mounted target volume, including reverse copy')
+PYCOPY
     recovery="$PWD/.build/filesystem-recovery-$label.json"
     if [[ -f "$recovery" ]]; then
         detach_owned_image

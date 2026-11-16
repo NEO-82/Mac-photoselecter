@@ -7,9 +7,13 @@ import XCTest
 final class FileCopyTests: XCTestCase {
     private func folders() throws -> (URL, URL) {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        let source = root.appendingPathComponent("source"), target = root.appendingPathComponent("target")
+        let source = root.appendingPathComponent("source")
+        let target = ProcessInfo.processInfo.environment["PHOTOSELECT_COPY_TEST_VOLUME"].map {
+            URL(fileURLWithPath: $0).appendingPathComponent("J-S-copy-test-" + UUID().uuidString)
+        } ?? root.appendingPathComponent("target")
         for url in [source, target] { try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true) }
         addTeardownBlock { try? FileManager.default.removeItem(at: root) }
+        if !target.path.hasPrefix(root.path + "/") { addTeardownBlock { try? FileManager.default.removeItem(at: target) } }
         return (source, target)
     }
     private func file(_ parent: URL, _ name: String, data: Data = Data("original bytes".utf8)) throws -> URL {
@@ -110,6 +114,35 @@ final class FileCopyTests: XCTestCase {
         let report = FileCopyEngine().run([raw], to: target, cancellation: cancel)
         XCTAssertTrue(report.cancelled); XCTAssertTrue(report.copied.isEmpty)
         XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: target.path).isEmpty)
+    }
+    func testCancellationAfterFirstItemReportsRemainingSources() throws {
+        let (source, target) = try folders()
+        let urls = try ["a.ARW", "b.JPG", "c.txt"].map { try file(source, $0) }
+        let cancellation = FileCopyCancellation()
+        let report = FileCopyEngine().run(urls, to: target, cancellation: cancellation) { value in
+            if value.completed == 1 { cancellation.cancel() }
+        }
+        XCTAssertTrue(report.cancelled); XCTAssertEqual(report.copied.count, 1)
+        XCTAssertEqual(report.unprocessed, Array(urls.dropFirst()))
+        for url in urls { XCTAssertEqual(try Data(contentsOf: url), Data("original bytes".utf8)) }
+    }
+    func testReverseDirectionFromTargetVolumeToInternalFolder() throws {
+        let (internalFolder, otherVolume) = try folders()
+        let raw = try file(otherVolume, "reverse.ARW")
+        let report = FileCopyEngine().run([raw], to: internalFolder)
+        XCTAssertEqual(report.copied.count, 1); XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertEqual(try Data(contentsOf: raw), try Data(contentsOf: internalFolder.appendingPathComponent("reverse.ARW")))
+    }
+    func testNestedProgressCountsFilesAndFolders() throws {
+        let (source, target) = try folders()
+        let child = source.appendingPathComponent("folder")
+        try FileManager.default.createDirectory(at: child, withIntermediateDirectories: true)
+        _ = try file(child, "a.ARW"); _ = try file(child, "b.JPG")
+        var last: FileCopyProgress?
+        let report = FileCopyEngine().run([child], to: target) { last = $0 }
+        XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertEqual(last?.total, 3); XCTAssertEqual(last?.completed, 3)
+        XCTAssertEqual(last?.bytes, Int64(2 * Data("original bytes".utf8).count))
     }
     func testRacingExactNameCreationCannotBeOverwrittenAtPublication() throws {
         let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
