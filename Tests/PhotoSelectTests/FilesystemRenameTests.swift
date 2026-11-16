@@ -501,7 +501,11 @@ final class FilesystemRenameTests: XCTestCase {
         }
         let matches = images.filter { entry in
             guard let path = entry["image-path"] as? String else { return false }
-            return URL(fileURLWithPath: path).resolvingSymlinksInPath() == image.resolvingSymlinksInPath()
+            return URL(fileURLWithPath: path).resolvingSymlinksInPath().standardizedFileURL.path ==
+                image.resolvingSymlinksInPath().standardizedFileURL.path
+        }
+        if matches.isEmpty {
+            print("IMAGE_ATTACHMENT_MISSING requested=\(image.path) resolved=\(image.resolvingSymlinksInPath().path) attachments=\(images.compactMap { $0["image-path"] as? String })")
         }
         guard matches.count <= 1 else { throw RenameProblem(message: "Ambiguous disposable image attachment") }
         guard let match = matches.first else { return nil }
