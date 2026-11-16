@@ -48,7 +48,7 @@ cleanup() {
 }
 trap cleanup EXIT
 mkdir -p .build
-for fs in APFS HFS+ ExFAT; do
+for fs in ExFAT APFS HFS+; do
     label="${fs//+/plus}"
     image="$base/$label.sparseimage"
     mount_path="$base/mount-$label"

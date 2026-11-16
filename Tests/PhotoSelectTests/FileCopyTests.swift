@@ -39,7 +39,7 @@ final class FileCopyTests: XCTestCase {
         let (source, target) = try folders()
         let urls = try ["DSC.ARW", "DSC.JPG", "notes.txt"].map { try file(source, $0) }
         let report = FileCopyEngine().run(urls, to: target)
-        XCTAssertEqual(report.copied.count, 3); XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertEqual(report.copied.count, 3); XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
         for url in urls { XCTAssertEqual(try Data(contentsOf: url), try Data(contentsOf: target.appendingPathComponent(url.lastPathComponent))) }
     }
     func testExtendedAttributesAndResourceForkPreserved() throws {
@@ -50,7 +50,7 @@ final class FileCopyTests: XCTestCase {
             XCTAssertEqual(result, 0)
         }
         let report = FileCopyEngine().run([raw], to: target)
-        XCTAssertEqual(report.copied.count, 1); XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertEqual(report.copied.count, 1); XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
         for url in [raw, target.appendingPathComponent("metadata.ARW")] {
             for name in ["dev.photoselect.copy-test", "com.apple.ResourceFork"] {
                 var bytes = [UInt8](repeating: 0, count: 128)
@@ -89,7 +89,7 @@ final class FileCopyTests: XCTestCase {
         try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
         _ = try file(nested, "image.JPG")
         let report = FileCopyEngine().run([package], to: target)
-        XCTAssertTrue(report.failures.isEmpty); XCTAssertEqual(report.copied.count, 1)
+        XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n")); XCTAssertEqual(report.copied.count, 1)
         XCTAssertEqual(try Data(contentsOf: nested.appendingPathComponent("image.JPG")),
                        try Data(contentsOf: target.appendingPathComponent("Album.bundle/a/b/image.JPG")))
     }
@@ -221,7 +221,7 @@ final class FileCopyTests: XCTestCase {
         let (internalFolder, otherVolume) = try folders()
         let raw = try file(otherVolume, "reverse.ARW")
         let report = FileCopyEngine().run([raw], to: internalFolder)
-        XCTAssertEqual(report.copied.count, 1); XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertEqual(report.copied.count, 1); XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
         XCTAssertEqual(try Data(contentsOf: raw), try Data(contentsOf: internalFolder.appendingPathComponent("reverse.ARW")))
     }
     func testNestedProgressCountsFilesAndFolders() throws {
@@ -231,7 +231,7 @@ final class FileCopyTests: XCTestCase {
         _ = try file(child, "a.ARW"); _ = try file(child, "b.JPG")
         var last: FileCopyProgress?
         let report = FileCopyEngine().run([child], to: target) { last = $0 }
-        XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
         XCTAssertEqual(last?.total, 3); XCTAssertEqual(last?.completed, 3)
         XCTAssertEqual(last?.bytes, Int64(2 * Data("original bytes".utf8).count))
     }
@@ -253,7 +253,7 @@ final class FileCopyTests: XCTestCase {
     func testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback() throws {
         let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
         let report = unsupportedPublisher().run([raw], to: target)
-        XCTAssertEqual(report.copied.count, 1); XCTAssertTrue(report.failures.isEmpty)
+        XCTAssertEqual(report.copied.count, 1); XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
         XCTAssertEqual(try Data(contentsOf: raw), try Data(contentsOf: target.appendingPathComponent("DSC.ARW")))
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: target.path), ["DSC.ARW"])
     }
@@ -280,7 +280,7 @@ final class FileCopyTests: XCTestCase {
             let urls = try (0..<count).map { try file(source, "\($0).JPG") }
             let start = ProcessInfo.processInfo.systemUptime
             let report = FileCopyEngine().run(urls, to: target)
-            XCTAssertEqual(report.copied.count, count); XCTAssertTrue(report.failures.isEmpty)
+            XCTAssertEqual(report.copied.count, count); XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
             for url in urls { XCTAssertEqual(try Data(contentsOf: url), try Data(contentsOf: target.appendingPathComponent(url.lastPathComponent))) }
             print("COPY_COUNT=\(count) ELAPSED_SECONDS=\(ProcessInfo.processInfo.systemUptime - start) synthetic small files, not RAW throughput")
         }

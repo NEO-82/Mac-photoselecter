@@ -49,9 +49,12 @@ final class FileCopyEngine {
         let device: dev_t
         let inode: ino_t
         let directory: Bool
-        static func capture(_ url: URL) -> TemporaryItem? {
+        static func capture(_ url: URL, descriptor: Int32? = nil) -> TemporaryItem? {
             var info = stat()
-            guard lstat(url.path, &info) == 0 else { return nil }
+            let result: Int32
+            if let descriptor { result = fstat(descriptor, &info) }
+            else { result = lstat(url.path, &info) }
+            guard result == 0 else { return nil }
             return TemporaryItem(url: url, device: info.st_dev, inode: info.st_ino,
                                  directory: (info.st_mode & S_IFMT) == S_IFDIR)
         }
@@ -136,8 +139,8 @@ final class FileCopyEngine {
                         var lastUpdate = ProcessInfo.processInfo.systemUptime
                         try self.copyTree(readURL, to: payload, cancellation: cancellation, onItem: {
                             completed += 1
-                        }, onTemporaryCreated: { url in
-                            if let item = TemporaryItem.capture(url) { temporaryItems.append(item) }
+                        }, onTemporaryCreated: { url, descriptor in
+                            if let item = TemporaryItem.capture(url, descriptor: descriptor) { temporaryItems.append(item) }
                         }) { count in
                             bytes += count
                             let now = ProcessInfo.processInfo.systemUptime
@@ -267,7 +270,7 @@ final class FileCopyEngine {
                           onCreated: () -> Void = {},
                           depth: Int = 0, onItem: () -> Void = {},
                           onVerified: (URL) -> Void = { _ in },
-                          onTemporaryCreated: (URL) -> Void = { _ in },
+                          onTemporaryCreated: (URL, Int32?) -> Void = { _, _ in },
                           onBytes: (Int64) -> Void) throws {
         try cancellation.check()
         guard depth < 128 else { throw CopyError("폴더 깊이가 안전 제한(128)을 넘습니다.") }
@@ -278,7 +281,7 @@ final class FileCopyEngine {
         if type == .typeDirectory {
             guard mkdir(destination.path, 0o700) == 0 else { throw posixError() }
             onCreated()
-            onTemporaryCreated(destination)
+            onTemporaryCreated(destination, nil)
             let children = try directoryURLs(source)
             var keys = Set<String>()
             let names = Set(children.map(\.lastPathComponent))
@@ -312,8 +315,13 @@ final class FileCopyEngine {
             let output = open(destination.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
             guard output >= 0 else { throw posixError() }
             onCreated()
-            onTemporaryCreated(destination)
-            defer { close(output) }
+            onTemporaryCreated(destination, output)
+            defer {
+                // exFAT may assign a new file ID when an empty file first grows.
+                // Refresh ownership from the still-open descriptor before cleanup.
+                onTemporaryCreated(destination, output)
+                close(output)
+            }
             var buffer = [UInt8](repeating: 0, count: 1024 * 1024), hash = SHA256(), size: Int64 = 0
             while true {
                 try cancellation.check()
@@ -363,6 +371,9 @@ final class FileCopyEngine {
     }
 
     private func metadata(_ source: URL, to destination: URL) throws {
-        guard copyfile(source.path, destination.path, nil, copyfile_flags_t(COPYFILE_METADATA | COPYFILE_NOFOLLOW)) == 0 else { throw posixError() }
+        guard copyfile(source.path, destination.path, nil, copyfile_flags_t(COPYFILE_METADATA | COPYFILE_NOFOLLOW)) == 0 else {
+            let error = posixError()
+            throw CopyError("메타데이터 복사 실패: \(source.path) → \(destination.path): " + error.localizedDescription, underlying: error)
+        }
     }
 }
