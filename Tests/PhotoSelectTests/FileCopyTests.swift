@@ -285,6 +285,7 @@ final class FileCopyTests: XCTestCase {
         let (source, _) = try folders(), raw = try file(source, "DSC.ARW"), text = try file(source, "notes.txt")
         let board = NSPasteboard.withUniqueName(); defer { board.releaseGlobally() }
         XCTAssertTrue(FileClipboard.write([raw, text], to: board))
+        XCTAssertTrue(FileClipboard.containsFiles(board))
         XCTAssertEqual(FileClipboard.read(board), [raw, text])
         XCTAssertTrue(FileClipboard.read(NSPasteboard.withUniqueName()).isEmpty)
         // Actual Finder paste and modifier-key drag behavior still requires GUI validation.

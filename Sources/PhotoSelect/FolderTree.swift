@@ -305,7 +305,7 @@ final class FolderTree: NSObject, NSOutlineViewDataSource, NSOutlineViewDelegate
     func outlineView(_ outlineView: NSOutlineView, validateDrop info: NSDraggingInfo,
                      proposedItem item: Any?, proposedChildIndex index: Int) -> NSDragOperation {
         guard let node = item as? FolderNode, node.isDirectory, canDrop?(node) == true,
-              !FileClipboard.read(info.draggingPasteboard).isEmpty else { return [] }
+              FileClipboard.containsFiles(info.draggingPasteboard) else { return [] }
         outlineView.setDropItem(node, dropChildIndex: NSOutlineViewDropOnItemIndex)
         dropHint?(node.url)
         return .copy

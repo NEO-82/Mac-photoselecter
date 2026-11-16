@@ -1,6 +1,9 @@
 import AppKit
 
 enum FileClipboard {
+    static func containsFiles(_ board: NSPasteboard) -> Bool {
+        board.canReadObject(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true])
+    }
     static func read(_ board: NSPasteboard) -> [URL] {
         (board.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
     }

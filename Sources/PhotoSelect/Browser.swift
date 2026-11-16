@@ -818,7 +818,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         case #selector(toggleHiddenFiles(_:)):
             menuItem.state = tree.showHidden ? .on : .off; return true
         case #selector(copyFiles(_:)): return canBeginCopy && !copySelection.isEmpty && NSApp.keyWindow === window
-        case #selector(pasteFiles(_:)): return canBeginCopy && currentFolder != nil && !FileClipboard.read(.general).isEmpty && NSApp.keyWindow === window
+        case #selector(pasteFiles(_:)): return canBeginCopy && currentFolder != nil && FileClipboard.containsFiles(.general) && NSApp.keyWindow === window
         case #selector(openFolder): return true
         case #selector(parentFolder): return up.isEnabled
         case #selector(refreshFolder): return currentFolder != nil
@@ -1442,7 +1442,7 @@ final class BrowserController: NSWindowController, NSCollectionViewDataSource, N
         return true
     }
     private func gridDropTarget(_ dragging: NSDraggingInfo) -> (IndexPath, URL)? {
-        guard canBeginCopy, !FileClipboard.read(dragging.draggingPasteboard).isEmpty else { return nil }
+        guard canBeginCopy, FileClipboard.containsFiles(dragging.draggingPasteboard) else { return nil }
         let point = grid.convert(dragging.draggingLocation, from: nil)
         if let path = grid.indexPathForItem(at: point) {
             guard entries.indices.contains(path.item), entries[path.item].isDirectory else { return nil }
