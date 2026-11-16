@@ -11,6 +11,12 @@ on:
         required: true
         default: '0.7.4'
         type: string
+      runner:
+        description: 'macOS runner (auto uses Apple Silicon for the delivery branch)'
+        required: false
+        default: auto
+        type: choice
+        options: [auto, macos-15, macos-15-intel, xcode-27]
 
 permissions:
   contents: read
@@ -26,9 +32,9 @@ env:
 
 jobs:
   package:
-    # The compatibility branch matches the user's macOS 27.0.1 on Apple Silicon.
-    # Keep the existing Intel/macOS 15 regression path on the delivery branch.
-    runs-on: ${{ github.ref_name == 'codex/macos-installer-download' && 'macos-15-intel' || 'xcode-27' }}
+    # Native Apple Silicon delivery; the Intel regression runner remains selectable.
+    # Hosted Intel acquisition failed before executing build 103.
+    runs-on: ${{ inputs.runner != '' && inputs.runner != 'auto' && inputs.runner || (github.ref_name == 'codex/macos-installer-download' && 'macos-15' || 'xcode-27') }}
     timeout-minutes: 45
     permissions:
       contents: write
@@ -45,7 +51,7 @@ jobs:
           set -o pipefail
           {
             sw_vers; uname -m; xcodebuild -version; df -h .; sysctl -n hw.memsize
-            if [[ "$GITHUB_REF_NAME" != codex/macos-installer-download ]]; then
+            if [[ "$(uname -m)" == arm64 ]]; then
               xcrun swift scripts/prepare-ci-display.swift
               xcrun swift -e 'import AppKit; let size = NSScreen.main!.visibleFrame.size; print("Independent worker visible area: \(size)"); precondition(size.width >= 1200 && size.height >= 792)'
             fi
