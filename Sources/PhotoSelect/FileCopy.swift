@@ -70,6 +70,11 @@ final class FileCopyEngine {
         let attributes: [String: Data]
     }
 
+    private struct PreparedSidecar {
+        let packed: PackedSidecar
+        let reservation: SidecarReservation
+    }
+
     private final class PackedSidecars {
         var byPayloadPath: [String: PackedSidecar] = [:]
         var payloadDigests: [String: Data] = [:]
@@ -149,7 +154,7 @@ final class FileCopyEngine {
                     guard seen.insert(Self.nameKey(source.lastPathComponent)).inserted else { throw CopyError("선택 항목의 이름이 충돌합니다. 건너뛰었습니다.") }
                     var coordinationError: NSError?
                     var operationError: Error?
-                    var performed = false
+                    var completedTarget: URL?
                     NSFileCoordinator().coordinate(readingItemAt: source, options: .withoutChanges,
                         writingItemAt: destination, options: [], error: &coordinationError) { readURL, writeURL in
                         do {
@@ -203,19 +208,20 @@ final class FileCopyEngine {
                                     report.createdTargets.append(actualTarget)
                                 }, sidecars: sidecars, onVerified: { verifiedFinalItems.append($0) }, onBytes: { _ in })
                             }
-                            report.copied.append(actualTarget)
-                            performed = true
                             do {
                                 try FileManager.default.removeItem(at: scratch)
                             } catch {
-                                throw self.operationError("FileManager.removeItem(임시 폴더 정리)", at: scratch, underlying: error)
+                                throw self.operationError("검증된 복사본의 FileManager.removeItem(임시 폴더 정리)",
+                                                          at: scratch, underlying: error)
                             }
                             stage = nil
+                            completedTarget = actualTarget
                         } catch { operationError = error }
                     }
                     if let operationError { throw operationError }
                     if let coordinationError { throw coordinationError }
-                    guard performed else { throw CopyError("복사 조정을 시작하지 못했습니다.") }
+                    guard let completedTarget else { throw CopyError("복사 조정을 시작하지 못했습니다.") }
+                    report.copied.append(completedTarget)
                 } catch {
                     if let scratch = stage, report.createdTargets.count == createdBefore,
                        cancellation.isCancelled || isNoSpace(error) {
@@ -356,19 +362,10 @@ final class FileCopyEngine {
             throw CopyError("심볼릭 링크와 특수 파일은 복사하지 않습니다: " + source.path)
         }
         let stagedSidecar = temporaryStorage ? nil : sidecars?.byPayloadPath[source.path]
-        if stagedSidecar != nil {
-            let companion = sidecarURL(for: destination)
-            var info = stat()
-            guard lstat(companion.path, &info) != 0 else {
-                throw operationError("AppleDouble 이름 충돌(기존 보조 파일 보존)", at: companion, underlying: posixError(EEXIST))
-            }
-            guard errno == ENOENT else { throw operationError("lstat(AppleDouble)", at: companion) }
-        }
         if type == .typeDirectory {
-            guard mkdir(destination.path, 0o700) == 0 else { throw operationError("mkdir", at: destination) }
-            onCreated()
-            onTemporaryCreated(destination, nil)
-            let reservation = try preparePublishedSidecar(stagedSidecar, for: destination, cancellation: cancellation)
+            let prepared = try createCopyDirectory(source, at: destination, stagingMetadata: temporaryStorage && sidecars != nil,
+                stagedSidecar: stagedSidecar, cancellation: cancellation, onCreated: onCreated,
+                onTemporaryCreated: onTemporaryCreated)
             let children = try folderChildren(source)
             var keys = Set<String>()
             let names = Set(children.map(\.lastPathComponent))
@@ -390,13 +387,18 @@ final class FileCopyEngine {
                     throw CopyError("실패한 항목: \(child.path)\n대상: \(target.path)\n" + error.localizedDescription, underlying: error)
                 }
             }
-            try metadata(source, to: destination, cancellation: cancellation, sidecars: sidecars,
-                         reservation: reservation, temporaryStorage: temporaryStorage,
-                         onTemporaryCreated: onTemporaryCreated)
             let after = try folderChildren(source)
             guard Set(children.map(\.lastPathComponent)) == Set(after.map(\.lastPathComponent)) else { throw CopyError("복사 중 원본 폴더 내용이 변경되었습니다.") }
+            try withOpenDirectory(source) { input in
+                try withOpenDirectory(destination) { output in
+                    try finishMetadata(input, to: output, source: source, destination: destination,
+                                       usesAppleDouble: sidecars != nil, prepared: prepared, cancellation: cancellation)
+                }
+            }
+            if temporaryStorage { sidecars?.byPayloadPath[destination.path] = prepared?.packed }
         } else {
             guard !source.lastPathComponent.hasPrefix("._") else { throw CopyError("AppleDouble 메타데이터 파일은 단독 복사하지 않습니다.") }
+            if stagedSidecar != nil { try requireUnusedSidecar(for: destination, operation: "파일 생성 전 AppleDouble 확인") }
             let input = open(source.path, O_RDONLY | O_NOFOLLOW)
             guard input >= 0 else { throw operationError("open(원본)", at: source) }
             defer { close(input) }
@@ -421,7 +423,7 @@ final class FileCopyEngine {
             do {
                 // Darwin can discard an orphan AppleDouble when the base file
                 // is created. Reserve and fill it before streaming the payload.
-                let reservation = try preparePublishedSidecar(stagedSidecar, for: destination, cancellation: cancellation)
+                let published = try preparePublishedSidecar(stagedSidecar, for: destination, cancellation: cancellation)
                 let transferred = try stream(input, to: output, source: source, destination: destination,
                                              cancellation: cancellation, onBytes: onBytes)
                 guard fsync(output) == 0 else { throw operationError("fsync(대상)", at: destination) }
@@ -451,9 +453,17 @@ final class FileCopyEngine {
                     }
                 }
                 _ = try requireOwned(destination, descriptor: output)
-                try metadata(input, to: output, source: source, destination: destination, cancellation: cancellation,
-                             sidecars: sidecars, reservation: reservation, temporaryStorage: temporaryStorage,
-                             onTemporaryCreated: onTemporaryCreated)
+                let prepared: PreparedSidecar?
+                if temporaryStorage && sidecars != nil {
+                    let attributes = try packedAttributes(input, source: source, cancellation: cancellation)
+                    prepared = try packSidecar(input, attributes: attributes, for: destination, cancellation: cancellation,
+                                               onTemporaryCreated: onTemporaryCreated)
+                } else {
+                    prepared = published
+                }
+                try finishMetadata(input, to: output, source: source, destination: destination,
+                                   usesAppleDouble: sidecars != nil, prepared: prepared, cancellation: cancellation)
+                if temporaryStorage { sidecars?.byPayloadPath[destination.path] = prepared?.packed }
                 _ = try requireOwned(destination, descriptor: output)
             } catch { transferError = error; throw error }
         }
@@ -507,36 +517,46 @@ final class FileCopyEngine {
         return Data(hash.finalize())
     }
 
-    private func metadata(_ source: URL, to destination: URL, cancellation: FileCopyCancellation,
-                          sidecars: PackedSidecars?, reservation: SidecarReservation?,
-                          temporaryStorage: Bool, onTemporaryCreated: (URL, Int32?) -> Void) throws {
-        let input = open(source.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
-        guard input >= 0 else { throw operationError("open(원본)", at: source) }
-        defer { close(input) }
-        let output = open(destination.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
-        guard output >= 0 else { throw operationError("open(대상)", at: destination) }
-        defer { close(output) }
-        try metadata(input, to: output, source: source, destination: destination, cancellation: cancellation,
-                     sidecars: sidecars, reservation: reservation, temporaryStorage: temporaryStorage,
-                     onTemporaryCreated: onTemporaryCreated)
+    private func withOpenDirectory<T>(_ url: URL, _ body: (Int32) throws -> T) throws -> T {
+        let descriptor = open(url.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
+        guard descriptor >= 0 else { throw operationError("open(폴더)", at: url) }
+        defer { close(descriptor) }
+        return try body(descriptor)
     }
 
-    private func metadata(_ input: Int32, to output: Int32, source: URL, destination: URL,
-                          cancellation: FileCopyCancellation, sidecars: PackedSidecars?,
-                          reservation: SidecarReservation?, temporaryStorage: Bool,
-                          onTemporaryCreated: (URL, Int32?) -> Void) throws {
-        // Keep metadata bound to the same no-follow source and exclusively
-        // created destination descriptors used for the verified data stream.
-        if let sidecars {
-            if temporaryStorage {
-                sidecars.byPayloadPath[destination.path] = try packedMetadata(input, to: output, source: source,
-                    destination: destination, cancellation: cancellation, onTemporaryCreated: onTemporaryCreated)
-            } else if let reservation, let staged = sidecars.byPayloadPath[source.path] {
-                try copyStatMetadata(input, to: output, destination: destination)
-                try verifySidecar(reservation, expected: staged, payload: destination, descriptor: output,
-                                  cancellation: cancellation)
-            } else {
-                try copyStatMetadata(input, to: output, destination: destination)
+    private func createCopyDirectory(_ source: URL, at destination: URL, stagingMetadata: Bool,
+                                     stagedSidecar: PackedSidecar?, cancellation: FileCopyCancellation,
+                                     onCreated: () -> Void, onTemporaryCreated: (URL, Int32?) -> Void) throws -> PreparedSidecar? {
+        func create(needsSidecar: Bool) throws {
+            try cancellation.check()
+            if needsSidecar { try requireUnusedSidecar(for: destination, operation: "mkdir 전 AppleDouble 확인") }
+            guard mkdir(destination.path, 0o700) == 0 else { throw operationError("mkdir", at: destination) }
+            onCreated()
+            onTemporaryCreated(destination, nil)
+            if needsSidecar { try requireUnusedSidecar(for: destination, operation: "mkdir 직후 AppleDouble 확인") }
+        }
+
+        if stagingMetadata {
+            return try withOpenDirectory(source) { input in
+                let attributes = try packedAttributes(input, source: source, cancellation: cancellation)
+                // Plan from the source first. Reserve and fill the single
+                // directory companion immediately after mkdir, before children.
+                try create(needsSidecar: attributes != nil)
+                return try packSidecar(input, attributes: attributes, for: destination, cancellation: cancellation,
+                                       onTemporaryCreated: onTemporaryCreated)
+            }
+        }
+        try create(needsSidecar: stagedSidecar != nil)
+        return try preparePublishedSidecar(stagedSidecar, for: destination, cancellation: cancellation)
+    }
+
+    private func finishMetadata(_ input: Int32, to output: Int32, source: URL, destination: URL,
+                                usesAppleDouble: Bool, prepared: PreparedSidecar?, cancellation: FileCopyCancellation) throws {
+        if usesAppleDouble {
+            try copyStatMetadata(input, to: output, destination: destination)
+            if let prepared {
+                try verifySidecar(prepared.reservation, expected: prepared.packed, payload: destination,
+                                  descriptor: output, cancellation: cancellation)
             }
             return
         }
@@ -583,6 +603,15 @@ final class FileCopyEngine {
         payload.deletingLastPathComponent().appendingPathComponent("._" + payload.lastPathComponent)
     }
 
+    private func requireUnusedSidecar(for payload: URL, operation: String) throws {
+        let companion = sidecarURL(for: payload)
+        var info = stat()
+        guard lstat(companion.path, &info) != 0 else {
+            throw operationError(operation + "(기존 보조 파일 보존)", at: companion, underlying: posixError(EEXIST))
+        }
+        guard errno == ENOENT else { throw operationError("lstat(AppleDouble)", at: companion) }
+    }
+
     private func reserveSidecar(for payload: URL) throws -> SidecarReservation {
         let sidecar = sidecarURL(for: payload)
         let descriptor = open(sidecar.path, O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
@@ -602,7 +631,7 @@ final class FileCopyEngine {
     }
 
     private func preparePublishedSidecar(_ staged: PackedSidecar?, for payload: URL,
-                                         cancellation: FileCopyCancellation) throws -> SidecarReservation? {
+                                         cancellation: FileCopyCancellation) throws -> PreparedSidecar? {
         guard let staged else { return nil }
         try cancellation.check()
         let reservation = try reserveSidecar(for: payload)
@@ -627,7 +656,7 @@ final class FileCopyEngine {
             throw CopyError("검증된 임시 AppleDouble의 SHA-256이 변경되었습니다: " + path.path)
         }
         guard fsync(destination) == 0 else { throw operationError("fsync(AppleDouble)", at: reservation.url) }
-        return reservation
+        return PreparedSidecar(packed: staged, reservation: reservation)
     }
 
     private func verifyAttributes(_ expected: [String: Data], on output: Int32, at destination: URL,
@@ -655,11 +684,7 @@ final class FileCopyEngine {
         _ = try requireOwned(payload, descriptor: descriptor)
     }
 
-    private func packedMetadata(_ input: Int32, to output: Int32, source: URL, destination: URL,
-                                cancellation: FileCopyCancellation,
-                                onTemporaryCreated: (URL, Int32?) -> Void) throws -> PackedSidecar? {
-        // exFAT rejects native ResourceFork setxattr (EINVAL), including through
-        // copyfile/fcopyfile. Use Apple's AppleDouble serializer, exclusively.
+    private func packedAttributes(_ input: Int32, source: URL, cancellation: FileCopyCancellation) throws -> [String: Data]? {
         let names = try attributeNames(input)
         var expected: [String: Data] = [:], total = 0
         for name in names {
@@ -672,10 +697,14 @@ final class FileCopyEngine {
         let flags = copyfile_flags_t(COPYFILE_CHECK | COPYFILE_METADATA | COPYFILE_NOFOLLOW_SRC)
         let check = copyfile(source.path, nil, nil, flags)
         guard check >= 0 else { throw operationError("copyfile(COPYFILE_CHECK)", at: source) }
-        guard !names.isEmpty || (UInt32(check) & UInt32(COPYFILE_ACL)) != 0 else {
-            try copyStatMetadata(input, to: output, destination: destination)
-            return nil
-        }
+        return !names.isEmpty || (UInt32(check) & UInt32(COPYFILE_ACL)) != 0 ? expected : nil
+    }
+
+    private func packSidecar(_ input: Int32, attributes: [String: Data]?, for destination: URL,
+                             cancellation: FileCopyCancellation,
+                             onTemporaryCreated: (URL, Int32?) -> Void) throws -> PreparedSidecar? {
+        // exFAT rejects native ResourceFork writes, including through copyfile.
+        guard let attributes else { return nil }
         let reservation = try reserveSidecar(for: destination)
         let sidecar = reservation.url, packed = reservation.descriptor
         onTemporaryCreated(sidecar, packed)
@@ -691,11 +720,10 @@ final class FileCopyEngine {
                 throw operationError("fcopyfile(COPYFILE_PACK)", at: sidecar)
             }
             guard fsync(packed) == 0 else { throw operationError("fsync(AppleDouble)", at: sidecar) }
-            try copyStatMetadata(input, to: output, destination: destination)
-            try verifyAttributes(expected, on: output, at: destination, cancellation: cancellation)
             let hash = try digest(packed, cancellation: cancellation)
             _ = try requireOwned(sidecar, descriptor: packed)
-            return PackedSidecar(url: sidecar, digest: hash, attributes: expected)
+            return PreparedSidecar(packed: PackedSidecar(url: sidecar, digest: hash, attributes: attributes),
+                                   reservation: reservation)
         } catch {
             packingError = error
             throw error

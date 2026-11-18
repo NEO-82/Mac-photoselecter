@@ -1,360 +1,362 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <testsuites>
-<testsuite name="TestResults" errors="0" tests="177" failures="0" time="117.83952191199998">
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testAppleDoubleMetadataIsNotTreatedAsARWPhoto" time="0.098061875">
+<testsuite name="TestResults" errors="0" tests="178" failures="0" time="189.473551543">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testAppleDoubleMetadataIsNotTreatedAsARWPhoto" time="0.147222166">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testChangedVolumeRefusesBeforeAnyRename" time="0.091404209">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testChangedVolumeRefusesBeforeAnyRename" time="0.218746334">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testCommittedRecoveryReplaysTagsIdempotentlyAcrossNameSwap" time="0.1072835">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testCommittedRecoveryReplaysTagsIdempotentlyAcrossNameSwap" time="0.149034708">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testCommitUpdatesOnlyTargetsAndTagsWithoutChangingPhotoBytes" time="0.1135215">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testCommitUpdatesOnlyTargetsAndTagsWithoutChangingPhotoBytes" time="0.173270959">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testConflictPermissionErrorAndChangedFolderNeverOverwrite" time="0.117338541">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testConflictPermissionErrorAndChangedFolderNeverOverwrite" time="0.149351166">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testContentJournalRejectsMiddleByteChangesAndAmbiguousAliases" time="0.120613">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testContentJournalRejectsMiddleByteChangesAndAmbiguousAliases" time="0.1889565">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testCycleUsesTemporaryNamesAndTagMappingIsSimultaneous" time="0.103489709">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testCycleUsesTemporaryNamesAndTagMappingIsSimultaneous" time="0.129923917">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testExclusiveMoveAndTraversalValidationProtectForeignFiles" time="0.079194667">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testExclusiveMoveAndTraversalValidationProtectForeignFiles" time="0.116432">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testForeignFileCreatedDuringFailureIsNeverOverwrittenOnRollback" time="0.108724375">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testForeignFileCreatedDuringFailureIsNeverOverwrittenOnRollback" time="0.20750775">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testHardLinkAliasesAndCorruptTagStoreRefuseBeforeFileChanges" time="0.104304208">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testHardLinkAliasesAndCorruptTagStoreRefuseBeforeFileChanges" time="0.10160375">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testInterruptedDriveOperationKeepsJournalAndCanRecoverLater" time="0.087026833">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testInterruptedDriveOperationKeepsJournalAndCanRecoverLater" time="0.10743775">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testMiddleCommitFailureRollsBackOriginalNamesAndTags" time="0.085234541">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testMiddleCommitFailureRollsBackOriginalNamesAndTags" time="0.131873">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedOnlyConflictWithUnselectedCaseAndUnicodeNames" time="0.076794666">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedOnlyConflictWithUnselectedCaseAndUnicodeNames" time="0.135226583">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedOnlyOneAndMixedFilesLeaveUnselectedPhotosUnchanged" time="0.093972">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedOnlyOneAndMixedFilesLeaveUnselectedPhotosUnchanged" time="0.117998584">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedPreviewRejectsReplacedAndModifiedFilesBeforeAnyMove" time="0.079453042">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedPreviewRejectsReplacedAndModifiedFilesBeforeAnyMove" time="0.099129666">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedRenameDetectsExternalChangeBetweenStagingMoves" time="0.084644583">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedRenameDetectsExternalChangeBetweenStagingMoves" time="0.147442">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedRenameRollbackRestoresTargetsTagsAndNeverTouchesUnselected" time="0.089401834">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedRenameRollbackRestoresTargetsTagsAndNeverTouchesUnselected" time="0.11513">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testTagWriteFailureRestoresFilesAndRetainsJournalUntilTagsAreWritable" time="0.100215334">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testTagWriteFailureRestoresFilesAndRetainsJournalUntilTagsAreWritable" time="0.128779625">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testThreeThousandActualRenamesWithOneThousandTagsPreserveEveryFile" time="4.1192135">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testThreeThousandActualRenamesWithOneThousandTagsPreserveEveryFile" time="5.73455925">
 </testcase>
-<testcase classname="PhotoSelectTests.BatchRenameTests" name="testThreeThousandPreviewUsesSortedOrderIndependentExtensionsAndContinuousNumbers" time="1.646866458">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testThreeThousandPreviewUsesSortedOrderIndependentExtensionsAndContinuousNumbers" time="1.676651709">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testAboutMenuShowsSeoaCreditsInRoseOnNativePanel" time="0.508163833">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testAboutMenuShowsSeoaCreditsInRoseOnNativePanel" time="0.627249833">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testBatchRenamePreviewWhileTaggedFilterIncludesEveryPhotoAndKeepsTags" time="1.011214333">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testBatchRenamePreviewWhileTaggedFilterIncludesEveryPhotoAndKeepsTags" time="1.387166333">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testBrowserStartsWithTreeGridAndPreviewColumns" time="0.340338458">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testBrowserStartsWithTreeGridAndPreviewColumns" time="0.353082125">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testBulkTrashConfirmationCancelPartialFailureAndSelectionRetention" time="0.736316209">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testBulkTrashConfirmationCancelPartialFailureAndSelectionRetention" time="0.78958825">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized" time="0.806952541">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testCompactToolbarKeepsAllPanesVisibleWhenShownAndResized" time="1.35830525">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testDeviceChangeInvalidatesRenamePreviewAndAllowsReopening" time="1.018424083">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testDeviceChangeInvalidatesRenamePreviewAndAllowsReopening" time="1.246816125">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testDeviceChangeNotificationRetainsErrorWhenReopeningViewer" time="0.577910333">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testDeviceChangeNotificationRetainsErrorWhenReopeningViewer" time="0.659065625">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch" time="0.585693458">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testDraggedSidebarWidthSurvivesWindowResizeAndPhotoSwitch" time="0.654682292">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns" time="0.691962333">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testFailedPreviewRemainsAnErrorWhenOpeningViewerAndEscapeReturns" time="0.852442167">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testFinderOpenRealSonyPreview" time="1.318191708">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testFinderOpenRealSonyPreview" time="2.208185541">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testFinderOpenSelectsARWLoadsParentAndReusesWindow" time="0.590994583">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testFinderOpenSelectsARWLoadsParentAndReusesWindow" time="0.721024667">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testFinderRapidFolderOpenKeepsLatestSelection" time="0.542422">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testFinderRapidFolderOpenKeepsLatestSelection" time="0.60512725">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testInitialBrowserFrameFitsActualAvailableScreen" time="0.425146292">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testInitialBrowserFrameFitsActualAvailableScreen" time="0.402451167">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testLargeFolders2000And3000UseLazyThumbnailsAndBoundedDisplayWork" time="3.759354208">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testLargeFolders2000And3000UseLazyThumbnailsAndBoundedDisplayWork" time="4.69784175">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded" time="0.9666215">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testLoadingLargeLandscapeAndPortraitKeepsPreviewBounded" time="1.112279125">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testMixedBrowserFolderNavigationFilePreviewAndCreditLayout" time="1.170939958">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testMixedBrowserFolderNavigationFilePreviewAndCreditLayout" time="2.654713917">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort" time="0.723607083">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testMultiSelectionNativeCommandShiftSelectAllEscapeAndStableSort" time="1.140842166">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testMultiSelectionThreeThousandMarqueeOffscreenAndAutoScrollPerformance" time="1.633288417">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testMultiSelectionThreeThousandMarqueeOffscreenAndAutoScrollPerformance" time="3.174203125">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testNativeMenuCommandsNavigateAndTagCurrentPhoto" time="0.529940209">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testNativeMenuCommandsNavigateAndTagCurrentPhoto" time="0.750451208">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testNavigationKeepsLastFrameRejectsStaleCompletionAndSurvivesFailure" time="1.045055167">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testNavigationKeepsLastFrameRejectsStaleCompletionAndSurvivesFailure" time="1.245673208">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testPresentingVisibleViewerKeepsManualWindowSize" time="0.507844625">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testPresentingVisibleViewerKeepsManualWindowSize" time="0.2561725">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testPreviewFilenameIsBelowImage" time="0.142821875">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testPreviewFilenameIsBelowImage" time="0.169910375">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testRealA7M4NavigationBenchmark" time="24.927718">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testRealA7M4NavigationBenchmark" time="43.777708459">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testRealA7M4PreviewStaysIdenticalDuringHeldZoomAndCachedNavigation" time="5.47285">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testRealA7M4PreviewStaysIdenticalDuringHeldZoomAndCachedNavigation" time="7.496741042">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testSelectedRenameCannotFallBackToWholeFolderWhenSelectedFileWasReplaced" time="0.5561155">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testSelectedRenameCannotFallBackToWholeFolderWhenSelectedFileWasReplaced" time="1.19987925">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testSelectedRenameScopeTagFilterMixedFilesAndIdentityPreservation" time="1.282748375">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testSelectedRenameScopeTagFilterMixedFilesAndIdentityPreservation" time="2.40193375">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList" time="0.838450458">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testSelectingGeneralFileKeepsPhotoPreviewAndPhotoList" time="1.411900375">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testSelectingThumbnailChangesRightPreview" time="0.575379083">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testSelectingThumbnailChangesRightPreview" time="1.614875041">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testSoftRomanticPaletteRendersInDarkAndLightAppearances" time="1.194521">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testSoftRomanticPaletteRendersInDarkAndLightAppearances" time="1.887921792">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testSortButtonsKeepSelectionAndViewerOrderWithoutTouchingTags" time="0.661080458">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testSortButtonsKeepSelectionAndViewerOrderWithoutTouchingTags" time="1.199783084">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testStandardMenusDisablePhotoActionsUntilFolderHasPhotos" time="0.383509417">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testStandardMenusDisablePhotoActionsUntilFolderHasPhotos" time="0.461383333">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testTagBadgeReturnsAfterClosingAndRecreatingBrowser" time="0.870454458">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testTagBadgeReturnsAfterClosingAndRecreatingBrowser" time="1.239843083">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths" time="1.3560605">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testTaggedFilter1500PhotosKeepsFolderSnapshotCachesAndIndependentPaths" time="2.614649625">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testTaggedFilterViewerNavigationUntagTrashAndPersistence" time="0.964212333">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testTaggedFilterViewerNavigationUntagTrashAndPersistence" time="2.534956333">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge" time="0.702537083">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testTrashDuringNavigationPreservesSelectionAndUpdatesTagBadge" time="1.178165">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testViewerDoubleClickReturnsToSamePhotoAndFolder" time="0.577941792">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testViewerDoubleClickReturnsToSamePhotoAndFolder" time="1.009504041">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testViewerHeldZoomDeleteIsSingleEvenWithBrowserMultiSelection" time="0.581530375">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testViewerHeldZoomDeleteIsSingleEvenWithBrowserMultiSelection" time="1.184421958">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll" time="0.988270709">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testViewerRoundTripReusesPreviewAndThumbnailWithoutMovingScroll" time="1.558622375">
 </testcase>
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testViewerStartsAsMaximizedWindowInsideVisibleScreen" time="0.185479625">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testViewerStartsAsMaximizedWindowInsideVisibleScreen" time="0.677730916">
 </testcase>
-<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testAdobeRGBHintUsesOuterExifInteropWhenJPEGHasNoExif" time="0.084538375">
+<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testAdobeRGBHintUsesOuterExifInteropWhenJPEGHasNoExif" time="0.189333125">
 </testcase>
-<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testCFASensorStripIsNotScannedOrSelectedOverCameraPreview" time="0.080324625">
+<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testCFASensorStripIsNotScannedOrSelectedOverCameraPreview" time="0.182413458">
 </testcase>
-<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testCyclicIFDAndOversizedOffsetsAreBounded" time="0.081789375">
+<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testCyclicIFDAndOversizedOffsetsAreBounded" time="0.203094792">
 </testcase>
-<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testEightBitYCbCrJPEGStripRemainsAProcessedPreview" time="0.081134">
+<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testEightBitYCbCrJPEGStripRemainsAProcessedPreview" time="0.17104025">
 </testcase>
-<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testLargestLinkedPreviewWinsOverThumbnailAndPrimaryPreview" time="0.080374208">
+<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testLargestLinkedPreviewWinsOverThumbnailAndPrimaryPreview" time="0.131992375">
 </testcase>
-<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testLosslessBayerAndNonEightBitFramesCannotBecomePreview" time="0.081323625">
+<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testLosslessBayerAndNonEightBitFramesCannotBecomePreview" time="0.157877042">
 </testcase>
-<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testSonyMakerNoteHeaderAnd32BytePreviewPrefix" time="0.075399792">
+<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testSonyMakerNoteHeaderAnd32BytePreviewPrefix" time="0.16204475">
 </testcase>
-<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testTinyOnlyOrTruncatedJPEGIsNeverUsedAsLargePreview" time="0.074726083">
+<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testTinyOnlyOrTruncatedJPEGIsNeverUsedAsLargePreview" time="0.19783125">
 </testcase>
-<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testUnknownLayoutRecoveryFindsLargestCompleteProgressiveJPEG" time="0.074771791">
+<testcase classname="PhotoSelectTests.EmbeddedPreviewTests" name="testUnknownLayoutRecoveryFindsLargestCompleteProgressiveJPEG" time="0.136231792">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testAppleDoubleDestinationCompanionIsNotOverwritten" time="0.091015042">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testAppleDoubleDestinationCompanionIsNotOverwritten" time="0.21486425">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testBatchesOfFourteenOneHundredAndOneThousandFiles" time="21.873139917">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testBatchesOfFourteenOneHundredAndOneThousandFiles" time="40.940616166">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationAfterFirstItemReportsRemainingSources" time="0.142358417">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationAfterFirstItemReportsRemainingSources" time="0.267433084">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationBeforeStartCreatesNothing" time="0.07785375">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationBeforeStartCreatesNothing" time="0.147775916">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationWithinStreamingWriteNeverPublishesPartialFile" time="0.088301042">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationWithinStreamingWriteNeverPublishesPartialFile" time="0.145891875">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCaseAndUnicodeEquivalentNamesAreConservativelyRejected" time="0.082812291">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCaseAndUnicodeEquivalentNamesAreConservativelyRejected" time="0.175955167">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCopyDoesNotTransferAppTagsOrChangeSourceTagDocument" time="0.080328916">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCopyDoesNotTransferAppTagsOrChangeSourceTagDocument" time="0.17795325">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFileNeverOverwritten" time="0.093588084">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFileNeverOverwritten" time="0.115792">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFolderIsNeverMerged" time="0.085427167">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFolderIsNeverMerged" time="0.145612083">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testExtendedAttributesAndResourceForkPreserved" time="0.148185125">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testExtendedAttributesAndResourceForkPreserved" time="0.125493542">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackFolderFailureReportsVerifiedPartialFilesAndFailingChild" time="0.105276959">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackFolderFailureReportsVerifiedPartialFilesAndFailingChild" time="0.195848625">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackRacingExistingFileFailsExclusively" time="0.096734667">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackRacingExistingFileFailsExclusively" time="0.1529095">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedDiskFullDuringWriteDoesNotPublishOrChangeSource" time="0.082434792">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testFolderCopySkipsFinderHousekeepingButExplicitFileCopyPreservesIt" time="0.170332458">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedReadErrorDoesNotPublishOrChangeSource" time="0.088420083">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedDiskFullDuringWriteDoesNotPublishOrChangeSource" time="0.135369542">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testMissingSourceDoesNotPreventLaterSuccessfulCopies" time="0.07994175">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedReadErrorDoesNotPublishOrChangeSource" time="0.150424">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testMixedRawJpegAndDocumentRemainSeparateFiles" time="0.084134">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testMissingSourceDoesNotPreventLaterSuccessfulCopies" time="0.141643042">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedFolderAndPackageContentsCopied" time="0.079028833">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testMixedRawJpegAndDocumentRemainSeparateFiles" time="0.152593625">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedProgressCountsFilesAndFolders" time="0.082967583">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedFolderAndPackageContentsCopied" time="0.141015583">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testNonDirectoryAndMissingDestinationFailWithoutChangingSource" time="0.074577083">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedProgressCountsFilesAndFolders" time="0.178681625">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testRacingExactNameCreationCannotBeOverwrittenAtPublication" time="0.082475167">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testNonDirectoryAndMissingDestinationFailWithoutChangingSource" time="0.139605583">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testRealSonySamplesCopyInBothDirectionsWithoutContentChanges" time="0.513394917">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testRacingExactNameCreationCannotBeOverwrittenAtPublication" time="0.139459083">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testReverseDirectionFromTargetVolumeToInternalFolder" time="0.124953667">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testRealSonySamplesCopyInBothDirectionsWithoutContentChanges" time="0.869624792">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testSameParentAndOwnDescendantAreRejected" time="0.120230208">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testReverseDirectionFromTargetVolumeToInternalFolder" time="0.147520417">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testSingleRawPreservesSourceAndVerifiesCopyBytesAndDate" time="0.41804475">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testSameParentAndOwnDescendantAreRejected" time="0.121698709">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testStaleDestinationTagsClearedWithoutChangingSourceOrSiblingTags" time="0.082012584">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testSingleRawPreservesSourceAndVerifiesCopyBytesAndDate" time="0.545196459">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testStandardFileURLClipboardRoundTrip" time="0.088755208">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testStaleDestinationTagsClearedWithoutChangingSourceOrSiblingTags" time="0.129797625">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testSymlinkAndCycleDoNotTraverse" time="0.075655041">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testStandardFileURLClipboardRoundTrip" time="0.135276167">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback" time="0.088035">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testSymlinkAndCycleDoNotTraverse" time="0.133297167">
 </testcase>
-<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderCopyIncludesSelectedFolderPhotoAndDocument" time="1.357469791">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback" time="0.135000208">
 </testcase>
-<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal" time="1.284070875">
+<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderCopyIncludesSelectedFolderPhotoAndDocument" time="1.517463">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles" time="0.542567417">
+<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal" time="1.872331584">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags" time="0.728844625">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles" time="1.696266958">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess" time="0.111171958">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags" time="0.999430667">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCompatibilityConsentCancelAndActualRename" time="0.47053325">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess" time="0.194680875">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeConcurrentRenamesHaveExactlyOneWinner" time="0.172672458">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCompatibilityConsentCancelAndActualRename" time="0.776521042">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeContentIdentityRecovery" time="0.087593667">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeConcurrentRenamesHaveExactlyOneWinner" time="0.33180575">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCoordinatedProcessRace" time="1.385943208">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeContentIdentityRecovery" time="0.116853042">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeExtendedAttributesAndOrphanSidecarCollision" time="0.131759333">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeCoordinatedProcessRace" time="1.304756041">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRenameCountsTimingAndModificationDates" time="1.535997833">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeExtendedAttributesAndOrphanSidecarCollision" time="0.116598291">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRollbackInterruptedRecoveryAndRemount" time="0.094673375">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRenameCountsTimingAndModificationDates" time="2.530038833">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite" time="0.086803541">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeRollbackInterruptedRecoveryAndRemount" time="0.161865375">
 </testcase>
-<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange" time="0.079040542">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite" time="0.140242917">
 </testcase>
-<testcase classname="PhotoSelectTests.FolderTreeTests" name="testDeniedFolderCanBeExpandedAgainAfterAccessChanges" time="0.304262792">
+<testcase classname="PhotoSelectTests.FilesystemRenameTests" name="testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange" time="0.1208085">
 </testcase>
-<testcase classname="PhotoSelectTests.FolderTreeTests" name="testDesktopShortcutUsesSystemDesktopLocation" time="0.112121625">
+<testcase classname="PhotoSelectTests.FolderTreeTests" name="testDeniedFolderCanBeExpandedAgainAfterAccessChanges" time="0.34727625">
 </testcase>
-<testcase classname="PhotoSelectTests.FolderTreeTests" name="testGeneralEntriesStaySeparateFromPhotoDecodeList" time="0.080728208">
+<testcase classname="PhotoSelectTests.FolderTreeTests" name="testDesktopShortcutUsesSystemDesktopLocation" time="0.167549875">
 </testcase>
-<testcase classname="PhotoSelectTests.FolderTreeTests" name="testHiddenRefreshPreservesExpandedPathAndSelectedFolder" time="0.741555208">
+<testcase classname="PhotoSelectTests.FolderTreeTests" name="testGeneralEntriesStaySeparateFromPhotoDecodeList" time="0.148715209">
 </testcase>
-<testcase classname="PhotoSelectTests.FolderTreeTests" name="testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter" time="0.469960166">
+<testcase classname="PhotoSelectTests.FolderTreeTests" name="testHiddenRefreshPreservesExpandedPathAndSelectedFolder" time="0.481757208">
 </testcase>
-<testcase classname="PhotoSelectTests.FolderTreeTests" name="testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter" time="0.305540583">
+<testcase classname="PhotoSelectTests.FolderTreeTests" name="testLargeMixedDirectoryUsesLazyWorkerEnumerationAndPhotoFilter" time="0.655480334">
 </testcase>
-<testcase classname="PhotoSelectTests.FolderTreeTests" name="testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache" time="0.392567667">
+<testcase classname="PhotoSelectTests.FolderTreeTests" name="testNativeDisclosureExpandsWithoutSelectingAndHasVisibleGutter" time="0.407820667">
 </testcase>
-<testcase classname="PhotoSelectTests.FolderTreeTests" name="testSelectingCachedFolderRevealsCollapsedAncestors" time="0.121489583">
+<testcase classname="PhotoSelectTests.FolderTreeTests" name="testReauthorizingSameFolderReplacesGrantAndReloadsDeniedCache" time="0.454645375">
 </testcase>
-<testcase classname="PhotoSelectTests.FolderTreeTests" name="testUserSelectionDuringRefreshOverridesPendingRestoration" time="0.217569958">
+<testcase classname="PhotoSelectTests.FolderTreeTests" name="testSelectingCachedFolderRevealsCollapsedAncestors" time="0.198827292">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testAllEightJPEGOrientationsMatchImageIOReferenceGeometry" time="0.096726417">
+<testcase classname="PhotoSelectTests.FolderTreeTests" name="testUserSelectionDuringRefreshOverridesPendingRestoration" time="0.500291291">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testARWUsesSameNativeJPEGForDisplayZoomAndThumbnailColor" time="0.114975791">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testAllEightJPEGOrientationsMatchImageIOReferenceGeometry" time="0.2013815">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testCancelledQueuedThumbnailDoesNotDecodeBehindVisibleRequests" time="0.343337209">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testARWUsesSameNativeJPEGForDisplayZoomAndThumbnailColor" time="0.360277917">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testClearRejectsFinishedOldWorkAndDoesNotRepopulateCache" time="0.524302208">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testCancelledQueuedThumbnailDoesNotDecodeBehindVisibleRequests" time="0.460845875">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testEmbeddedICCOverridesContradictoryOuterColorHint" time="0.157564458">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testClearRejectsFinishedOldWorkAndDoesNotRepopulateCache" time="0.625695125">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testJPEGDisplayAndZoomNeverReplaceWithAnotherResolution" time="0.114370459">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testEmbeddedICCOverridesContradictoryOuterColorHint" time="0.325168166">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testMemoryPressureKeepsSelectedBitmapAndActiveForegroundCompletion" time="0.078490625">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testJPEGDisplayAndZoomNeverReplaceWithAnotherResolution" time="0.235268291">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testOuterAdobeRGBHintIsAppliedBeforeConsistentSRGBConversion" time="0.1359175">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testMemoryPressureKeepsSelectedBitmapAndActiveForegroundCompletion" time="0.142320583">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testPinnedCurrentAndNeighborsUseBoundedLRUWithoutDiscardingSelectedBitmap" time="0.076227833">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testOuterAdobeRGBHintIsAppliedBeforeConsistentSRGBConversion" time="0.252012375">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testPrefetchForegroundAndFullRequestsCoalesceWithIndependentCancellation" time="0.074266417">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testPinnedCurrentAndNeighborsUseBoundedLRUWithoutDiscardingSelectedBitmap" time="0.146708791">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testRealSonyA7M3PortraitAdobeRGBPreviewIsStableAndHonest" time="0.142932125">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testPrefetchForegroundAndFullRequestsCoalesceWithIndependentCancellation" time="0.130391875">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testRealSonyA7M4FullSizeCameraJPEGIsStableAndColorManaged" time="0.384573792">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testRealSonyA7M3PortraitAdobeRGBPreviewIsStableAndHonest" time="0.238557333">
 </testcase>
-<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testSimultaneousCacheKeySwapKeepsDecodedPixelsAndPressureBudgetIsPersistent" time="0.081703209">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testRealSonyA7M4FullSizeCameraJPEGIsStableAndColorManaged" time="0.599070417">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testCorruptTagMetadataIsPreserved" time="0.069207958">
+<testcase classname="PhotoSelectTests.ImagePipelineTests" name="testSimultaneousCacheKeySwapKeepsDecodedPixelsAndPressureBudgetIsPersistent" time="0.1454085">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testDeletingAnotherPhotoPreservesSelectionAndIndependentPair" time="0.088265959">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testCorruptTagMetadataIsPreserved" time="0.152699834">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor" time="0.086434334">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testDeletingAnotherPhotoPreservesSelectionAndIndependentPair" time="0.110452667">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testImmediateFinishPersistsTagsAndUntaggingAcrossSessions" time="0.077528834">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testDeletingSelectedMiddleLastAndOnlyPhotoChoosesNeighbor" time="0.113710792">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testJSBrandingReadsUnchangedV053TagDocument" time="0.073650334">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testImmediateFinishPersistsTagsAndUntaggingAcrossSessions" time="0.117128">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testNativeMacOSTrashReturnsRecoverableFixture" time="0.084438417">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testJSBrandingReadsUnchangedV053TagDocument" time="0.108114625">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testRapidTagTogglesSerializeAndEndUntagged" time="0.080418208">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testNativeMacOSTrashReturnsRecoverableFixture" time="0.134071834">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTagSurvivesReloadAndDoesNotChangeRawOrJpeg" time="0.069983041">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testRapidTagTogglesSerializeAndEndUntagged" time="0.109049125">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTagWriteFailureIsReported" time="0.078692708">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTagSurvivesReloadAndDoesNotChangeRawOrJpeg" time="0.106657167">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting" time="0.079864">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTagWriteFailureIsReported" time="0.09218725">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTrashFailureKeepsSourceAndHasNoDeleteFallback" time="0.082127541">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTrashErrorsExplainUnsupportedReadOnlyMissingAndPermissionWithoutDeleting" time="0.125998375">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTrashMovesOnlyRequestedFileAndKeepsPair" time="0.080098333">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTrashFailureKeepsSourceAndHasNoDeleteFallback" time="0.099984208">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTrashReceiptCapturesDestinationAndExternalSpaceGuidance" time="0.080021">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTrashMovesOnlyRequestedFileAndKeepsPair" time="0.10175825">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testClickZoomAllPercentagesAcrossDisplayScales" time="0.0775615">
+<testcase classname="PhotoSelectTests.PhotoActionsTests" name="testTrashReceiptCapturesDestinationAndExternalSpaceGuidance" time="0.112337958">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testClickZoomSessionResetsAtLaunchAndRejectsInvalidValues" time="0.081767">
+<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testClickZoomAllPercentagesAcrossDisplayScales" time="0.10870025">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testCorruptImageReturnsFailure" time="0.084681791">
+<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testClickZoomSessionResetsAtLaunchAndRejectsInvalidValues" time="0.1156485">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testExtensionsAndRawJpegPair" time="0.076183375">
+<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testCorruptImageReturnsFailure" time="0.100798167">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testFolderEnumerationIsNonRecursiveAndKeepsPairs" time="0.082085709">
+<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testExtensionsAndRawJpegPair" time="0.084410208">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testRetinaOneSourcePixelPerPhysicalPixel" time="0.082135791">
+<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testFolderEnumerationIsNonRecursiveAndKeepsPairs" time="0.111827792">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testZoomEdgesNeverRevealEmptySpaceForLargeImage" time="0.082045625">
+<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testRetinaOneSourcePixelPerPhysicalPixel" time="0.116275208">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testEXIFOriginalDateHasPriorityAndMissingDateHasNoFilesystemFallback" time="0.095535292">
+<testcase classname="PhotoSelectTests.PhotoSelectTests" name="testZoomEdgesNeverRevealEmptySpaceForLargeImage" time="0.105116792">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testMetadataCacheSurvivesRenameAndInvalidatesChangedBytes" time="0.0770485">
+<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testEXIFOriginalDateHasPriorityAndMissingDateHasNoFilesystemFallback" time="0.131776125">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testNaturalNameDirectionsAndSwitchResetsAscending" time="0.066570125">
+<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testMetadataCacheSurvivesRenameAndInvalidatesChangedBytes" time="0.117873042">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testRealSonyARWCaptureMetadata" time="0.127643">
+<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testNaturalNameDirectionsAndSwitchResetsAscending" time="0.122293167">
 </testcase>
-<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testThreeThousandPhotoDateSizeTiesUnknownDatesAndNonPhotos" time="0.190790875">
+<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testRealSonyARWCaptureMetadata" time="0.200012708">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testDeactivationCancelsPendingZoom" time="0.702559958">
+<testcase classname="PhotoSelectTests.PhotoSortingTests" name="testThreeThousandPhotoDateSizeTiesUnknownDatesAndNonPhotos" time="0.304600792">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat" time="0.746577125">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testDeactivationCancelsPendingZoom" time="0.927460625">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer" time="0.100708667">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testDeleteAndTagDoNotResetHeldZoomAndIgnoreKeyRepeat" time="0.771755">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testEscapeCancelsPendingZoomBeforeClosing" time="0.772058167">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testDraggingCommitsZoomImmediatelyWithoutWaitingForTimer" time="0.141187">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testEscapeStillResetsZoomAndCloses" time="0.601659542">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testEscapeCancelsPendingZoomBeforeClosing" time="0.79296775">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testEverySavedZoomRendersAtSelectedSizeAndSurvivesDeleteAndNavigation" time="0.099449708">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testEscapeStillResetsZoomAndCloses" time="0.804956916">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements" time="0.706094833">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testEverySavedZoomRendersAtSelectedSizeAndSurvivesDeleteAndNavigation" time="0.20022025">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testHeldPlusMinusChangesZoomWithoutInterruptingInspection" time="0.1248545">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testHeldMouseKeepsZoomAcrossRepeatedArrowsAndRawJpegReplacements" time="0.796416375">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testLimitedRawFitDoesNotUpscaleAndJpegFitKeepsExistingBehavior" time="0.087645625">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testHeldPlusMinusChangesZoomWithoutInterruptingInspection" time="0.196648833">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testPressAndReleaseStillSwitchBetweenZoomAndFit" time="0.70643">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testLimitedRawFitDoesNotUpscaleAndJpegFitKeepsExistingBehavior" time="0.167122167">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testQuickDoubleClickClosesWithoutEverStartingZoom" time="0.793433875">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testPressAndReleaseStillSwitchBetweenZoomAndFit" time="0.842213375">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit" time="0.745972875">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testQuickDoubleClickClosesWithoutEverStartingZoom" time="0.733372333">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testShortClickReleaseDoesNotCauseDelayedZoom" time="0.728397917">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testReleaseBeforeAsyncPreviewAndFullImageArriveStaysInFit" time="0.779082709">
 </testcase>
-<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testZoomUsesActualDecodedPixelsEvenWhenRawMetadataIsLarger" time="0.081874083">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testShortClickReleaseDoesNotCauseDelayedZoom" time="0.774610875">
 </testcase>
-<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas" time="0.074179042">
+<testcase classname="PhotoSelectTests.ViewerInteractionTests" name="testZoomUsesActualDecodedPixelsEvenWhenRawMetadataIsLarger" time="0.15866975">
 </testcase>
-<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testMinimumSizesNeverForceWindowOutsideSmallDisplay" time="0.074554666">
+<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testInitialWindowsFitSmallRetinaAndMultipleDisplayAreas" time="0.1376515">
 </testcase>
-<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testMovedOrDisconnectedDisplayFrameFitsNewScreen" time="0.073612708">
+<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testMinimumSizesNeverForceWindowOutsideSmallDisplay" time="0.116166125">
 </testcase>
-<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testPhotoGridGetsMostWidthAndPreviewHasBoundedSize" time="0.072261542">
+<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testMovedOrDisconnectedDisplayFrameFitsNewScreen" time="0.116001792">
 </testcase>
-<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testUserSidebarWidthCanGrowAndSurvivesResize" time="0.073175459">
+<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testPhotoGridGetsMostWidthAndPreviewHasBoundedSize" time="0.128706583">
 </testcase>
-<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt" time="0.075632">
+<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testUserSidebarWidthCanGrowAndSurvivesResize" time="0.14568275">
+</testcase>
+<testcase classname="PhotoSelectTests.WindowLayoutTests" name="testViewerFillsVisibleAreaAndScreenNotificationsDoNotShrinkIt" time="0.135931625">
 </testcase>
 </testsuite>
 </testsuites>
