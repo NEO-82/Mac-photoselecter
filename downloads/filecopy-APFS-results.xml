@@ -1,62 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <testsuites>
-<testsuite name="TestResults" errors="0" tests="28" failures="0" time="29.269417458">
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testAppleDoubleDestinationCompanionIsNotOverwritten" time="0.08530875">
+<testsuite name="TestResults" errors="0" tests="29" failures="0" time="36.243326543999984">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testAppleDoubleDestinationCompanionIsNotOverwritten" time="0.108597667">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testBatchesOfFourteenOneHundredAndOneThousandFiles" time="26.111191042">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testBatchesOfFourteenOneHundredAndOneThousandFiles" time="30.880697084">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationAfterFirstItemReportsRemainingSources" time="0.196315125">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationAfterFirstItemReportsRemainingSources" time="0.196659792">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationBeforeStartCreatesNothing" time="0.079475083">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationBeforeStartCreatesNothing" time="0.094458708">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationWithinStreamingWriteNeverPublishesPartialFile" time="0.078725292">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationWithinStreamingWriteNeverPublishesPartialFile" time="0.10455025">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCaseAndUnicodeEquivalentNamesAreConservativelyRejected" time="0.073611208">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCaseAndUnicodeEquivalentNamesAreConservativelyRejected" time="0.113972667">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCopyDoesNotTransferAppTagsOrChangeSourceTagDocument" time="0.080263042">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCopyDoesNotTransferAppTagsOrChangeSourceTagDocument" time="0.11969025">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFileNeverOverwritten" time="0.072913458">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFileNeverOverwritten" time="0.1477675">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFolderIsNeverMerged" time="0.075135333">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFolderIsNeverMerged" time="0.130952291">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testExtendedAttributesAndResourceForkPreserved" time="0.076327709">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testExtendedAttributesAndResourceForkPreserved" time="0.14375125">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackFolderFailureReportsVerifiedPartialFilesAndFailingChild" time="0.093064708">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackFolderFailureReportsVerifiedPartialFilesAndFailingChild" time="0.121710583">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackRacingExistingFileFailsExclusively" time="0.081270958">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackRacingExistingFileFailsExclusively" time="0.133715166">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedDiskFullDuringWriteDoesNotPublishOrChangeSource" time="0.0803095">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testFolderCopySkipsFinderHousekeepingButExplicitFileCopyPreservesIt" time="0.145641416">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedReadErrorDoesNotPublishOrChangeSource" time="0.078846917">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedDiskFullDuringWriteDoesNotPublishOrChangeSource" time="0.160175">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testMissingSourceDoesNotPreventLaterSuccessfulCopies" time="0.082844417">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedReadErrorDoesNotPublishOrChangeSource" time="0.146592709">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testMixedRawJpegAndDocumentRemainSeparateFiles" time="0.084103625">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testMissingSourceDoesNotPreventLaterSuccessfulCopies" time="0.118709375">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedFolderAndPackageContentsCopied" time="0.075654792">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testMixedRawJpegAndDocumentRemainSeparateFiles" time="0.1811155">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedProgressCountsFilesAndFolders" time="0.076209292">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedFolderAndPackageContentsCopied" time="0.11343175">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testNonDirectoryAndMissingDestinationFailWithoutChangingSource" time="0.070033625">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedProgressCountsFilesAndFolders" time="0.108827959">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testRacingExactNameCreationCannotBeOverwrittenAtPublication" time="0.077597875">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testNonDirectoryAndMissingDestinationFailWithoutChangingSource" time="0.098608334">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testRealSonySamplesCopyInBothDirectionsWithoutContentChanges" time="0.538452458">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testRacingExactNameCreationCannotBeOverwrittenAtPublication" time="0.243382583">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testReverseDirectionFromTargetVolumeToInternalFolder" time="0.090769708">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testRealSonySamplesCopyInBothDirectionsWithoutContentChanges" time="1.259820834">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testSameParentAndOwnDescendantAreRejected" time="0.074562791">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testReverseDirectionFromTargetVolumeToInternalFolder" time="0.195179917">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testSingleRawPreservesSourceAndVerifiesCopyBytesAndDate" time="0.447008167">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testSameParentAndOwnDescendantAreRejected" time="0.114447542">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testStaleDestinationTagsClearedWithoutChangingSourceOrSiblingTags" time="0.099571541">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testSingleRawPreservesSourceAndVerifiesCopyBytesAndDate" time="0.640307834">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testStandardFileURLClipboardRoundTrip" time="0.090507042">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testStaleDestinationTagsClearedWithoutChangingSourceOrSiblingTags" time="0.108911125">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testSymlinkAndCycleDoNotTraverse" time="0.08797625">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testStandardFileURLClipboardRoundTrip" time="0.103811375">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback" time="0.11136775">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testSymlinkAndCycleDoNotTraverse" time="0.088942958">
+</testcase>
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback" time="0.118897125">
 </testcase>
 </testsuite>
 </testsuites>

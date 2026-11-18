@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <testsuites>
-<testsuite name="TestResults" errors="0" tests="3" failures="0" time="5.893378167">
-<testcase classname="PhotoSelectTests.BrowserUITests" name="testTagBadgeReturnsAfterClosingAndRecreatingBrowser" time="1.426419958">
+<testsuite name="TestResults" errors="0" tests="3" failures="0" time="5.444006459">
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testTagBadgeReturnsAfterClosingAndRecreatingBrowser" time="1.114630042">
 </testcase>
-<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderCopyIncludesSelectedFolderPhotoAndDocument" time="2.09347125">
+<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderCopyIncludesSelectedFolderPhotoAndDocument" time="2.224015792">
 </testcase>
-<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal" time="2.373486959">
+<testcase classname="PhotoSelectTests.FileTransferUITests" name="testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal" time="2.105360625">
 </testcase>
 </testsuite>
 </testsuites>

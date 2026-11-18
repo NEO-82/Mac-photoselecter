@@ -1,62 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <testsuites>
-<testsuite name="TestResults" errors="0" tests="28" failures="0" time="270.06904637">
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testAppleDoubleDestinationCompanionIsNotOverwritten" time="0.210339458">
+<testsuite name="TestResults" errors="0" tests="29" failures="0" time="266.8530862030001">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testAppleDoubleDestinationCompanionIsNotOverwritten" time="0.19368625">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testBatchesOfFourteenOneHundredAndOneThousandFiles" time="260.998091291">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testBatchesOfFourteenOneHundredAndOneThousandFiles" time="252.439655459">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationAfterFirstItemReportsRemainingSources" time="0.360986791">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationAfterFirstItemReportsRemainingSources" time="1.940802291">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationBeforeStartCreatesNothing" time="0.11688475">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationBeforeStartCreatesNothing" time="0.221292166">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationWithinStreamingWriteNeverPublishesPartialFile" time="0.194928417">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCancellationWithinStreamingWriteNeverPublishesPartialFile" time="0.564367541">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCaseAndUnicodeEquivalentNamesAreConservativelyRejected" time="0.144905625">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCaseAndUnicodeEquivalentNamesAreConservativelyRejected" time="0.3352595">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testCopyDoesNotTransferAppTagsOrChangeSourceTagDocument" time="0.276701208">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testCopyDoesNotTransferAppTagsOrChangeSourceTagDocument" time="0.551958833">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFileNeverOverwritten" time="0.156380417">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFileNeverOverwritten" time="0.184370208">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFolderIsNeverMerged" time="0.206507125">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testExistingFolderIsNeverMerged" time="0.191488625">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testExtendedAttributesAndResourceForkPreserved" time="0.443416916">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testExtendedAttributesAndResourceForkPreserved" time="0.42066725">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackFolderFailureReportsVerifiedPartialFilesAndFailingChild" time="0.568672166">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackFolderFailureReportsVerifiedPartialFilesAndFailingChild" time="0.53601225">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackRacingExistingFileFailsExclusively" time="0.555235333">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testFallbackRacingExistingFileFailsExclusively" time="0.548209959">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedDiskFullDuringWriteDoesNotPublishOrChangeSource" time="0.208045791">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testFolderCopySkipsFinderHousekeepingButExplicitFileCopyPreservesIt" time="0.932074166">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedReadErrorDoesNotPublishOrChangeSource" time="0.21205475">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedDiskFullDuringWriteDoesNotPublishOrChangeSource" time="0.206556541">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testMissingSourceDoesNotPreventLaterSuccessfulCopies" time="0.343041667">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testInjectedReadErrorDoesNotPublishOrChangeSource" time="0.217099791">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testMixedRawJpegAndDocumentRemainSeparateFiles" time="0.679069542">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testMissingSourceDoesNotPreventLaterSuccessfulCopies" time="0.385952625">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedFolderAndPackageContentsCopied" time="0.611506166">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testMixedRawJpegAndDocumentRemainSeparateFiles" time="0.6869245">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedProgressCountsFilesAndFolders" time="0.528811125">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedFolderAndPackageContentsCopied" time="0.707121542">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testNonDirectoryAndMissingDestinationFailWithoutChangingSource" time="0.148346167">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testNestedProgressCountsFilesAndFolders" time="0.605128458">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testRacingExactNameCreationCannotBeOverwrittenAtPublication" time="0.283415541">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testNonDirectoryAndMissingDestinationFailWithoutChangingSource" time="0.229327458">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testRealSonySamplesCopyInBothDirectionsWithoutContentChanges" time="1.234156333">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testRacingExactNameCreationCannotBeOverwrittenAtPublication" time="0.266570291">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testReverseDirectionFromTargetVolumeToInternalFolder" time="0.203091458">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testRealSonySamplesCopyInBothDirectionsWithoutContentChanges" time="2.455440167">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testSameParentAndOwnDescendantAreRejected" time="0.113414583">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testReverseDirectionFromTargetVolumeToInternalFolder" time="0.2193765">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testSingleRawPreservesSourceAndVerifiesCopyBytesAndDate" time="0.620256708">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testSameParentAndOwnDescendantAreRejected" time="0.157542208">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testStaleDestinationTagsClearedWithoutChangingSourceOrSiblingTags" time="0.115903416">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testSingleRawPreservesSourceAndVerifiesCopyBytesAndDate" time="0.750366542">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testStandardFileURLClipboardRoundTrip" time="0.11622075">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testStaleDestinationTagsClearedWithoutChangingSourceOrSiblingTags" time="0.148361416">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testSymlinkAndCycleDoNotTraverse" time="0.130180459">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testStandardFileURLClipboardRoundTrip" time="0.171995083">
 </testcase>
-<testcase classname="PhotoSelectTests.FileCopyTests" name="testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback" time="0.288482417">
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testSymlinkAndCycleDoNotTraverse" time="0.228006875">
+</testcase>
+<testcase classname="PhotoSelectTests.FileCopyTests" name="testUnsupportedExclusiveRenameUsesExclusiveVerifiedCopyFallback" time="0.357471708">
 </testcase>
 </testsuite>
 </testsuites>
