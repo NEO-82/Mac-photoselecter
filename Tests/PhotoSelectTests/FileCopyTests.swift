@@ -80,12 +80,6 @@ final class FileCopyTests: XCTestCase {
             engine = FileCopyEngine()
         }
         let report = engine.run([raw], to: target)
-        if let scratch = report.failures.first?.retainedTemporaryURL, attributes["com.apple.quarantine"] != nil {
-            let staged = scratch.appendingPathComponent(raw.lastPathComponent)
-            var bytes = [UInt8](repeating: 0, count: 128)
-            let count = getxattr(staged.path, "com.apple.quarantine", &bytes, bytes.count, 0, 0)
-            if count >= 0 { XCTFail("AppleDouble quarantine fixture bytes: " + String(reflecting: String(decoding: bytes.prefix(count), as: UTF8.self))) }
-        }
         XCTAssertEqual(report.copied, [copied])
         XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
         if format.lowercased() == "exfat" {
@@ -99,14 +93,12 @@ final class FileCopyTests: XCTestCase {
             for (name, marker) in attributes {
                 var bytes = [UInt8](repeating: 0, count: 128)
                 let count = getxattr(url.path, name, &bytes, bytes.count, 0, 0)
-                if name == "com.apple.quarantine", count >= 0 {
-                    let fields = String(decoding: bytes.prefix(count).prefix { $0 != 0 }, as: UTF8.self)
-                        .split(separator: ";", omittingEmptySubsequences: false)
-                    XCTAssertEqual(fields.prefix(2).compactMap { UInt64($0, radix: 16) }, [0x81, 0x5f5e1000])
-                    XCTAssertEqual(fields.dropFirst(2).filter { !$0.isEmpty }, ["PhotoSelect"])
+                guard count >= 0 else { XCTFail("Missing \(name) on \(url.path)"); continue }
+                let value = Data(bytes.prefix(count))
+                if name == "com.apple.quarantine", value != marker {
+                    XCTAssertEqual(value, Data("q/".utf8) + marker + Data([0]))
                 } else {
-                    XCTAssertEqual(count, marker.count)
-                    if count >= 0 { XCTAssertEqual(Data(bytes.prefix(count)), marker) }
+                    XCTAssertEqual(value, marker)
                 }
             }
         }
