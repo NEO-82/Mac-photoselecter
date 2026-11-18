@@ -568,7 +568,22 @@ final class FileCopyEngine {
         var bytes = Data(count: size)
         let actual = bytes.withUnsafeMutableBytes { fgetxattr(descriptor, name, $0.baseAddress, $0.count, 0, 0) }
         guard actual == size else { throw CopyError("확장 속성이 읽는 동안 변경되었습니다: " + name) }
-        return (size, Data(SHA256.hash(data: bytes)))
+        // COPYFILE_PACK reserializes quarantine records. Compare the record
+        // fields across that serialization and compare all other xattrs as bytes.
+        let contents = name == "com.apple.quarantine" ? canonicalQuarantine(bytes) : bytes
+        return (size, Data(SHA256.hash(data: contents)))
+    }
+
+    private func canonicalQuarantine(_ bytes: Data) -> Data {
+        guard let text = String(data: Data(bytes.dropLast(bytes.reversed().prefix(while: { $0 == 0 }).count)),
+                                encoding: .utf8) else { return bytes }
+        let fields = text.split(separator: ";", omittingEmptySubsequences: false)
+        guard (3...4).contains(fields.count),
+              let flags = UInt32(fields[0], radix: 16),
+              let time = UInt64(fields[1], radix: 16) else { return bytes }
+        let event = fields.count == 4 ? String(fields[3]) : ""
+        let eventID = UUID(uuidString: event)?.uuidString ?? event
+        return Data("\(flags);\(time);\(fields[2]);\(eventID)".utf8)
     }
 
     private func reserveSidecar(for payload: URL) throws -> SidecarReservation {

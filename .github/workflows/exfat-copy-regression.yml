@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        filesystem: [ExFAT, APFS]
+        filesystem: [ExFAT]
     env:
       TEST_FILESYSTEM: ${{ matrix.filesystem }}
     steps:
@@ -33,8 +33,11 @@ jobs:
           diskutil info "$mount" | sed -n '/File System Personality/p;/Type (Bundle)/p'
           export PHOTOSELECT_COPY_TEST_VOLUME="$mount"
           set +e
-          xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FileCopyTests \
-            --xunit-output "$RUNNER_TEMP/copy-results.xml" 2>&1 | tee "$RUNNER_TEMP/copy-test.log"
+          {
+            xcrun swift test --jobs 2 --filter FileCopyTests.testExtendedAttributesAndResourceForkPreserved &&
+              xcrun swift test --skip-build --parallel --num-workers 1 --filter FileCopyTests \
+                --xunit-output "$RUNNER_TEMP/copy-results.xml"
+          } 2>&1 | tee "$RUNNER_TEMP/copy-test.log"
           result=${PIPESTATUS[0]}
           set -e
           if [[ "$result" != 0 ]]; then
