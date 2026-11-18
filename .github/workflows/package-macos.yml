@@ -9,7 +9,7 @@ on:
       version:
         description: 'App version (e.g. 0.1.0)'
         required: true
-        default: '0.7.7'
+        default: '0.7.8'
         type: string
       runner:
         description: 'macOS runner (auto uses the previously verified xcode-27 Apple Silicon image)'
@@ -26,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PHOTOSELECT_VERSION: ${{ inputs.version || '0.7.7' }}
+  PHOTOSELECT_VERSION: ${{ inputs.version || '0.7.8' }}
   PHOTOSELECT_BUILD_NUMBER: ${{ github.run_number }}
   PHOTOSELECT_UI_SNAPSHOT_PATH: .build/browser-layout.png
 
