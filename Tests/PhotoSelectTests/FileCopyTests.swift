@@ -51,7 +51,9 @@ final class FileCopyTests: XCTestCase {
         }
         let report = FileCopyEngine().run([raw], to: target)
         XCTAssertEqual(report.copied.count, 1); XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
-        for url in [raw, target.appendingPathComponent("metadata.ARW")] {
+        let copied = target.appendingPathComponent("metadata.ARW")
+        XCTAssertEqual(SHA256.hash(data: try Data(contentsOf: raw)), SHA256.hash(data: try Data(contentsOf: copied)))
+        for url in [raw, copied] {
             for name in ["dev.photoselect.copy-test", "com.apple.ResourceFork"] {
                 var bytes = [UInt8](repeating: 0, count: 128)
                 let count = getxattr(url.path, name, &bytes, bytes.count, 0, 0)
@@ -247,6 +249,8 @@ final class FileCopyTests: XCTestCase {
         let report = engine.run([raw], to: target)
         XCTAssertEqual(report.failures.count, 1); XCTAssertTrue(report.copied.isEmpty)
         XCTAssertTrue(report.createdTargets.isEmpty)
+        XCTAssertTrue(report.failures.first?.message.contains("renamex_np(RENAME_EXCL)") == true)
+        XCTAssertTrue(report.failures.first?.message.contains("NSPOSIXErrorDomain \(EEXIST)") == true)
         XCTAssertEqual(try Data(contentsOf: target.appendingPathComponent("DSC.ARW")), bytes)
         XCTAssertEqual(try Data(contentsOf: raw), Data("original bytes".utf8))
     }
@@ -258,16 +262,22 @@ final class FileCopyTests: XCTestCase {
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: target.path), ["DSC.ARW"])
     }
     func testFallbackRacingExistingFileFailsExclusively() throws {
-        let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
-        let bytes = Data("concurrent writer".utf8)
-        let engine = FileCopyEngine(publish: { _, final in
-            try bytes.write(to: final, options: .withoutOverwriting)
-            throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP))
-        })
-        let report = engine.run([raw], to: target)
-        XCTAssertTrue(report.copied.isEmpty); XCTAssertEqual(report.failures.count, 1)
-        XCTAssertTrue(report.createdTargets.isEmpty)
-        XCTAssertEqual(try Data(contentsOf: target.appendingPathComponent("DSC.ARW")), bytes)
+        for name in ["DSC.ARW", "._DSC.ARW"] {
+            let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
+            let bytes = Data("concurrent writer".utf8)
+            let collision = target.appendingPathComponent(name)
+            let engine = FileCopyEngine(publish: { _, _ in
+                try bytes.write(to: collision, options: .withoutOverwriting)
+                throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP))
+            })
+            let report = engine.run([raw], to: target)
+            XCTAssertTrue(report.copied.isEmpty); XCTAssertEqual(report.failures.count, 1)
+            XCTAssertTrue(report.createdTargets.isEmpty)
+            XCTAssertEqual(try Data(contentsOf: collision), bytes)
+            if name.hasPrefix("._") {
+                XCTAssertFalse(FileManager.default.fileExists(atPath: target.appendingPathComponent("DSC.ARW").path))
+            }
+        }
     }
     func testMissingSourceDoesNotPreventLaterSuccessfulCopies() throws {
         let (source, target) = try folders(), raw = try file(source, "DSC.ARW")
