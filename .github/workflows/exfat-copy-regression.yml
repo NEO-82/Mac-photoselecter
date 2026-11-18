@@ -1,0 +1,28 @@
+name: ExFAT copy regression (test only)
+on:
+  push:
+    branches: [codex/exfat-copy-regression]
+permissions:
+  contents: read
+jobs:
+  copy:
+    runs-on: xcode-27
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch pinned Sony ARW fixtures
+        run: |
+          export PHOTOSELECT_ARW_SAMPLE_DIRECTORY="$RUNNER_TEMP/photoselect-raw-samples"
+          printf 'PHOTOSELECT_ARW_SAMPLE_DIRECTORY=%s\n' "$PHOTOSELECT_ARW_SAMPLE_DIRECTORY" >> "$GITHUB_ENV"
+          bash scripts/fetch-raw-test-samples.sh
+      - name: Test mounted macOS filesystems
+        run: |
+          set -o pipefail
+          bash scripts/probe-rename-filesystems.sh 2>&1 | tee "$RUNNER_TEMP/filecopy-regression.log"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exfat-copy-regression-evidence
+          path: |
+            ${{ runner.temp }}/filecopy-regression.log
+            .build/*results.xml
