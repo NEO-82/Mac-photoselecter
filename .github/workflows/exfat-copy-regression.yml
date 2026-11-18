@@ -19,38 +19,66 @@ jobs:
           hdiutil attach -nobrowse -mountpoint "$mount" "$base/probe.sparseimage"
           trap 'hdiutil detach "$mount"' EXIT
           diskutil info "$mount" | sed -n '/File System Personality/p;/Type (Bundle)/p'
-          xcrun swift - "$mount" <<'SWIFT'
+          app="$base/Probe.app"
+          mkdir -p "$app/Contents/MacOS"
+          cat > "$app/Contents/Info.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+          <key>CFBundleIdentifier</key><string>dev.photoselect.mkdir-probe</string>
+          <key>CFBundleExecutable</key><string>Probe</string>
+          <key>CFBundlePackageType</key><string>APPL</string>
+          <key>LSFileQuarantineEnabled</key><true/>
+          </dict></plist>
+          PLIST
+          cat > "$base/main.swift" <<'SWIFT'
           import Foundation
           import Darwin
           let root = URL(fileURLWithPath: CommandLine.arguments[1])
-          let marker = Data("0081;5f5e1000;PhotoSelectProbe;".utf8)
-          for name in ["plain", "reserved"] {
+          let log = URL(fileURLWithPath: CommandLine.arguments[2])
+          let prototype = log.deletingLastPathComponent().appendingPathComponent("prototype")
+          try FileManager.default.createDirectory(at: prototype, withIntermediateDirectories: false)
+          let marker = Data("mkdir probe metadata".utf8)
+          precondition(marker.withUnsafeBytes {
+              setxattr(prototype.path, "dev.photoselect.probe", $0.baseAddress, $0.count, 0, XATTR_CREATE)
+          } == 0)
+          let source = open(prototype.path, O_RDONLY | O_DIRECTORY)
+          precondition(source >= 0)
+          var messages: [String] = []
+          for name in ["plain", "prefilled"] {
               let dir = root.appendingPathComponent(name)
               let sidecar = root.appendingPathComponent("._" + name)
-              let fd = name == "reserved" ? open(sidecar.path, O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600) : -1
-              if name == "reserved" { precondition(fd >= 0) }
-              func observe(_ event: String) {
+              let fd = name == "prefilled" ? open(sidecar.path, O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600) : -1
+              if name == "prefilled" {
+                  precondition(fd >= 0)
+                  precondition(fcopyfile(source, fd, nil, copyfile_flags_t(COPYFILE_METADATA | COPYFILE_PACK)) == 0)
+                  precondition(fsync(fd) == 0)
+              }
+              func observe(_ phase: String) {
                   var named = stat(), held = stat()
-                  let present = lstat(sidecar.path, &named) == 0
-                  let owned = fd >= 0 && fstat(fd, &held) == 0 && present &&
+                  let found = lstat(sidecar.path, &named) == 0
+                  let owned = fd >= 0 && fstat(fd, &held) == 0 && found &&
                       held.st_ino == named.st_ino && held.st_dev == named.st_dev
-                  print("::notice::\(name) \(event) appleDouble=\(present) owned=\(owned) size=\(present ? named.st_size : -1)")
+                  let quarantine = getxattr(dir.path, "com.apple.quarantine", nil, 0, 0, 0)
+                  let custom = getxattr(dir.path, "dev.photoselect.probe", nil, 0, 0, 0)
+                  messages.append("\(log.lastPathComponent) \(name) \(phase) found=\(found) owned=\(owned) size=\(found ? named.st_size : -1) quarantine=\(quarantine) custom=\(custom)")
               }
               observe("before mkdir")
-              precondition(mkdir(dir.path, 0o700) == 0)
-              observe("immediately after mkdir")
-              var info = stat()
-              precondition(lstat(dir.path, &info) == 0)
-              observe("after directory lstat")
-              let directory = open(dir.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW)
-              precondition(directory >= 0)
-              observe("after directory open")
-              let result = marker.withUnsafeBytes {
-                  fsetxattr(directory, "com.apple.quarantine", $0.baseAddress, $0.count, 0, XATTR_CREATE)
-              }
+              let result = mkdir(dir.path, 0o700)
               let code = result == 0 ? 0 : errno
-              observe("after fsetxattr quarantine result=\(result) errno=\(code)")
-              close(directory)
+              observe("after mkdir result=\(result) errno=\(code)")
               if fd >= 0 { close(fd) }
           }
+          try messages.joined(separator: "\n").write(to: log, atomically: true, encoding: .utf8)
           SWIFT
+          xcrun swiftc "$base/main.swift" -o "$app/Contents/MacOS/Probe"
+          codesign --force --sign - "$app"
+          mkdir "$mount/direct" "$mount/launch-services" "$base/direct" "$base/launch-services"
+          "$app/Contents/MacOS/Probe" "$mount/direct" "$base/direct/direct.log"
+          open -n -W -a "$app" --args "$mount/launch-services" "$base/launch-services/launch-services.log"
+          if [[ -f "$base/launch-services/launch-services.log" ]]; then
+            cat "$base/launch-services/launch-services.log" >> "$base/direct/direct.log"
+          else
+            echo "Launch Services probe did not produce an output" >> "$base/direct/direct.log"
+          fi
+          while IFS= read -r line || [[ -n "$line" ]]; do echo "::notice::$line"; done < "$base/direct/direct.log"
