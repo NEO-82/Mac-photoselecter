@@ -356,18 +356,19 @@ final class FileCopyEngine {
             throw CopyError("심볼릭 링크와 특수 파일은 복사하지 않습니다: " + source.path)
         }
         let stagedSidecar = temporaryStorage ? nil : sidecars?.byPayloadPath[source.path]
-        // Reserve the companion before the payload becomes visible. On a race
-        // at the payload name, the reservation remains empty and untouched.
-        let reservation = try stagedSidecar.map { _ in try reserveSidecar(for: destination) }
-        func creationError(_ operation: String) -> CopyError {
-            let error = operationError(operation, at: destination)
-            guard let reservation else { return error }
-            return CopyError(error.message + "\n확보한 빈 AppleDouble: " + reservation.url.path, underlying: error)
+        if stagedSidecar != nil {
+            let companion = sidecarURL(for: destination)
+            var info = stat()
+            guard lstat(companion.path, &info) != 0 else {
+                throw operationError("AppleDouble 이름 충돌(기존 보조 파일 보존)", at: companion, underlying: posixError(EEXIST))
+            }
+            guard errno == ENOENT else { throw operationError("lstat(AppleDouble)", at: companion) }
         }
         if type == .typeDirectory {
-            guard mkdir(destination.path, 0o700) == 0 else { throw creationError("mkdir") }
+            guard mkdir(destination.path, 0o700) == 0 else { throw operationError("mkdir", at: destination) }
             onCreated()
             onTemporaryCreated(destination, nil)
+            let reservation = try preparePublishedSidecar(stagedSidecar, for: destination, cancellation: cancellation)
             let children = try folderChildren(source)
             var keys = Set<String>()
             let names = Set(children.map(\.lastPathComponent))
@@ -402,7 +403,7 @@ final class FileCopyEngine {
             var before = stat()
             guard fstat(input, &before) == 0, (before.st_mode & S_IFMT) == S_IFREG else { throw CopyError("원본 파일 유형이 변경되었습니다.") }
             let output = open(destination.path, O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
-            guard output >= 0 else { throw creationError("open(대상)") }
+            guard output >= 0 else { throw operationError("open(대상)", at: destination) }
             onCreated()
             onTemporaryCreated(destination, output)
             var transferError: Error?
@@ -418,6 +419,9 @@ final class FileCopyEngine {
                 close(output)
             }
             do {
+                // Darwin can discard an orphan AppleDouble when the base file
+                // is created. Reserve and fill it before streaming the payload.
+                let reservation = try preparePublishedSidecar(stagedSidecar, for: destination, cancellation: cancellation)
                 let transferred = try stream(input, to: output, source: source, destination: destination,
                                              cancellation: cancellation, onBytes: onBytes)
                 guard fsync(output) == 0 else { throw operationError("fsync(대상)", at: destination) }
@@ -528,7 +532,6 @@ final class FileCopyEngine {
                 sidecars.byPayloadPath[destination.path] = try packedMetadata(input, to: output, source: source,
                     destination: destination, cancellation: cancellation, onTemporaryCreated: onTemporaryCreated)
             } else if let reservation, let staged = sidecars.byPayloadPath[source.path] {
-                try publishSidecar(staged, to: reservation, cancellation: cancellation)
                 try copyStatMetadata(input, to: output, destination: destination)
                 try verifySidecar(reservation, expected: staged, payload: destination, descriptor: output,
                                   cancellation: cancellation)
@@ -576,8 +579,12 @@ final class FileCopyEngine {
         return (size, Data(SHA256.hash(data: bytes)))
     }
 
+    private func sidecarURL(for payload: URL) -> URL {
+        payload.deletingLastPathComponent().appendingPathComponent("._" + payload.lastPathComponent)
+    }
+
     private func reserveSidecar(for payload: URL) throws -> SidecarReservation {
-        let sidecar = payload.deletingLastPathComponent().appendingPathComponent("._" + payload.lastPathComponent)
+        let sidecar = sidecarURL(for: payload)
         let descriptor = open(sidecar.path, O_RDWR | O_CREAT | O_EXCL | O_NOFOLLOW, 0o600)
         guard descriptor >= 0 else {
             let code = errno
@@ -594,9 +601,11 @@ final class FileCopyEngine {
         return item
     }
 
-    private func publishSidecar(_ staged: PackedSidecar, to reservation: SidecarReservation,
-                                cancellation: FileCopyCancellation) throws {
+    private func preparePublishedSidecar(_ staged: PackedSidecar?, for payload: URL,
+                                         cancellation: FileCopyCancellation) throws -> SidecarReservation? {
+        guard let staged else { return nil }
         try cancellation.check()
+        let reservation = try reserveSidecar(for: payload)
         let path = staged.url
         let input = open(path.path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK)
         guard input >= 0 else { throw operationError("open(임시 AppleDouble)", at: path) }
@@ -618,6 +627,7 @@ final class FileCopyEngine {
             throw CopyError("검증된 임시 AppleDouble의 SHA-256이 변경되었습니다: " + path.path)
         }
         guard fsync(destination) == 0 else { throw operationError("fsync(AppleDouble)", at: reservation.url) }
+        return reservation
     }
 
     private func verifyAttributes(_ expected: [String: Data], on output: Int32, at destination: URL,

@@ -83,7 +83,7 @@ final class FileCopyTests: XCTestCase {
         XCTAssertEqual(report.copied, [copied])
         XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
         if format.lowercased() == "exfat" {
-            XCTAssertEqual(competingCreateError, EEXIST, "The AppleDouble name must be reserved before publishing the photo.")
+            XCTAssertEqual(competingCreateError, EEXIST, "The AppleDouble name must be reserved before writing the photo.")
         }
         XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: target.path).contains {
             $0.hasPrefix(".photoselect-copy-")
