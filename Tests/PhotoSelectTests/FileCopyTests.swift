@@ -5,7 +5,7 @@ import XCTest
 @testable import PhotoSelect
 
 final class FileCopyTests: XCTestCase {
-    private let folderAttribute = "dev.photoselect.folder-copy-test"
+    private let copyAttribute = "dev.photoselect.tree-copy-test"
 
     private func folders() throws -> (URL, URL) {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -24,7 +24,7 @@ final class FileCopyTests: XCTestCase {
     private func unsupportedPublisher() -> FileCopyEngine {
         FileCopyEngine(publish: { _, _ in throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOTSUP)) })
     }
-    private func usesExFAT(_ volume: URL) throws -> Bool {
+    private func fileSystemName(_ volume: URL) throws -> String {
         var filesystem = statfs()
         guard statfs(volume.path, &filesystem) == 0 else {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
@@ -32,17 +32,20 @@ final class FileCopyTests: XCTestCase {
         let format = withUnsafeBytes(of: &filesystem.f_fstypename) { bytes in
             String(decoding: bytes.prefix { $0 != 0 }, as: UTF8.self)
         }
-        return format.lowercased() == "exfat"
+        return format.lowercased()
     }
-    private func setFolderMetadata(_ marker: Data, on folder: URL) throws {
+    private func usesExFAT(_ volume: URL) throws -> Bool {
+        try fileSystemName(volume) == "exfat"
+    }
+    private func setCopyMetadata(_ marker: Data, on item: URL) throws {
         let result = marker.withUnsafeBytes {
-            setxattr(folder.path, folderAttribute, $0.baseAddress, $0.count, 0, 0)
+            setxattr(item.path, copyAttribute, $0.baseAddress, $0.count, 0, 0)
         }
         guard result == 0 else { throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno)) }
     }
-    private func folderMetadata(_ folder: URL) throws -> Data {
+    private func copyMetadata(_ item: URL) throws -> Data {
         var bytes = [UInt8](repeating: 0, count: 128)
-        let size = getxattr(folder.path, folderAttribute, &bytes, bytes.count, 0, 0)
+        let size = getxattr(item.path, copyAttribute, &bytes, bytes.count, 0, 0)
         guard size >= 0 else { throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno)) }
         return Data(bytes.prefix(size))
     }
@@ -154,60 +157,98 @@ final class FileCopyTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: nested.appendingPathComponent("image.JPG")),
                        try Data(contentsOf: target.appendingPathComponent("Album.bundle/a/b/image.JPG")))
     }
-    func testEmptyPhotoAndNestedFoldersPreserveMetadataAndContent() throws {
+    func testPhotosAndFolderTreesPreserveMetadataAndContentAcrossVolumes() throws {
         let (source, target) = try folders()
-        let empty = source.appendingPathComponent("빈 폴더")
-        let album = source.appendingPathComponent("무제 폴더")
-        let collection = source.appendingPathComponent("앨범 모음")
-        let nested = collection.appendingPathComponent("중첩 폴더")
-        let sourceFolders = [empty, album, collection, nested]
-        for folder in sourceFolders {
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
-            try setFolderMetadata(Data(folder.lastPathComponent.utf8), on: folder)
+        let folders = ["빈 폴더", "무제 폴더", "앨범 모음", "앨범 모음/A", "앨범 모음/B", "앨범 모음/B/하위 폴더"]
+        let photos = ["batch.ARW", "batch.JPG", "무제 폴더/image.ARW", "무제 폴더/image.JPG",
+                      "앨범 모음/A/nested.ARW", "앨범 모음/B/하위 폴더/nested.JPG"]
+        let selections = [Array(photos.prefix(2)), ["빈 폴더"], ["무제 폴더"], ["앨범 모음"]]
+        for path in folders {
+            try FileManager.default.createDirectory(at: source.appendingPathComponent(path), withIntermediateDirectories: false)
         }
-        let raw = try file(album, "image.ARW", data: Data(repeating: 41, count: 2 * 1024 * 1024))
-        let jpg = try file(album, "image.JPG")
-        let nestedPhoto = try file(nested, "nested.ARW")
+        var expectedDigests: [String: SHA256.Digest] = [:]
+        for (index, path) in photos.enumerated() {
+            let data = Data(repeating: UInt8(index + 1), count: index == 0 ? 2 * 1024 * 1024 : 1024)
+            try data.write(to: source.appendingPathComponent(path))
+            expectedDigests[path] = SHA256.hash(data: data)
+        }
         let date = Date(timeIntervalSince1970: 1_600_000_000)
-        for folder in sourceFolders {
-            try FileManager.default.setAttributes([.modificationDate: date], ofItemAtPath: folder.path)
+        let paths = folders + photos
+        for path in paths {
+            let item = source.appendingPathComponent(path)
+            try setCopyMetadata(Data(path.utf8), on: item)
+            try FileManager.default.setAttributes([.modificationDate: date], ofItemAtPath: item.path)
         }
-        let expectedDigests = try [raw, jpg, nestedPhoto].map { SHA256.hash(data: try Data(contentsOf: $0)) }
-        let report = FileCopyEngine().run([empty, album, collection], to: target)
 
-        let copiedEmpty = target.appendingPathComponent(empty.lastPathComponent)
-        let copiedAlbum = target.appendingPathComponent(album.lastPathComponent)
-        let copiedCollection = target.appendingPathComponent(collection.lastPathComponent)
-        let copiedNested = copiedCollection.appendingPathComponent(nested.lastPathComponent)
-        XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
-        XCTAssertEqual(report.copied.map(\.path), [copiedEmpty.path, copiedAlbum.path, copiedCollection.path])
-        for (original, copy) in zip(sourceFolders, [copiedEmpty, copiedAlbum, copiedCollection, copiedNested]) {
-            let marker = Data(original.lastPathComponent.utf8)
-            XCTAssertEqual(try folderMetadata(original), marker)
-            XCTAssertEqual(try folderMetadata(copy), marker)
-            for folder in [original, copy] {
-                let info = try FileManager.default.attributesOfItem(atPath: folder.path)
-                let modificationDate = try XCTUnwrap(info[.modificationDate] as? Date)
-                XCTAssertEqual(modificationDate.timeIntervalSince1970, date.timeIntervalSince1970, accuracy: 2)
+        func verifyContents(_ root: URL) throws {
+            for path in paths {
+                let item = root.appendingPathComponent(path)
+                let label = item.path
+                XCTAssertEqual(try copyMetadata(item), Data(path.utf8), label)
+                let info = try FileManager.default.attributesOfItem(atPath: item.path)
+                let modified = try XCTUnwrap(info[.modificationDate] as? Date)
+                XCTAssertEqual(modified.timeIntervalSince1970, date.timeIntervalSince1970, accuracy: 2, label)
+                if let expected = expectedDigests[path] {
+                    XCTAssertEqual(SHA256.hash(data: try Data(contentsOf: item)), expected, label)
+                }
             }
+            let empty = root.appendingPathComponent("빈 폴더")
+            XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: empty.path).isEmpty)
         }
-        let photos = [(raw, copiedAlbum), (jpg, copiedAlbum), (nestedPhoto, copiedNested)]
-        for ((original, parent), expected) in zip(photos, expectedDigests) {
-            let copy = parent.appendingPathComponent(original.lastPathComponent)
-            XCTAssertEqual(SHA256.hash(data: try Data(contentsOf: original)), expected)
-            XCTAssertEqual(SHA256.hash(data: try Data(contentsOf: copy)), expected)
+
+        func copySelections(from input: URL, to output: URL) throws {
+            let engine = FileCopyEngine()
+            for selection in selections {
+                let items = selection.map { input.appendingPathComponent($0) }
+                let report = engine.run(items, to: output)
+                XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
+                XCTAssertEqual(report.copied.map(\.path), selection.map { output.appendingPathComponent($0).path })
+            }
+            try verifyContents(input)
+            try verifyContents(output)
+            XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: output.path).contains {
+                $0.hasPrefix(".photoselect-copy-")
+            })
         }
-        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: copiedEmpty.path).isEmpty)
-        XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: target.path).contains {
-            $0.hasPrefix(".photoselect-copy-")
-        })
+
+        let peerPath = ProcessInfo.processInfo.environment["PHOTOSELECT_COPY_TEST_SECOND_EXFAT_VOLUME"] ?? ""
+        let targetIsExFAT = try usesExFAT(target)
+        if !peerPath.isEmpty {
+            XCTAssertTrue(targetIsExFAT, "The primary target must be ExFAT when a second ExFAT mount is supplied.")
+        }
+        try copySelections(from: source, to: target)
+        guard targetIsExFAT else { return }
+        XCTAssertEqual(try fileSystemName(source), "apfs")
+        let returned = source.deletingLastPathComponent().appendingPathComponent("returned")
+        try FileManager.default.createDirectory(at: returned, withIntermediateDirectories: false)
+        try copySelections(from: target, to: returned)
+
+        if !peerPath.isEmpty {
+            let peer = URL(fileURLWithPath: peerPath, isDirectory: true)
+            guard try usesExFAT(peer) else {
+                XCTFail("The secondary target must be ExFAT.")
+                return
+            }
+            var originalVolume = stat(), peerVolume = stat()
+            guard stat(target.path, &originalVolume) == 0, stat(peer.path, &peerVolume) == 0 else {
+                throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+            }
+            guard originalVolume.st_dev != peerVolume.st_dev else {
+                XCTFail("ExFAT-to-ExFAT requires separate mounted volumes.")
+                return
+            }
+            let output = peer.appendingPathComponent("J-S-copy-test-" + UUID().uuidString)
+            try FileManager.default.createDirectory(at: output, withIntermediateDirectories: false)
+            addTeardownBlock { try FileManager.default.removeItem(at: output) }
+            try copySelections(from: target, to: output)
+        }
     }
     func testFolderAppleDoubleReservedDuringChildCopy() throws {
         let (source, target) = try folders()
         let album = source.appendingPathComponent("무제 폴더")
         try FileManager.default.createDirectory(at: album, withIntermediateDirectories: false)
         let marker = Data("album metadata".utf8)
-        try setFolderMetadata(marker, on: album)
+        try setCopyMetadata(marker, on: album)
         let raw = try file(album, "image.ARW")
         let isExFAT = try usesExFAT(target)
 
@@ -238,13 +279,82 @@ final class FileCopyTests: XCTestCase {
         }
         XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
         XCTAssertEqual(report.copied.map(\.path), [copiedAlbum.path])
-        XCTAssertEqual(try folderMetadata(album), marker)
-        XCTAssertEqual(try folderMetadata(copiedAlbum), marker)
+        XCTAssertEqual(try copyMetadata(album), marker)
+        XCTAssertEqual(try copyMetadata(copiedAlbum), marker)
         XCTAssertEqual(SHA256.hash(data: try Data(contentsOf: raw)),
                        SHA256.hash(data: try Data(contentsOf: copiedPhoto)))
         XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: target.path).contains {
             $0.hasPrefix(".photoselect-copy-")
         })
+    }
+    func testFolderMetadataPreservesSystemAppleDoubleCreatedDuringMkdir() throws {
+        let (source, target) = try folders()
+        let album = source.appendingPathComponent("무제 폴더")
+        try FileManager.default.createDirectory(at: album, withIntermediateDirectories: false)
+        let marker = Data("original folder metadata".utf8)
+        try setCopyMetadata(marker, on: album)
+        let raw = try file(album, "image.ARW")
+        let exfat = try usesExFAT(target)
+        let quarantine = Data("0081;5f5e1000;PhotoSelectProbe;".utf8)
+        var observed = 0
+        let engine = FileCopyEngine(makeDirectory: { path, mode in
+            let result = Darwin.mkdir(path, mode)
+            if result == 0 && exfat {
+                let status = quarantine.withUnsafeBytes {
+                    setxattr(path, "com.apple.quarantine", $0.baseAddress, $0.count, 0, XATTR_CREATE)
+                }
+                XCTAssertEqual(status, 0)
+                let directory = URL(fileURLWithPath: path)
+                let sidecar = directory.deletingLastPathComponent().appendingPathComponent("._" + directory.lastPathComponent)
+                var info = stat()
+                XCTAssertEqual(lstat(sidecar.path, &info), 0)
+                if status == 0 && info.st_size > 0 { observed += 1 }
+            }
+            return result
+        })
+        let report = engine.run([album], to: target)
+        let copied = target.appendingPathComponent(album.lastPathComponent)
+        XCTAssertEqual(report.copied.map(\.path), [copied.path])
+        XCTAssertTrue(report.failures.isEmpty, report.failures.map(\.message).joined(separator: "\n"))
+        XCTAssertEqual(try copyMetadata(copied), marker)
+        XCTAssertEqual(try copyMetadata(album), marker)
+        XCTAssertEqual(SHA256.hash(data: try Data(contentsOf: raw)),
+                       SHA256.hash(data: try Data(contentsOf: copied.appendingPathComponent(raw.lastPathComponent))))
+        if exfat {
+            XCTAssertEqual(observed, 2, "Both the staging and final mkdir must exercise the native AppleDouble writer.")
+            var bytes = [UInt8](repeating: 0, count: 128)
+            let size = getxattr(copied.path, "com.apple.quarantine", &bytes, bytes.count, 0, 0)
+            XCTAssertGreaterThan(size, 0)
+            if size > 0 { XCTAssertEqual(Data(bytes.prefix(size)), quarantine) }
+        }
+        XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: target.path).contains { $0.hasPrefix(".photoselect-copy-") })
+    }
+    func testFolderMetadataRejectsUnexpectedAppleDoubleCreatedDuringMkdir() throws {
+        let (source, target) = try folders()
+        let album = source.appendingPathComponent("무제 폴더")
+        try FileManager.default.createDirectory(at: album, withIntermediateDirectories: false)
+        try setCopyMetadata(Data("source attribute".utf8), on: album)
+        let exfat = try usesExFAT(target)
+        let foreign = Data("unrecognized companion contents".utf8)
+        var sidecar: URL?
+        let engine = FileCopyEngine(makeDirectory: { path, mode in
+            let result = Darwin.mkdir(path, mode)
+            if result == 0 && exfat {
+                let directory = URL(fileURLWithPath: path)
+                let name = directory.deletingLastPathComponent().appendingPathComponent("._" + directory.lastPathComponent)
+                XCTAssertNoThrow(try foreign.write(to: name, options: .withoutOverwriting))
+                sidecar = name
+            }
+            return result
+        })
+        if !exfat { sidecar = try file(target, "._" + album.lastPathComponent, data: foreign) }
+        let report = engine.run([album], to: target)
+        XCTAssertTrue(report.copied.isEmpty)
+        XCTAssertTrue(report.createdTargets.isEmpty)
+        XCTAssertEqual(report.failures.count, 1)
+        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(sidecar)), foreign)
+        XCTAssertEqual(try copyMetadata(album), Data("source attribute".utf8))
+        if exfat { XCTAssertNotNil(report.failures.first?.retainedTemporaryURL) }
     }
     func testFolderCopySkipsFinderHousekeepingButExplicitFileCopyPreservesIt() throws {
         let (source, target) = try folders()

@@ -15,25 +15,26 @@ for item in images:
         if entities:
             print(entities[0].get("dev-entry", ""))
         break
-' "$image"
+' "$1"
 }
 detach_owned_image() {
-    [[ -n "$image" ]] || return 0
+    local selected_image="${1:-$image}"
+    [[ -n "$selected_image" ]] || return 0
     local device
-    device="$(owned_image_device)" || return 1
+    device="$(owned_image_device "$selected_image")" || return 1
     if [[ -n "$device" ]]; then
         # Spotlight or the test runner can briefly retain a just-remounted
         # image. Retry, then force only this script's disposable image device.
         # Never apply this fallback to a physical or user-selected volume.
         if hdiutil detach "$device"; then return 0; fi
         sleep 2
-        device="$(owned_image_device)" || return 1
+        device="$(owned_image_device "$selected_image")" || return 1
         [[ -n "$device" ]] || return 0
         if hdiutil detach "$device"; then return 0; fi
-        device="$(owned_image_device)" || return 1
+        device="$(owned_image_device "$selected_image")" || return 1
         [[ -n "$device" ]] || return 0
-        [[ "$image" == "$base/"*.sparseimage && -f "$image" && "$device" =~ ^/dev/disk[0-9]+$ ]] || return 1
-        echo "Detaching busy disposable test image only: $image ($device)"
+        [[ "$selected_image" == "$base/"*.sparseimage && -f "$selected_image" && "$device" =~ ^/dev/disk[0-9]+$ ]] || return 1
+        echo "Detaching busy disposable test image only: $selected_image ($device)"
         hdiutil detach -force "$device"
     fi
 }
@@ -41,8 +42,7 @@ cleanup() {
     local owned
     for owned in "$base"/*.sparseimage; do
         [[ -f "$owned" ]] || continue
-        image="$owned"
-        detach_owned_image || return
+        detach_owned_image "$owned" || return
     done
     rm -rf "$base"
 }
@@ -71,16 +71,30 @@ cases = list(ET.parse(sys.argv[1]).getroot().iter('testcase'))
 assert len(cases) == 12, len(cases)
 assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
 PYTEST
-    PHOTOSELECT_COPY_TEST_VOLUME="$mount_path" \
+    peer_mount=""
+    if [[ "$fs" == ExFAT ]]; then
+        peer_image="$base/ExFAT-peer.sparseimage"
+        peer_mount="$base/mount-ExFAT-peer"
+        mkdir "$peer_mount"
+        hdiutil create -size 512m -type SPARSE -layout GPTSPUD -fs ExFAT -volname "J-S-ExFAT-peer" "$peer_image"
+        hdiutil attach -nobrowse -mountpoint "$peer_mount" "$peer_image"
+    fi
+    PHOTOSELECT_COPY_TEST_VOLUME="$mount_path" PHOTOSELECT_COPY_TEST_SECOND_EXFAT_VOLUME="$peer_mount" \
         xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FileCopyTests \
         --xunit-output ".build/filecopy-$label-results.xml"
     python3 - ".build/filecopy-$label-results.xml" <<'PYCOPY'
 import sys, xml.etree.ElementTree as ET
 cases = list(ET.parse(sys.argv[1]).getroot().iter('testcase'))
-assert len(cases) == 31, len(cases)
+assert len(cases) == 33, len(cases)
 assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
-print('Verified 31 file copy checks against the mounted target volume, including reverse copy')
+names = {case.get('name', '').removesuffix('()') for case in cases}
+assert 'testPhotosAndFolderTreesPreserveMetadataAndContentAcrossVolumes' in names
+print('Verified 33 file copy checks against the mounted target volume, including reverse copy')
 PYCOPY
+    if [[ "$fs" == ExFAT ]]; then
+        echo 'Verified photo and folder copies from APFS to ExFAT, ExFAT to APFS, and between distinct ExFAT images.'
+        detach_owned_image "$peer_image"
+    fi
     recovery="$PWD/.build/filesystem-recovery-$label.json"
     if [[ -f "$recovery" ]]; then
         detach_owned_image

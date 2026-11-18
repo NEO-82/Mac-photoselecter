@@ -64,10 +64,15 @@ final class FileCopyEngine {
         }
     }
 
+    private struct PackedAttributes {
+        let digests: [String: Data]
+        let hasACL: Bool
+    }
+
     private struct PackedSidecar {
         let url: URL
         let digest: Data
-        let attributes: [String: Data]
+        let attributes: PackedAttributes
     }
 
     private struct PreparedSidecar {
@@ -96,14 +101,17 @@ final class FileCopyEngine {
     private let publish: (URL, URL) throws -> Void
     private let readBuffer: (Int32, UnsafeMutableRawPointer, Int) -> Int
     private let writeBuffer: (Int32, UnsafeRawPointer, Int) -> Int
+    private let makeDirectory: (String, mode_t) -> Int32
 
     init(publish: @escaping (URL, URL) throws -> Void = { source, target in
         guard renamex_np(source.path, target.path, UInt32(RENAME_EXCL)) == 0 else {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
         }
     }, read: @escaping (Int32, UnsafeMutableRawPointer, Int) -> Int = { Darwin.read($0, $1, $2) },
-       write: @escaping (Int32, UnsafeRawPointer, Int) -> Int = { Darwin.write($0, $1, $2) }) {
+       write: @escaping (Int32, UnsafeRawPointer, Int) -> Int = { Darwin.write($0, $1, $2) },
+       makeDirectory: @escaping (String, mode_t) -> Int32 = { Darwin.mkdir($0, $1) }) {
         self.publish = publish; self.readBuffer = read; self.writeBuffer = write
+        self.makeDirectory = makeDirectory
     }
 
     static func nameKey(_ name: String) -> String {
@@ -527,27 +535,42 @@ final class FileCopyEngine {
     private func createCopyDirectory(_ source: URL, at destination: URL, stagingMetadata: Bool,
                                      stagedSidecar: PackedSidecar?, cancellation: FileCopyCancellation,
                                      onCreated: () -> Void, onTemporaryCreated: (URL, Int32?) -> Void) throws -> PreparedSidecar? {
-        func create(needsSidecar: Bool) throws {
+        func create(attributes: PackedAttributes?, input: Int32?) throws -> PreparedSidecar? {
             try cancellation.check()
-            if needsSidecar { try requireUnusedSidecar(for: destination, operation: "mkdir 전 AppleDouble 확인") }
-            guard mkdir(destination.path, 0o700) == 0 else { throw operationError("mkdir", at: destination) }
+            if attributes != nil { try requireUnusedSidecar(for: destination, operation: "mkdir 전 AppleDouble 확인") }
+            guard makeDirectory(destination.path, 0o700) == 0 else { throw operationError("mkdir", at: destination) }
             onCreated()
             onTemporaryCreated(destination, nil)
-            if needsSidecar { try requireUnusedSidecar(for: destination, operation: "mkdir 직후 AppleDouble 확인") }
+            guard let attributes, let input else { return nil }
+
+            let reservation: SidecarReservation
+            do {
+                reservation = try reserveSidecar(for: destination)
+            } catch let error as CopyError {
+                guard let underlying = error.underlying else { throw error }
+                let problem = underlying as NSError
+                guard problem.domain == NSPOSIXErrorDomain, problem.code == Int(EEXIST) else { throw error }
+                // mkdir can be followed by filesystem metadata such as quarantine.
+                // Keep nonexclusive companions read-only and use XATTR_CREATE on
+                // the new directory only after verifying its attached metadata.
+                return try preserveDirectorySidecar(input, attributes: attributes, at: destination,
+                                                   cancellation: cancellation, collision: error)
+            }
+            if let stagedSidecar {
+                return try preparePublishedSidecar(stagedSidecar, for: destination, reservation: reservation,
+                                                   cancellation: cancellation)
+            }
+            return try packSidecar(input, attributes: attributes, for: destination, reservation: reservation,
+                                   cancellation: cancellation, onTemporaryCreated: onTemporaryCreated)
         }
 
-        if stagingMetadata {
+        if stagingMetadata || stagedSidecar != nil {
             return try withOpenDirectory(source) { input in
-                let attributes = try packedAttributes(input, source: source, cancellation: cancellation)
-                // Plan from the source first. Reserve and fill the single
-                // directory companion immediately after mkdir, before children.
-                try create(needsSidecar: attributes != nil)
-                return try packSidecar(input, attributes: attributes, for: destination, cancellation: cancellation,
-                                       onTemporaryCreated: onTemporaryCreated)
+                let attributes = try stagedSidecar?.attributes ?? packedAttributes(input, source: source, cancellation: cancellation)
+                return try create(attributes: attributes, input: input)
             }
         }
-        try create(needsSidecar: stagedSidecar != nil)
-        return try preparePublishedSidecar(stagedSidecar, for: destination, cancellation: cancellation)
+        return try create(attributes: nil, input: nil)
     }
 
     private func finishMetadata(_ input: Int32, to output: Int32, source: URL, destination: URL,
@@ -584,19 +607,28 @@ final class FileCopyEngine {
         }
     }
 
-    private func attributeDigest(_ descriptor: Int32, name: String) throws -> (Int, Data) {
+    private func attributeContents(_ descriptor: Int32, name: String) throws -> Data {
         let size = fgetxattr(descriptor, name, nil, 0, 0, 0)
         guard size >= 0 else { throw posixError() }
         guard size <= metadataLimit else { throw CopyError("확장 속성/리소스 포크가 안전 메모리 제한(64 MiB)을 넘습니다: " + name) }
         var bytes = Data(count: size)
         let actual = bytes.withUnsafeMutableBytes { fgetxattr(descriptor, name, $0.baseAddress, $0.count, 0, 0) }
         guard actual == size else { throw CopyError("확장 속성이 읽는 동안 변경되었습니다: " + name) }
+        return bytes
+    }
+
+    private func quarantineRecord(_ bytes: Data, name: String) -> Data {
         // Apple's packer can wrap quarantine as "q/<record>\0".
         // Strip only that envelope before comparing the exact record bytes.
         if name == "com.apple.quarantine", bytes.starts(with: "q/".utf8), bytes.last == 0 {
-            bytes = Data(bytes.dropFirst(2).dropLast())
+            return Data(bytes.dropFirst(2).dropLast())
         }
-        return (size, Data(SHA256.hash(data: bytes)))
+        return bytes
+    }
+
+    private func attributeDigest(_ descriptor: Int32, name: String) throws -> (Int, Data) {
+        let bytes = try attributeContents(descriptor, name: name)
+        return (bytes.count, Data(SHA256.hash(data: quarantineRecord(bytes, name: name))))
     }
 
     private func sidecarURL(for payload: URL) -> URL {
@@ -630,11 +662,68 @@ final class FileCopyEngine {
         return item
     }
 
-    private func preparePublishedSidecar(_ staged: PackedSidecar?, for payload: URL,
+    private func preserveDirectorySidecar(_ input: Int32, attributes: PackedAttributes, at payload: URL,
+                                          cancellation: FileCopyCancellation, collision: CopyError) throws -> PreparedSidecar {
+        let path = sidecarURL(for: payload)
+        let descriptor = open(path.path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK)
+        guard descriptor >= 0 else { throw collision }
+        // This descriptor pins the observed file for verification. Only
+        // reserveSidecar grants permission to write raw AppleDouble bytes.
+        let observed = SidecarReservation(url: path, descriptor: descriptor)
+        return try withOpenDirectory(payload) { output in
+            let folder = try requireOwned(payload, descriptor: output)
+            let companion = try requireOwned(path, descriptor: descriptor)
+            var folderInfo = stat(), sidecarInfo = stat()
+            let magic: [UInt8] = [0, 5, 0x16, 7, 0, 2, 0, 0]
+            var header = [UInt8](repeating: 0, count: magic.count)
+            guard fstat(output, &folderInfo) == 0, fstat(descriptor, &sidecarInfo) == 0,
+                  (sidecarInfo.st_mode & S_IFMT) == S_IFREG, sidecarInfo.st_nlink == 1,
+                  folder.device == companion.device, folderInfo.st_uid == sidecarInfo.st_uid,
+                  sidecarInfo.st_size <= Int64(metadataLimit + 256 * 1024),
+                  pread(descriptor, &header, header.count, 0) == magic.count, header == magic else {
+                throw collision
+            }
+            // Never infer ownership from timing. Recognize only metadata
+            // exposed by the new folder's descriptor, and preserve its values.
+            let originalNames = try attributeNames(output)
+            let automatic: Set<String> = ["com.apple.quarantine", "com.apple.provenance"]
+            guard !originalNames.isEmpty, !attributes.hasACL else { throw collision }
+            var preserved: [String: Data] = [:]
+            for name in originalNames {
+                try cancellation.check()
+                let value = try attributeDigest(output, name: name).1
+                if let expected = attributes.digests[name] {
+                    guard expected == value else { throw collision }
+                } else if !automatic.contains(name) {
+                    throw collision
+                }
+                preserved[name] = value
+            }
+            try verifyAttributes(attributes.digests, on: input, at: payload, cancellation: cancellation)
+            for (name, expected) in attributes.digests where preserved[name] == nil {
+                try cancellation.check()
+                guard companion.stillOwned(), folder.stillOwned() else { throw collision }
+                let value = try quarantineRecord(attributeContents(input, name: name), name: name)
+                guard Data(SHA256.hash(data: value)) == expected else { throw collision }
+                let result = value.withUnsafeBytes {
+                    fsetxattr(output, name, $0.baseAddress, $0.count, 0, XATTR_CREATE)
+                }
+                guard result == 0 else { throw operationError("fsetxattr(XATTR_CREATE, \(name))", at: payload) }
+            }
+            try verifyAttributes(preserved, on: output, at: payload, cancellation: cancellation)
+            try verifyAttributes(attributes.digests, on: output, at: payload, cancellation: cancellation)
+            let hash = try digest(descriptor, cancellation: cancellation)
+            guard companion.stillOwned(), folder.stillOwned() else { throw collision }
+            return PreparedSidecar(packed: PackedSidecar(url: path, digest: hash, attributes: attributes),
+                                   reservation: observed)
+        }
+    }
+
+    private func preparePublishedSidecar(_ staged: PackedSidecar?, for payload: URL, reservation: SidecarReservation? = nil,
                                          cancellation: FileCopyCancellation) throws -> PreparedSidecar? {
         guard let staged else { return nil }
         try cancellation.check()
-        let reservation = try reserveSidecar(for: payload)
+        let reservation = try reservation ?? reserveSidecar(for: payload)
         let path = staged.url
         let input = open(path.path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK)
         guard input >= 0 else { throw operationError("open(임시 AppleDouble)", at: path) }
@@ -676,7 +765,7 @@ final class FileCopyEngine {
     private func verifySidecar(_ reservation: SidecarReservation, expected: PackedSidecar,
                                payload: URL, descriptor: Int32, cancellation: FileCopyCancellation) throws {
         _ = try requireOwned(reservation.url, descriptor: reservation.descriptor)
-        try verifyAttributes(expected.attributes, on: descriptor, at: payload, cancellation: cancellation)
+        try verifyAttributes(expected.attributes.digests, on: descriptor, at: payload, cancellation: cancellation)
         guard try digest(reservation.descriptor, cancellation: cancellation) == expected.digest else {
             throw CopyError("복사본 AppleDouble SHA-256 검증 실패: " + reservation.url.path)
         }
@@ -684,7 +773,7 @@ final class FileCopyEngine {
         _ = try requireOwned(payload, descriptor: descriptor)
     }
 
-    private func packedAttributes(_ input: Int32, source: URL, cancellation: FileCopyCancellation) throws -> [String: Data]? {
+    private func packedAttributes(_ input: Int32, source: URL, cancellation: FileCopyCancellation) throws -> PackedAttributes? {
         let names = try attributeNames(input)
         var expected: [String: Data] = [:], total = 0
         for name in names {
@@ -697,15 +786,17 @@ final class FileCopyEngine {
         let flags = copyfile_flags_t(COPYFILE_CHECK | COPYFILE_METADATA | COPYFILE_NOFOLLOW_SRC)
         let check = copyfile(source.path, nil, nil, flags)
         guard check >= 0 else { throw operationError("copyfile(COPYFILE_CHECK)", at: source) }
-        return !names.isEmpty || (UInt32(check) & UInt32(COPYFILE_ACL)) != 0 ? expected : nil
+        let hasACL = (UInt32(check) & UInt32(COPYFILE_ACL)) != 0
+        return !names.isEmpty || hasACL ? PackedAttributes(digests: expected, hasACL: hasACL) : nil
     }
 
-    private func packSidecar(_ input: Int32, attributes: [String: Data]?, for destination: URL,
+    private func packSidecar(_ input: Int32, attributes: PackedAttributes?, for destination: URL,
+                             reservation: SidecarReservation? = nil,
                              cancellation: FileCopyCancellation,
                              onTemporaryCreated: (URL, Int32?) -> Void) throws -> PreparedSidecar? {
         // exFAT rejects native ResourceFork writes, including through copyfile.
         guard let attributes else { return nil }
-        let reservation = try reserveSidecar(for: destination)
+        let reservation = try reservation ?? reserveSidecar(for: destination)
         let sidecar = reservation.url, packed = reservation.descriptor
         onTemporaryCreated(sidecar, packed)
         var packingError: Error?
