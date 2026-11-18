@@ -330,31 +330,47 @@ final class FileCopyTests: XCTestCase {
         XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: target.path).contains { $0.hasPrefix(".photoselect-copy-") })
     }
     func testFolderMetadataRejectsUnexpectedAppleDoubleCreatedDuringMkdir() throws {
-        let (source, target) = try folders()
-        let album = source.appendingPathComponent("무제 폴더")
-        try FileManager.default.createDirectory(at: album, withIntermediateDirectories: false)
-        try setCopyMetadata(Data("source attribute".utf8), on: album)
-        let exfat = try usesExFAT(target)
-        let foreign = Data("unrecognized companion contents".utf8)
-        var sidecar: URL?
-        let engine = FileCopyEngine(makeDirectory: { path, mode in
-            let result = Darwin.mkdir(path, mode)
-            if result == 0 && exfat {
-                let directory = URL(fileURLWithPath: path)
-                let name = directory.deletingLastPathComponent().appendingPathComponent("._" + directory.lastPathComponent)
-                XCTAssertNoThrow(try foreign.write(to: name, options: .withoutOverwriting))
-                sidecar = name
-            }
-            return result
-        })
-        if !exfat { sidecar = try file(target, "._" + album.lastPathComponent, data: foreign) }
-        let report = engine.run([album], to: target)
-        XCTAssertTrue(report.copied.isEmpty)
-        XCTAssertTrue(report.createdTargets.isEmpty)
-        XCTAssertEqual(report.failures.count, 1)
-        XCTAssertEqual(try Data(contentsOf: XCTUnwrap(sidecar)), foreign)
-        XCTAssertEqual(try copyMetadata(album), Data("source attribute".utf8))
-        if exfat { XCTAssertNotNil(report.failures.first?.retainedTemporaryURL) }
+        for validAppleDouble in [false, true] {
+            let (source, target) = try folders()
+            let album = source.appendingPathComponent("무제 폴더")
+            try FileManager.default.createDirectory(at: album, withIntermediateDirectories: false)
+            let original = Data("source attribute".utf8)
+            try setCopyMetadata(original, on: album)
+            let exfat = try usesExFAT(target)
+            let foreign = Data("unrecognized companion contents".utf8)
+            var sidecar: URL?
+            var before = foreign
+            let engine = FileCopyEngine(makeDirectory: { path, mode in
+                let result = Darwin.mkdir(path, mode)
+                if result == 0 && exfat {
+                    let directory = URL(fileURLWithPath: path)
+                    let name = directory.deletingLastPathComponent().appendingPathComponent("._" + directory.lastPathComponent)
+                    do {
+                        if validAppleDouble {
+                            let status = foreign.withUnsafeBytes {
+                                setxattr(path, self.copyAttribute, $0.baseAddress, $0.count, 0, XATTR_CREATE)
+                            }
+                            XCTAssertEqual(status, 0)
+                        } else {
+                            try foreign.write(to: name, options: .withoutOverwriting)
+                        }
+                        before = try Data(contentsOf: name)
+                        sidecar = name
+                    } catch {
+                        XCTFail("Could not create the competing companion: \(error)")
+                    }
+                }
+                return result
+            })
+            if !exfat { sidecar = try file(target, "._" + album.lastPathComponent, data: foreign) }
+            let report = engine.run([album], to: target)
+            XCTAssertTrue(report.copied.isEmpty)
+            XCTAssertTrue(report.createdTargets.isEmpty)
+            XCTAssertEqual(report.failures.count, 1)
+            XCTAssertEqual(try Data(contentsOf: XCTUnwrap(sidecar)), before)
+            XCTAssertEqual(try copyMetadata(album), original)
+            if exfat { XCTAssertNotNil(report.failures.first?.retainedTemporaryURL) }
+        }
     }
     func testFolderCopySkipsFinderHousekeepingButExplicitFileCopyPreservesIt() throws {
         let (source, target) = try folders()
@@ -426,7 +442,7 @@ final class FileCopyTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: sidecar), bytes)
         let album = source.appendingPathComponent("무제 폴더")
         try FileManager.default.createDirectory(at: album, withIntermediateDirectories: false)
-        try setFolderMetadata(Data("original folder metadata".utf8), on: album)
+        try setCopyMetadata(Data("original folder metadata".utf8), on: album)
         let folderSidecar = try file(target, "._" + album.lastPathComponent, data: bytes)
         let report = FileCopyEngine().run([album], to: target)
         XCTAssertTrue(report.copied.isEmpty)

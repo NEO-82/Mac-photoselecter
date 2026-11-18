@@ -709,7 +709,10 @@ final class FileCopyEngine {
                     fsetxattr(output, name, $0.baseAddress, $0.count, 0, XATTR_CREATE)
                 }
                 guard result == 0 else { throw operationError("fsetxattr(XATTR_CREATE, \(name))", at: payload) }
+                guard companion.stillOwned(), folder.stillOwned() else { throw collision }
             }
+            let verifiedNames = Set(preserved.keys).union(attributes.digests.keys)
+            guard Set(try attributeNames(output)) == verifiedNames else { throw collision }
             try verifyAttributes(preserved, on: output, at: payload, cancellation: cancellation)
             try verifyAttributes(attributes.digests, on: output, at: payload, cancellation: cancellation)
             let hash = try digest(descriptor, cancellation: cancellation)
