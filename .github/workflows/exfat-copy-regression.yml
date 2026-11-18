@@ -7,7 +7,13 @@ permissions:
 jobs:
   copy:
     runs-on: xcode-27
-    timeout-minutes: 20
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        filesystem: [ExFAT, APFS]
+    env:
+      TEST_FILESYSTEM: ${{ matrix.filesystem }}
     steps:
       - uses: actions/checkout@v4
       - name: Fetch pinned Sony ARW fixtures
@@ -15,14 +21,45 @@ jobs:
           export PHOTOSELECT_ARW_SAMPLE_DIRECTORY="$RUNNER_TEMP/photoselect-raw-samples"
           printf 'PHOTOSELECT_ARW_SAMPLE_DIRECTORY=%s\n' "$PHOTOSELECT_ARW_SAMPLE_DIRECTORY" >> "$GITHUB_ENV"
           bash scripts/fetch-raw-test-samples.sh
-      - name: Test mounted macOS filesystems
+      - name: Copy files on mounted macOS filesystem
         run: |
-          set -o pipefail
-          bash scripts/probe-rename-filesystems.sh 2>&1 | tee "$RUNNER_TEMP/filecopy-regression.log"
+          set -euo pipefail
+          base="$(mktemp -d "$RUNNER_TEMP/photo-copy.XXXXXX")"
+          mount="$base/mount"
+          mkdir "$mount"
+          hdiutil create -size 2g -type SPARSE -layout GPTSPUD -fs "$TEST_FILESYSTEM" -volname "PhotoCopy" "$base/copy.sparseimage"
+          hdiutil attach -nobrowse -mountpoint "$mount" "$base/copy.sparseimage"
+          trap 'hdiutil detach "$mount"' EXIT
+          diskutil info "$mount" | sed -n '/File System Personality/p;/Type (Bundle)/p'
+          export PHOTOSELECT_COPY_TEST_VOLUME="$mount"
+          set +e
+          xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FileCopyTests \
+            --xunit-output "$RUNNER_TEMP/copy-results.xml" 2>&1 | tee "$RUNNER_TEMP/copy-test.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          if [[ "$result" != 0 ]]; then
+            python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          lines = Path(os.environ['RUNNER_TEMP'], 'copy-test.log').read_text(errors='replace').splitlines()
+          selected = [line for line in lines if re.search(r'error:|failed|실패|변경|충돌|assert|futimens', line, re.I)]
+          for line in (selected[-20:] or lines[-12:]):
+              print('::error::' + line.replace('%', '%25'))
+          PY
+            exit "$result"
+          fi
+          python3 - <<'PY'
+          import os, xml.etree.ElementTree as ET
+          from pathlib import Path
+          cases = list(ET.parse(Path(os.environ['RUNNER_TEMP'], 'copy-results.xml')).getroot().iter('testcase'))
+          assert len(cases) == 29, len(cases)
+          assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
+          print(f"::notice::{os.environ['TEST_FILESYSTEM']} copy tests: {len(cases)} passed")
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: exfat-copy-regression-evidence
+          name: exfat-copy-regression-${{ matrix.filesystem }}
           path: |
-            ${{ runner.temp }}/filecopy-regression.log
-            .build/*results.xml
+            ${{ runner.temp }}/copy-results.xml
+            ${{ runner.temp }}/copy-test.log
