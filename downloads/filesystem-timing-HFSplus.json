@@ -1,6 +1,6 @@
 [
   {
-    "elapsedMilliseconds" : 12.48916666668265,
+    "elapsedMilliseconds" : 7.5789583332834809,
     "fixture" : "small synthetic files, not full-size RAW",
     "format" : "hfs",
     "physicalDevice" : false,
@@ -9,7 +9,7 @@
     "status" : "renamed"
   },
   {
-    "elapsedMilliseconds" : 25.156583333341587,
+    "elapsedMilliseconds" : 14.293333333284863,
     "fixture" : "small synthetic files, not full-size RAW",
     "format" : "hfs",
     "physicalDevice" : false,
@@ -18,7 +18,7 @@
     "status" : "renamed"
   },
   {
-    "elapsedMilliseconds" : 98.617249999961132,
+    "elapsedMilliseconds" : 67.610458333433598,
     "fixture" : "small synthetic files, not full-size RAW",
     "format" : "hfs",
     "physicalDevice" : false,
@@ -27,7 +27,7 @@
     "status" : "renamed"
   },
   {
-    "elapsedMilliseconds" : 869.44687499999418,
+    "elapsedMilliseconds" : 931.60491666674261,
     "fixture" : "small synthetic files, not full-size RAW",
     "format" : "hfs",
     "physicalDevice" : false,
