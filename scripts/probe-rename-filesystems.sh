@@ -76,7 +76,7 @@ PYTEST
         peer_image="$base/ExFAT-peer.sparseimage"
         peer_mount="$base/mount-ExFAT-peer"
         mkdir "$peer_mount"
-        hdiutil create -size 512m -type SPARSE -layout GPTSPUD -fs ExFAT -volname "J-S-ExFAT-peer" "$peer_image"
+        hdiutil create -size 2g -type SPARSE -layout GPTSPUD -fs ExFAT -volname "CopyPeer" "$peer_image"
         hdiutil attach -nobrowse -mountpoint "$peer_mount" "$peer_image"
     fi
     PHOTOSELECT_COPY_TEST_VOLUME="$mount_path" PHOTOSELECT_COPY_TEST_SECOND_EXFAT_VOLUME="$peer_mount" \
