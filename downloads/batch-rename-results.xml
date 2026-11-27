@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<testsuites>
+<testsuite name="TestResults" errors="0" tests="23" failures="0" time="18.175549333">
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testAppleDoubleMetadataIsNotTreatedAsARWPhoto" time="0.207632791">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testChangedVolumeRefusesBeforeAnyRename" time="0.146447083">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testCommittedRecoveryReplaysTagsIdempotentlyAcrossNameSwap" time="0.236986125">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testCommitUpdatesOnlyTargetsAndTagsWithoutChangingPhotoBytes" time="0.150986291">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testConflictPermissionErrorAndChangedFolderNeverOverwrite" time="0.133691167">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testContentJournalRejectsMiddleByteChangesAndAmbiguousAliases" time="0.166831042">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testCycleUsesTemporaryNamesAndTagMappingIsSimultaneous" time="0.107126042">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testExclusiveMoveAndTraversalValidationProtectForeignFiles" time="0.100308833">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testForeignFileCreatedDuringFailureIsNeverOverwrittenOnRollback" time="0.124987542">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testHardLinkAliasesAndCorruptTagStoreRefuseBeforeFileChanges" time="0.144862416">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testInterruptedDriveOperationKeepsJournalAndCanRecoverLater" time="0.132432708">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testMiddleCommitFailureRollsBackOriginalNamesAndTags" time="0.118122292">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testPrefixSuffixFormattingAndCompatibilityValidation" time="0.183519375">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedOnlyConflictWithUnselectedCaseAndUnicodeNames" time="0.148532875">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedOnlyOneAndMixedFilesLeaveUnselectedPhotosUnchanged" time="0.163574875">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedPreviewRejectsReplacedAndModifiedFilesBeforeAnyMove" time="0.117010959">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedRenameDetectsExternalChangeBetweenStagingMoves" time="0.153990834">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testSelectedRenameRollbackRestoresTargetsTagsAndNeverTouchesUnselected" time="0.119218916">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testTagWriteFailureRestoresFilesAndRetainsJournalUntilTagsAreWritable" time="0.208078792">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testThreeThousandActualRenamesWithOneThousandTagsPreserveEveryFile" time="9.053514459">
+</testcase>
+<testcase classname="PhotoSelectTests.BatchRenameTests" name="testThreeThousandPreviewUsesSortedOrderIndependentExtensionsAndContinuousNumbers" time="2.233446">
+</testcase>
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testBatchRenamePreviewWhileTaggedFilterIncludesEveryPhotoAndKeepsTags" time="1.874518416">
+</testcase>
+<testcase classname="PhotoSelectTests.BrowserUITests" name="testSelectedRenameScopeTagFilterMixedFilesAndIdentityPreservation" time="2.1497295">
+</testcase>
+</testsuite>
+</testsuites>

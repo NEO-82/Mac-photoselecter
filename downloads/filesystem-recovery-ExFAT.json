@@ -1,7 +1,8 @@
 {
-  "folder" : "\/Users\/runner\/work\/_temp\/js-filesystem-probe.HIuiTP\/mount-ExFAT\/J-S-filesystem-test-A10AF4B0-E59C-417E-BF11-485A97473CDC",
-  "journal" : "\/var\/folders\/5n\/5t77mfb93jd7q8v9s6f0dn0m0000gn\/T\/J-S-filesystem-test-65381879-3833-44BF-A092-54E2DF6AD030\/journals\/61019D85-8333-4BD0-BCDC-19E69F8D9CA5.json",
-  "metadata" : "\/var\/folders\/5n\/5t77mfb93jd7q8v9s6f0dn0m0000gn\/T\/J-S-filesystem-test-65381879-3833-44BF-A092-54E2DF6AD030",
+  "folder" : "\/Users\/runner\/work\/_temp\/js-filesystem-probe.7iLzvO\/mount-ExFAT\/J-S-filesystem-test-A0C6E870-A1E4-402F-AA86-7A5D4CC39B90",
+  "journal" : "\/var\/folders\/5n\/5t77mfb93jd7q8v9s6f0dn0m0000gn\/T\/J-S-filesystem-test-62EC6E70-7E43-4F07-8133-171306BC0727\/journals\/F8B87B96-13FA-4EAD-A56E-3BC39C4E89E4.json",
+  "metadata" : "\/var\/folders\/5n\/5t77mfb93jd7q8v9s6f0dn0m0000gn\/T\/J-S-filesystem-test-62EC6E70-7E43-4F07-8133-171306BC0727",
+  "originalNamesBytesAndTagsPreserved" : true,
   "physicalDevice" : false,
-  "recoveredAfterReconnect" : false
+  "recoveredAfterReconnect" : true
 }

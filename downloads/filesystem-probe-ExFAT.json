@@ -1,59 +1,53 @@
 [
   {
     "api" : "renamex-RENAME_EXCL",
-    "bytesPreserved" : true,
     "capabilities" : {
       "capabilitiesAvailable" : true,
-      "exclusiveRename" : true,
-      "formatFlags" : 26963679,
-      "hardLinks" : true,
-      "interfaceFlags" : 28274631,
-      "persistentFileIDs" : true,
-      "validFormatFlags" : 134217727,
-      "validInterfaceFlags" : 33554431
+      "exclusiveRename" : false,
+      "formatFlags" : 4206114,
+      "hardLinks" : false,
+      "interfaceFlags" : 1051584,
+      "persistentFileIDs" : false,
+      "validFormatFlags" : 16777215,
+      "validInterfaceFlags" : 2097151
     },
     "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
-    "identityStable" : true,
-    "move" : "success",
+    "move" : "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported",
     "volume" : "mount-ExFAT"
   },
   {
     "api" : "renameatx-RENAME_EXCL",
-    "bytesPreserved" : true,
     "capabilities" : {
       "capabilitiesAvailable" : true,
-      "exclusiveRename" : true,
-      "formatFlags" : 26963679,
-      "hardLinks" : true,
-      "interfaceFlags" : 28274631,
-      "persistentFileIDs" : true,
-      "validFormatFlags" : 134217727,
-      "validInterfaceFlags" : 33554431
+      "exclusiveRename" : false,
+      "formatFlags" : 4206114,
+      "hardLinks" : false,
+      "interfaceFlags" : 1051584,
+      "persistentFileIDs" : false,
+      "validFormatFlags" : 16777215,
+      "validInterfaceFlags" : 2097151
     },
     "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
-    "identityStable" : true,
-    "move" : "success",
+    "move" : "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported",
     "volume" : "mount-ExFAT"
   },
   {
     "api" : "link-unlink-diagnostic-only",
-    "bytesPreserved" : true,
     "capabilities" : {
       "capabilitiesAvailable" : true,
-      "exclusiveRename" : true,
-      "formatFlags" : 26963679,
-      "hardLinks" : true,
-      "interfaceFlags" : 28274631,
-      "persistentFileIDs" : true,
-      "validFormatFlags" : 134217727,
-      "validInterfaceFlags" : 33554431
+      "exclusiveRename" : false,
+      "formatFlags" : 4206114,
+      "hardLinks" : false,
+      "interfaceFlags" : 1051584,
+      "persistentFileIDs" : false,
+      "validFormatFlags" : 16777215,
+      "validInterfaceFlags" : 2097151
     },
     "collision" : "NSPOSIXErrorDomain:17",
     "collisionPreserved" : true,
-    "identityStable" : true,
-    "move" : "success",
+    "move" : "NSPOSIXErrorDomain:45:The operation couldn’t be completed. Operation not supported",
     "volume" : "mount-ExFAT"
   }
 ]

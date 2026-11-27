@@ -1,7 +1,7 @@
 {
-  "cached_jpeg_forward_ms" : 4.8042500000065047,
+  "cached_jpeg_forward_ms" : 5.2833749998626445,
   "cached_jpeg_forward_synchronous" : true,
-  "cached_raw_back_ms" : 3.3686666665744269,
+  "cached_raw_back_ms" : 1.0013749999870925,
   "cached_raw_back_synchronous" : true,
   "camera" : "Sony A7M4",
   "configuration" : "Release",
