@@ -5,10 +5,10 @@ cd "$(dirname "$0")/.."
 base="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/js-filesystem-probe.XXXXXX")"
 mount_path=""
 image=""
-macos_version="$(sw_vers -productVersion)"
+macos_major="$(sw_vers -productVersion | cut -d. -f1)"
 attach_image() {
     local path="$1" mount="$2"
-    if (( \${macos_version%%.*} >= 27 )); then
+    if (( macos_major >= 27 )); then
         diskutil image attach --mountOptions nobrowse --mountPoint "$mount" "$path"
     else
         hdiutil attach -nobrowse -mountpoint "$mount" "$path"
