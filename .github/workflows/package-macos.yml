@@ -12,7 +12,7 @@ on:
         default: '0.7.9'
         type: string
       runner:
-        description: 'macOS runner (auto uses the previously verified xcode-27 Apple Silicon image)'
+        description: 'macOS runner (auto uses the macOS 15 Apple Silicon image)'
         required: false
         default: auto
         type: choice
@@ -32,10 +32,9 @@ env:
 
 jobs:
   package:
-    # Match the previously verified macOS 27 Apple Silicon path.
-    # Hosted macOS 15 Intel/ARM acquisition failed before builds 103/104 ran.
-    # Both macOS 15 targets remain available through the manual runner input.
-    runs-on: ${{ inputs.runner != '' && inputs.runner != 'auto' && inputs.runner || 'xcode-27' }}
+    # macOS 27 runners have disconnected mounted test images during validation.
+    # Keep xcode-27 available for an explicit compatibility run.
+    runs-on: ${{ inputs.runner != '' && inputs.runner != 'auto' && inputs.runner || 'macos-15' }}
     timeout-minutes: 45
     permissions:
       contents: write
