@@ -12,7 +12,7 @@ on:
         default: '0.7.9'
         type: string
       runner:
-        description: 'macOS runner (auto uses the macOS 15 Apple Silicon image)'
+        description: 'macOS runner (auto uses the xcode-27 Apple Silicon image)'
         required: false
         default: auto
         type: choice
@@ -32,9 +32,8 @@ env:
 
 jobs:
   package:
-    # macOS 27 runners have disconnected mounted test images during validation.
-    # Keep xcode-27 available for an explicit compatibility run.
-    runs-on: ${{ inputs.runner != '' && inputs.runner != 'auto' && inputs.runner || 'macos-15' }}
+    # The macOS 15 worker stalled in Finder UI tests. Keep it available for explicit runs.
+    runs-on: ${{ inputs.runner != '' && inputs.runner != 'auto' && inputs.runner || 'xcode-27' }}
     timeout-minutes: 45
     permissions:
       contents: write
@@ -63,6 +62,15 @@ jobs:
           assert len(cases) == 3, len(cases)
           assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
           PYTRANSFER
+            xcrun swift test --jobs 2 --parallel --num-workers 1 \
+              --filter 'BatchRenameTests|BrowserUITests.testSelectedRenameScopeTagFilterMixedFilesAndIdentityPreservation|BrowserUITests.testBatchRenamePreviewWhileTaggedFilterIncludesEveryPhotoAndKeepsTags' \
+              --xunit-output .build/batch-rename-results.xml
+            python3 - <<'PYRENAME'
+          import xml.etree.ElementTree as ET
+          cases = list(ET.parse('.build/batch-rename-results.xml').getroot().iter('testcase'))
+          assert any(c.get('name', '').removesuffix('()') == 'testPrefixSuffixFormattingAndCompatibilityValidation' for c in cases)
+          assert not any(c.find(t) is not None for c in cases for t in ('failure', 'error', 'skipped'))
+          PYRENAME
             bash scripts/probe-rename-filesystems.sh
             bash scripts/package-macos.sh
           } 2>&1 | tee "$RUNNER_TEMP/PhotoSelect-build.log"

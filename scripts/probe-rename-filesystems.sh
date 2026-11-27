@@ -47,8 +47,16 @@ detach_owned_image() {
         hdiutil detach -force "$device"
     fi
 }
+ensure_image_mounted() {
+    local path="$1" target="$2"
+    if [[ "$(stat -f %d "$target")" == "$(stat -f %d "$base")" ]]; then
+        echo "Test volume at $target was disconnected, reattaching the disposable image"
+        detach_owned_image "$path"
+        attach_image "$path" "$target"
+    fi
+    [[ "$(stat -f %d "$target")" != "$(stat -f %d "$base")" ]]
+}
 cleanup() {
-    exec 9<&-
     local owned
     for owned in "$base"/*.sparseimage; do
         [[ -f "$owned" ]] || continue
@@ -67,13 +75,13 @@ for fs in ExFAT APFS HFS+; do
     hdiutil create -size 2g -type SPARSE -layout GPTSPUD -fs "$fs" -volname "J-S-$label" "$image"
     attach_image "$image" "$mount_path"
     diskutil info "$mount_path" | sed -n '/File System Personality/p;/Type (Bundle)/p;/Read-Only Volume/p'
+    ensure_image_mounted "$image" "$mount_path"
     if [[ "$fs" == ExFAT ]]; then
-        # Keep the image busy while the probes and isolated XCTest workers run.
-        # Close this handle before any intentional detach or remount.
-        exec 9<"$mount_path"
         xcrun swift scripts/probe-copy-metadata.swift "$mount_path"
     fi
+    ensure_image_mounted "$image" "$mount_path"
     xcrun swift scripts/probe-rename-filesystems.swift "$mount_path" ".build/filesystem-probe-$label.json"
+    ensure_image_mounted "$image" "$mount_path"
     PHOTOSELECT_RENAME_TEST_VOLUME="$mount_path" PHOTOSELECT_RENAME_TEST_IMAGE="$image" \
         PHOTOSELECT_RENAME_TEST_REPORT="$PWD/.build/filesystem-integration-$label.json" \
         xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FilesystemRenameTests \
@@ -92,6 +100,8 @@ PYTEST
         hdiutil create -size 2g -type SPARSE -layout GPTSPUD -fs ExFAT -volname "CopyPeer" "$peer_image"
         attach_image "$peer_image" "$peer_mount"
     fi
+    ensure_image_mounted "$image" "$mount_path"
+    if [[ -n "$peer_mount" ]]; then ensure_image_mounted "$peer_image" "$peer_mount"; fi
     PHOTOSELECT_COPY_TEST_VOLUME="$mount_path" PHOTOSELECT_COPY_TEST_SECOND_EXFAT_VOLUME="$peer_mount" \
         xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FileCopyTests \
         --xunit-output ".build/filecopy-$label-results.xml"
@@ -108,7 +118,6 @@ PYCOPY
         echo 'Verified photo and folder copies from APFS to ExFAT, ExFAT to APFS, and between distinct ExFAT images.'
         detach_owned_image "$peer_image"
     fi
-    exec 9<&-
     recovery="$PWD/.build/filesystem-recovery-$label.json"
     if [[ -f "$recovery" ]]; then
         detach_owned_image
