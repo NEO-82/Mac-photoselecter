@@ -5,6 +5,15 @@ cd "$(dirname "$0")/.."
 base="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/js-filesystem-probe.XXXXXX")"
 mount_path=""
 image=""
+macos_version="$(sw_vers -productVersion)"
+attach_image() {
+    local path="$1" mount="$2"
+    if (( \${macos_version%%.*} >= 27 )); then
+        diskutil image attach --mountOptions nobrowse --mountPoint "$mount" "$path"
+    else
+        hdiutil attach -nobrowse -mountpoint "$mount" "$path"
+    fi
+}
 owned_image_device() {
     hdiutil info -plist | python3 -c '
 import os, plistlib, sys
@@ -39,6 +48,7 @@ detach_owned_image() {
     fi
 }
 cleanup() {
+    exec 9<&-
     local owned
     for owned in "$base"/*.sparseimage; do
         [[ -f "$owned" ]] || continue
@@ -55,9 +65,12 @@ for fs in ExFAT APFS HFS+; do
     mkdir "$mount_path"
     echo "Creating disposable filesystem image: $fs"
     hdiutil create -size 2g -type SPARSE -layout GPTSPUD -fs "$fs" -volname "J-S-$label" "$image"
-    hdiutil attach -nobrowse -mountpoint "$mount_path" "$image"
+    attach_image "$image" "$mount_path"
     diskutil info "$mount_path" | sed -n '/File System Personality/p;/Type (Bundle)/p;/Read-Only Volume/p'
     if [[ "$fs" == ExFAT ]]; then
+        # Keep the image busy while the probes and isolated XCTest workers run.
+        # Close this handle before any intentional detach or remount.
+        exec 9<"$mount_path"
         xcrun swift scripts/probe-copy-metadata.swift "$mount_path"
     fi
     xcrun swift scripts/probe-rename-filesystems.swift "$mount_path" ".build/filesystem-probe-$label.json"
@@ -77,7 +90,7 @@ PYTEST
         peer_mount="$base/mount-ExFAT-peer"
         mkdir "$peer_mount"
         hdiutil create -size 2g -type SPARSE -layout GPTSPUD -fs ExFAT -volname "CopyPeer" "$peer_image"
-        hdiutil attach -nobrowse -mountpoint "$peer_mount" "$peer_image"
+        attach_image "$peer_image" "$peer_mount"
     fi
     PHOTOSELECT_COPY_TEST_VOLUME="$mount_path" PHOTOSELECT_COPY_TEST_SECOND_EXFAT_VOLUME="$peer_mount" \
         xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FileCopyTests \
@@ -95,10 +108,11 @@ PYCOPY
         echo 'Verified photo and folder copies from APFS to ExFAT, ExFAT to APFS, and between distinct ExFAT images.'
         detach_owned_image "$peer_image"
     fi
+    exec 9<&-
     recovery="$PWD/.build/filesystem-recovery-$label.json"
     if [[ -f "$recovery" ]]; then
         detach_owned_image
-        hdiutil attach -nobrowse -mountpoint "$mount_path" "$image"
+        attach_image "$image" "$mount_path"
         PHOTOSELECT_RENAME_TEST_VOLUME="$mount_path" PHOTOSELECT_RENAME_RECOVERY_RECEIPT="$recovery" \
             xcrun swift test --jobs 2 --parallel --num-workers 1 --filter FilesystemRenameTests.testVolumeContentIdentityRecovery \
             --xunit-output ".build/filesystem-recovery-$label-results.xml"
@@ -123,7 +137,7 @@ PYRENAMED
         # The receipt identifies the originals from the application's safe-stop
         # test, which deliberately keeps its fixture folder until this step.
         detach_owned_image
-        hdiutil attach -nobrowse -mountpoint "$mount_path" "$image"
+        attach_image "$image" "$mount_path"
         python3 - "$receipt" "$mount_path" <<'PYREMOUNT'
 import json, os, pathlib, sys
 receipt = pathlib.Path(sys.argv[1])
