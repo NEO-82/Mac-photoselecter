@@ -5,7 +5,7 @@ arm64
 Xcode 27.1
 Build version 27A9275
 Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on
-/dev/disk2s5   190Gi   120Gi    45Gi    73%    1.4M  476M    0%   /System/Volumes/Data
+/dev/disk2s5   190Gi   120Gi    45Gi    73%    1.4M  473M    0%   /System/Volumes/Data
 7516192768
 CI display modes: 800x600, 960x540, 1024x576, 1024x768, 1280x720, 1280x960, 1344x756, 1344x1008, 1600x900, 1600x1200, 1920x1080, 640x480
 CI session display 1280x960: 0
@@ -15,34 +15,34 @@ Building for debugging...
 [Pre-planning 1 / 95]
 [Planning deferred tasks]
 [34 / 62]
-[36 / 64] PhotoSelect-product
-[38 / 137]
+[36 / 64] PhotoSelect
+[39 / 137]
 [43 / 137]
 [46 / 137]
 [49 / 137]
-[53 / 137]
-[58 / 137]
-[59 / 137]
+[54 / 137]
+[57 / 137]
 [60 / 137]
 [63 / 137]
 [65 / 137]
 [67 / 137]
 [69 / 137]
 [72 / 137]
+[75 / 137]
 [76 / 137]
 [78 / 137]
 [81 / 137]
 [82 / 137]
-[87 / 137]
-[91 / 137]
+[86 / 137]
+[90 / 137]
+[93 / 137]
 [94 / 137]
 [95 / 137]
 [97 / 137]
 [100 / 137]
 [101 / 137]
 [104 / 137] PhotoSelect-product
-[107 / 137] PhotoSelect-product
-[113 / 137] PhotoSelect
+[108 / 137] PhotoSelect
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:921:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
  [0;36m910 |[0;0m                 return (nil, try BrowserEntry.read(folder, showHidden: true), Set(try FileManager.default.contentsOfDirectory(atPath: folder.path)))
  [0;36m911 |[0;0m             }
@@ -62,7 +62,6 @@ Building for debugging...
 
 [#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
 [114 / 137] PhotoSelectTests-product
-[115 / 137] PhotoSelectTests-product
 [118 / 137] PhotoSelect-product
 [118 / 137]
 /Users/runner/work/Mac-photoselecter/Mac-photoselecter/Sources/PhotoSelect/Browser.swift:921:154: [1;33mwarning: [1;39m'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture\ImplicitStrongCapture]8;;\]
@@ -83,10 +82,8 @@ Building for debugging...
  [0;36m923 |[0;0m                             self.preparingRename = false
 
 [#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
-[122 / 137] PhotoSelect
-[127 / 138]
+[123 / 137] PhotoSelect
 [127 / 138] PhotoSelectTests-product
-[130 / 149]
 [131 / 149]
 [132 / 149]
 [133 / 149]
@@ -113,16 +110,15 @@ Building for debugging...
 [139 / 149] PhotoSelectTests-product
 [143 / 149] PhotoSelectTests-product
 [145 / 149] PhotoSelectTests-product
-Build complete! (34.48 sec)
+Build complete! (38.57 sec)
 [1/3] Testing PhotoSelectTests.BrowserUITests/testTagBadgeReturnsAfterClosingAndRecreatingBrowser
 [2/3] Testing PhotoSelectTests.FileTransferUITests/testResponderCopyIncludesSelectedFolderPhotoAndDocument
 [3/3] Testing PhotoSelectTests.FileTransferUITests/testResponderPasteCopiesAndClearsStaleDestinationTagWhilePreservingOriginal
 Creating disposable filesystem image: ExFAT
-created: /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/ExFAT.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
+created: /Users/runner/work/_temp/js-filesystem-probe.24unbD/ExFAT.sparseimagehdiutil: WARNING: 'hdiutil create -size -volname ...' is deprecated. Please use 'diskutil image create from/blank -size --volumeName ...' instead.
 
-hdiutil: WARNING: 'hdiutil attach -nobrowse -mountpoint ...' is deprecated. Please use 'diskutil image attach --mountOptions nobrowse --mountPoint ...' instead.
-/dev/disk9          	GUID_partition_scheme          	
-/dev/disk9s1        	Microsoft Basic Data           	/Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT
+/dev/disk9  	GUID_partition_scheme
+/dev/disk9s1	Microsoft Basic Data 	/Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT
    File System Personality:   ExFAT
    Type (Bundle):             exfat
 COPY_METADATA_SOURCE_XATTR dev.photoselect.copy-test result=0 errno=0
@@ -134,14 +130,14 @@ COPY_METADATA_SETXATTR dev.photoselect.copy-test result=0 errno=0
 COPY_METADATA_SETXATTR com.apple.ResourceFork result=0 errno=0
 COPY_METADATA_DIRECT dev.photoselect.copy-test=14/errno0 com.apple.ResourceFork=14/errno0
 COPY_METADATA_PACK result=0 errno=0 dev.photoselect.copy-test=-1/errno93 com.apple.ResourceFork=-1/errno93
-COPY_FILE_IDS before=2077057 after=2077057 path=2077057 directoryBefore=2077044 directoryAfter=2077044
+COPY_FILE_IDS before=2069020 after=2069020 path=2069020 directoryBefore=2069007 directoryAfter=2069007
 COPY_UNLINK_OPEN result=0 errno=0
-["collision": "NSPOSIXErrorDomain:17", "move": "success", "collisionPreserved": true, "identityStable": true, "api": "renamex-RENAME_EXCL", "bytesPreserved": true, "capabilities": ["hardLinks": true, "validInterfaceFlags": 33554431, "exclusiveRename": true, "capabilitiesAvailable": true, "formatFlags": 26963679, "interfaceFlags": 28274631, "persistentFileIDs": true, "validFormatFlags": 134217727], "volume": "mount-ExFAT"]
-["volume": "mount-ExFAT", "capabilities": ["capabilitiesAvailable": true, "exclusiveRename": true, "persistentFileIDs": true, "validInterfaceFlags": 33554431, "validFormatFlags": 134217727, "interfaceFlags": 28274631, "formatFlags": 26963679, "hardLinks": true], "collision": "NSPOSIXErrorDomain:17", "identityStable": true, "collisionPreserved": true, "move": "success", "bytesPreserved": true, "api": "renameatx-RENAME_EXCL"]
-["identityStable": true, "volume": "mount-ExFAT", "capabilities": ["persistentFileIDs": true, "formatFlags": 26963679, "validFormatFlags": 134217727, "capabilitiesAvailable": true, "validInterfaceFlags": 33554431, "exclusiveRename": true, "interfaceFlags": 28274631, "hardLinks": true], "collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "bytesPreserved": true, "api": "link-unlink-diagnostic-only", "move": "success"]
+["collision": "NSPOSIXErrorDomain:17", "collisionPreserved": true, "move": "success", "identityStable": true, "bytesPreserved": true, "volume": "mount-ExFAT", "api": "renamex-RENAME_EXCL", "capabilities": ["capabilitiesAvailable": true, "hardLinks": true, "exclusiveRename": true, "interfaceFlags": 28274631, "validFormatFlags": 134217727, "persistentFileIDs": true, "validInterfaceFlags": 33554431, "formatFlags": 26963679]]
+["collisionPreserved": true, "capabilities": ["persistentFileIDs": true, "formatFlags": 26963679, "validFormatFlags": 134217727, "hardLinks": true, "capabilitiesAvailable": true, "validInterfaceFlags": 33554431, "interfaceFlags": 28274631, "exclusiveRename": true], "move": "success", "identityStable": true, "bytesPreserved": true, "collision": "NSPOSIXErrorDomain:17", "api": "renameatx-RENAME_EXCL", "volume": "mount-ExFAT"]
+["identityStable": true, "capabilities": ["hardLinks": true, "formatFlags": 26963679, "capabilitiesAvailable": true, "interfaceFlags": 28274631, "validFormatFlags": 134217727, "validInterfaceFlags": 33554431, "exclusiveRename": true, "persistentFileIDs": true], "collisionPreserved": true, "move": "success", "bytesPreserved": true, "collision": "NSPOSIXErrorDomain:17", "api": "link-unlink-diagnostic-only", "volume": "mount-ExFAT"]
 Building for debugging...
-[1 / 2] PhotoSelectTests-product
-Build complete! (0.40 sec)
+[1 / 4]
+Build complete! (0.32 sec)
 [1/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles
 [2/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags
 [3/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess
@@ -154,161 +150,161 @@ Build complete! (0.40 sec)
 [10/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeRollbackInterruptedRecoveryAndRemount
 [11/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite
 [12/12] Testing PhotoSelectTests.FilesystemRenameTests/testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange
-Test Suite 'Selected tests' started at 2026-11-27 07:58:21.214.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:21.215.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:21.215.
+Test Suite 'Selected tests' started at 2026-11-27 08:01:44.285.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:44.286.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:44.286.
 Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles]' failed (0.252 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:21.467.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.252 (0.252) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:21.467.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.252 (0.252) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:21.467.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.252 (0.253) seconds
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolume14RealSonyFilesRenameWithoutChangingBytesOrUnselectedFiles]' failed (0.240 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:44.526.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.240 (0.240) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:44.526.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.240 (0.240) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:44.526.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.240 (0.241) seconds
 
-Test Suite 'Selected tests' started at 2026-11-27 07:58:21.542.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:21.543.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:21.543.
+Test Suite 'Selected tests' started at 2026-11-27 08:01:44.605.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:44.606.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:44.606.
 Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags]' failed (0.057 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:21.600.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.057 (0.057) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:21.600.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.057 (0.057) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:21.600.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.057 (0.058) seconds
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCapabilityNoOverwriteAnd368ARWNamesPreserveBytesAndTags]' failed (0.053 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:44.659.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.053) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:44.659.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.053) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:44.659.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.055) seconds
 
-Test Suite 'Selected tests' started at 2026-11-27 07:58:21.672.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:21.673.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:21.673.
+Test Suite 'Selected tests' started at 2026-11-27 08:01:44.738.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:44.739.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:44.739.
 Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess]' failed (0.046 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:21.720.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeChangedSourceAndUnavailableVolumeNeverReportSuccess]' failed (0.053 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:44.793.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.054) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:44.793.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.054) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:44.793.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.055) seconds
+
+Test Suite 'Selected tests' started at 2026-11-27 08:01:44.870.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:44.871.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:44.871.
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCompatibilityConsentCancelAndActualRename]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeCompatibilityConsentCancelAndActualRename] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCompatibilityConsentCancelAndActualRename]' failed (0.090 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:44.961.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.090 (0.090) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:44.961.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.090 (0.090) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:44.961.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.090 (0.091) seconds
+
+Test Suite 'Selected tests' started at 2026-11-27 08:01:45.043.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:45.044.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:45.044.
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner]' failed (0.053 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:45.097.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.053) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:45.097.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.053) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:45.097.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.054) seconds
+
+Test Suite 'Selected tests' started at 2026-11-27 08:01:45.175.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:45.176.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:45.176.
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeContentIdentityRecovery]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeContentIdentityRecovery] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeContentIdentityRecovery]' failed (0.053 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:45.229.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.053) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:45.229.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.053) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:45.229.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.053 (0.054) seconds
+
+Test Suite 'Selected tests' started at 2026-11-27 08:01:45.304.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:45.304.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:45.305.
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCoordinatedProcessRace]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeCoordinatedProcessRace] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCoordinatedProcessRace]' failed (0.047 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:45.352.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.047) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:45.352.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.047) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:45.352.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.048) seconds
+
+Test Suite 'Selected tests' started at 2026-11-27 08:01:45.421.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:45.421.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:45.421.
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeExtendedAttributesAndOrphanSidecarCollision]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeExtendedAttributesAndOrphanSidecarCollision] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeExtendedAttributesAndOrphanSidecarCollision]' failed (0.047 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:45.469.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.047) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:45.469.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.048) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:45.469.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.048) seconds
+
+Test Suite 'Selected tests' started at 2026-11-27 08:01:45.537.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:45.538.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:45.538.
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates]' started.
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates]' failed (0.046 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:45.585.
 	 Executed 1 test, with 1 failure (1 unexpected) in 0.046 (0.047) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:21.720.
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:45.585.
 	 Executed 1 test, with 1 failure (1 unexpected) in 0.046 (0.047) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:21.720.
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:45.585.
 	 Executed 1 test, with 1 failure (1 unexpected) in 0.046 (0.048) seconds
 
-Test Suite 'Selected tests' started at 2026-11-27 07:58:21.790.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:21.791.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:21.791.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCompatibilityConsentCancelAndActualRename]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeCompatibilityConsentCancelAndActualRename] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCompatibilityConsentCancelAndActualRename]' failed (0.080 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:21.872.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.080 (0.081) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:21.872.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.080 (0.081) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:21.872.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.080 (0.082) seconds
-
-Test Suite 'Selected tests' started at 2026-11-27 07:58:21.940.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:21.941.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:21.941.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeConcurrentRenamesHaveExactlyOneWinner]' failed (0.046 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:21.987.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.046 (0.046) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:21.987.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.046 (0.046) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:21.987.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.046 (0.047) seconds
-
-Test Suite 'Selected tests' started at 2026-11-27 07:58:22.053.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:22.054.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:22.054.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeContentIdentityRecovery]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeContentIdentityRecovery] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeContentIdentityRecovery]' failed (0.045 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:22.099.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.045 (0.045) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:22.099.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.045 (0.045) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:22.099.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.045 (0.046) seconds
-
-Test Suite 'Selected tests' started at 2026-11-27 07:58:22.167.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:22.167.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:22.167.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCoordinatedProcessRace]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeCoordinatedProcessRace] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeCoordinatedProcessRace]' failed (0.043 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:22.211.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.044) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:22.211.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.044) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:22.211.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.045) seconds
-
-Test Suite 'Selected tests' started at 2026-11-27 07:58:22.276.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:22.277.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:22.277.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeExtendedAttributesAndOrphanSidecarCollision]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeExtendedAttributesAndOrphanSidecarCollision] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeExtendedAttributesAndOrphanSidecarCollision]' failed (0.043 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:22.320.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.043) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:22.320.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.043) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:22.320.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.044) seconds
-
-Test Suite 'Selected tests' started at 2026-11-27 07:58:22.385.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:22.386.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:22.386.
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRenameCountsTimingAndModificationDates]' failed (0.043 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:22.430.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.044) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:22.430.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.044) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:22.430.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.044) seconds
-
-Test Suite 'Selected tests' started at 2026-11-27 07:58:22.494.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:22.495.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:22.495.
+Test Suite 'Selected tests' started at 2026-11-27 08:01:45.654.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:45.654.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:45.654.
 Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount]' failed (0.043 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:22.538.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.044) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:22.538.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.044) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:22.539.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.043 (0.044) seconds
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeRollbackInterruptedRecoveryAndRemount]' failed (0.047 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:45.702.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.047) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:45.702.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.047) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:45.702.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.048) seconds
 
-Test Suite 'Selected tests' started at 2026-11-27 07:58:22.604.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:22.605.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:22.605.
+Test Suite 'Selected tests' started at 2026-11-27 08:01:45.770.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:45.771.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:45.771.
 Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite]' failed (0.045 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:22.650.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.045 (0.045) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:22.650.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.045 (0.045) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:22.650.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.045 (0.046) seconds
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeSelectedMixedFilesCollisionAndLateCollisionDoNotOverwrite]' failed (0.046 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:45.817.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.046 (0.047) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:45.817.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.046 (0.047) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:45.817.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.046 (0.048) seconds
 
-Test Suite 'Selected tests' started at 2026-11-27 07:58:22.719.
-Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 07:58:22.720.
-Test Suite 'FilesystemRenameTests' started at 2026-11-27 07:58:22.720.
+Test Suite 'Selected tests' started at 2026-11-27 08:01:45.885.
+Test Suite 'PhotoSelectTests.xctest' started at 2026-11-27 08:01:45.886.
+Test Suite 'FilesystemRenameTests' started at 2026-11-27 08:01:45.886.
 Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange]' started.
-/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.XGnnuR/mount-ExFAT")"
-Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange]' failed (0.045 seconds).
-Test Suite 'FilesystemRenameTests' failed at 2026-11-27 07:58:22.765.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.045 (0.046) seconds
-Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 07:58:22.765.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.045 (0.046) seconds
-Test Suite 'Selected tests' failed at 2026-11-27 07:58:22.765.
-	 Executed 1 test, with 1 failure (1 unexpected) in 0.045 (0.047) seconds
+/Users/runner/work/Mac-photoselecter/Mac-photoselecter/Tests/PhotoSelectTests/FilesystemRenameTests.swift:157: error: -[PhotoSelectTests.FilesystemRenameTests testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange] : failed: caught error: "RenameProblem(message: "Disposable image is no longer mounted at /Users/runner/work/_temp/js-filesystem-probe.24unbD/mount-ExFAT")"
+Test Case '-[PhotoSelectTests.FilesystemRenameTests testVolumeUnsafeOrUnsupportedFallbackIsRejectedBeforePhotosChange]' failed (0.047 seconds).
+Test Suite 'FilesystemRenameTests' failed at 2026-11-27 08:01:45.933.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.047) seconds
+Test Suite 'PhotoSelectTests.xctest' failed at 2026-11-27 08:01:45.933.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.047) seconds
+Test Suite 'Selected tests' failed at 2026-11-27 08:01:45.934.
+	 Executed 1 test, with 1 failure (1 unexpected) in 0.047 (0.048) seconds
 
 Note: Some test targets reported failures:
   - PhotoSelectTests (XCTest)
