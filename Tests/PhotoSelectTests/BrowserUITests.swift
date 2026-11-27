@@ -248,8 +248,17 @@ final class BrowserUITests: XCTestCase {
         waitUntil("all-folder scope ignores tag filter") { controller.plan?.rows.count == 4 }
         selected.performClick(nil)
         waitUntil("switch back to selected") { controller.plan?.rows.count == 2 }
-        let prefix = try XCTUnwrap(controls.compactMap { $0 as? NSTextField }.first { $0.identifier?.rawValue == "RenameBase" })
-        prefix.stringValue = "Wedding"; controller.controlTextDidChange(Notification(name: NSControl.textDidChangeNotification, object: prefix))
+        let prefix = try XCTUnwrap(controls.compactMap { $0 as? NSTextField }.first { $0.identifier?.rawValue == "RenamePrefix" })
+        let suffix = try XCTUnwrap(controls.compactMap { $0 as? NSTextField }.first { $0.identifier?.rawValue == "RenameSuffix" })
+        let parenthesized = try XCTUnwrap(controls.compactMap { $0 as? NSButton }.first { $0.title == "소괄호 번호" })
+        parenthesized.performClick(nil)
+        waitUntil("parentheses preset updates preview") { controller.plan?.rows.first?.proposed == "(0001).ARW" }
+        XCTAssertEqual(prefix.stringValue, "(")
+        XCTAssertEqual(suffix.stringValue, ")")
+        suffix.stringValue = ""
+        controller.controlTextDidChange(Notification(name: NSControl.textDidChangeNotification, object: suffix))
+        waitUntil("editing suffix updates preview") { controller.plan?.rows.first?.proposed == "(0001.ARW" }
+        prefix.stringValue = "Wedding_"; controller.controlTextDidChange(Notification(name: NSControl.textDidChangeNotification, object: prefix))
         let digits = try XCTUnwrap(controls.compactMap { $0 as? NSPopUpButton }.first { $0.identifier?.rawValue == "RenameDigits" })
         digits.selectItem(withTitle: "3"); NSApp.sendAction(try XCTUnwrap(digits.action), to: digits.target, from: digits)
         let run = try XCTUnwrap(controls.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "RenameExecute" })
@@ -695,10 +704,10 @@ final class BrowserUITests: XCTestCase {
         sheet.appearance = NSAppearance(named: .darkAqua)
         try saveBrowserSnapshot(sheet, name: "browser-mixed-rename.png")
         XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("1.jpg").path))
-        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Photo_0001.jpg").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("KJG0001.jpg").path))
         let run = try XCTUnwrap(contents.compactMap { $0 as? NSButton }.first { $0.identifier?.rawValue == "RenameExecute" })
         run.performClick(nil)
-        waitUntil("all names committed", timeout: 15) { FileManager.default.fileExists(atPath: root.appendingPathComponent("Photo_0003.jpg").path) && preview.filename.stringValue == "Photo_0001.jpg" && !browser.sorting }
+        waitUntil("all names committed", timeout: 15) { FileManager.default.fileExists(atPath: root.appendingPathComponent("KJG0003.jpg").path) && preview.filename.stringValue == "KJG0001.jpg" && !browser.sorting }
         XCTAssertEqual(filter.state, .on); XCTAssertEqual(grid.numberOfItems(inSection: 0), 1)
         XCTAssertFalse(preview.tagMarker.isHidden)
         let close = try XCTUnwrap(contents.compactMap { $0 as? NSButton }.first { $0.title == "닫기" })

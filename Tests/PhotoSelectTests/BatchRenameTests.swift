@@ -2,6 +2,39 @@ import XCTest
 @testable import PhotoSelect
 
 final class BatchRenameTests: XCTestCase {
+    func testPrefixSuffixFormattingAndCompatibilityValidation() throws {
+        let root = try folder()
+        let source = BrowserEntry(url: root.appendingPathComponent("source.ArW"), isDirectory: false)
+        let examples = [
+            ("KJG", "", "KJG0001"), ("", "", "0001"), ("(", ")", "(0001)"),
+            ("[", "]", "[0001]"), ("KJG(", ")", "KJG(0001)"), ("KJG_", "", "KJG_0001"),
+            ("KJG (", ")", "KJG (0001)"), ("본식_", "", "본식_0001"),
+            ("본식 - {", "} &+!@#", "본식 - {0001} &+!@#"), ("", " .", "0001 .")
+        ]
+        func preview(_ settings: RenameSettings, existing: Set<String> = []) throws -> RenamePlan {
+            try RenamePlan.make(folder: root, photos: [source], orderTitle: "", settings: settings, existingNames: existing)
+        }
+        XCTAssertEqual(try preview(RenameSettings()).rows.first?.proposed, "KJG0001.ArW")
+        for (prefix, suffix, stem) in examples {
+            let plan = try preview(RenameSettings(prefix: prefix, suffix: suffix))
+            XCTAssertTrue(plan.valid, stem)
+            XCTAssertEqual(plan.rows.first?.proposed, stem + ".ArW")
+        }
+        for character in #"/\:*?"<>|"# + "\u{0}\r\n\t\u{1F}\u{7F}\u{85}" {
+            XCTAssertThrowsError(try preview(RenameSettings(prefix: String(character))))
+            XCTAssertThrowsError(try preview(RenameSettings(suffix: String(character))))
+        }
+        for name in ["CON.ARW", "com1.ARW", "LPT².ARW", "nul .01.ARW", "0001.", "0001 "] {
+            XCTAssertNotNil(RenamePlan.destinationIssue(name), name)
+        }
+        let reserved = try preview(RenameSettings(prefix: "COM", suffix: ".photo", digits: 1))
+        XCTAssertFalse(reserved.valid)
+        XCTAssertEqual(reserved.rows.first?.issue, "Windows 예약 파일명입니다.")
+        let conflict = try preview(RenameSettings(prefix: "KJG", suffix: "!"), existing: ["kjg0001!.ARW"])
+        XCTAssertFalse(conflict.valid)
+        XCTAssertEqual(conflict.rows.first?.issue, "기존 폴더/파일과 충돌")
+    }
+
     func testContentJournalRejectsMiddleByteChangesAndAmbiguousAliases() throws {
         for ambiguous in [false, true] {
             let root = try folder(), metadata = try folder(), id = UUID()
@@ -58,7 +91,7 @@ final class BatchRenameTests: XCTestCase {
     }
     private func makePlan(_ root: URL, base: String = "Wedding") throws -> RenamePlan {
         try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "파일 이름순 ↑",
-            settings: RenameSettings(base: base, separator: "_", start: 1, digits: 3), existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)))
+            settings: RenameSettings(prefix: base + "_", start: 1, digits: 3), existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)))
     }
     func testThreeThousandPreviewUsesSortedOrderIndependentExtensionsAndContinuousNumbers() throws {
         let root = try folder()
@@ -66,7 +99,7 @@ final class BatchRenameTests: XCTestCase {
         for criterion in PhotoSortCriterion.allCases {
             for ascending in [true, false] {
                 let order = PhotoSortOrder(criterion: criterion, ascending: ascending), sorted = PhotoSortOrder(criterion: criterion, ascending: ascending).photos(photos)
-                let plan = try RenamePlan.make(folder: root, photos: sorted, orderTitle: order.title, settings: RenameSettings(base: "Wedding", separator: "_", start: 1, digits: 4), existingNames: Set(photos.map { $0.url.lastPathComponent }))
+                let plan = try RenamePlan.make(folder: root, photos: sorted, orderTitle: order.title, settings: RenameSettings(prefix: "Wedding_", start: 1, digits: 4), existingNames: Set(photos.map { $0.url.lastPathComponent }))
                 XCTAssertTrue(plan.valid); XCTAssertEqual(plan.rows.count, 3000)
                 XCTAssertEqual(plan.rows.first?.original, sorted.first?.url.lastPathComponent)
                 XCTAssertEqual(plan.rows.first?.proposed, "Wedding_0001." + sorted[0].url.pathExtension)
@@ -105,7 +138,7 @@ final class BatchRenameTests: XCTestCase {
         try Data([1]).write(to: one); try Data([2]).write(to: two)
         let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json")); tag(one, store: store)
         let reversed = PhotoSortOrder(criterion: .name, ascending: false).photos(try entries(root))
-        let plan = try RenamePlan.make(folder: root, photos: reversed, orderTitle: "파일 이름순 ↓", settings: RenameSettings(base: "Photo", separator: "_", start: 1, digits: 3), existingNames: Set(["Photo_001.JPG", "Photo_002.JPG"]))
+        let plan = try RenamePlan.make(folder: root, photos: reversed, orderTitle: "파일 이름순 ↓", settings: RenameSettings(prefix: "Photo_", start: 1, digits: 3), existingNames: Set(["Photo_001.JPG", "Photo_002.JPG"]))
         let result = try execute(BatchRenameEngine(journalDirectory: journals), plan, store)
         XCTAssertTrue(result.completed, result.message)
         XCTAssertEqual(try Data(contentsOf: one), Data([2])); XCTAssertEqual(try Data(contentsOf: two), Data([1]))
@@ -177,9 +210,9 @@ final class BatchRenameTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: from), Data([1])); XCTAssertEqual(try Data(contentsOf: to), Data([2]))
         let bad = RenamePlan(folder: root, orderTitle: "", rows: [RenamePreview(original: "a.JPG", proposed: "../escape.JPG")])
         XCTAssertFalse(bad.valid)
-        XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(base: "../bad", separator: "", start: 1, digits: 3), existingNames: []))
-        XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(base: "X", separator: "", start: Int.max, digits: 3), existingNames: []))
-        XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(base: String(repeating: "X", count: 100_000), separator: "", start: 1, digits: 3), existingNames: []))
+        XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(prefix: "../bad", start: 1, digits: 3), existingNames: []))
+        XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(prefix: "X", start: Int.max, digits: 3), existingNames: []))
+        XCTAssertThrowsError(try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "", settings: RenameSettings(prefix: String(repeating: "X", count: 100_000), start: 1, digits: 3), existingNames: []))
     }
     func testCommittedRecoveryReplaysTagsIdempotentlyAcrossNameSwap() throws {
         let root = try folder(), journals = try folder(), metadata = try folder()
@@ -283,7 +316,7 @@ final class BatchRenameTests: XCTestCase {
         let file = metadata.appendingPathComponent("tags.json")
         try JSONSerialization.data(withJSONObject: ["version": 1, "taggedPaths": oldTags]).write(to: file)
         let plan = try RenamePlan.make(folder: root, photos: entries(root), orderTitle: "파일 이름순 ↑",
-            settings: RenameSettings(base: "Wedding", separator: "_", start: 1, digits: 4), existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)))
+            settings: RenameSettings(prefix: "Wedding_", start: 1, digits: 4), existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)))
         let engine = BatchRenameEngine(journalDirectory: journals)
         let started = ProcessInfo.processInfo.systemUptime
         let result = try execute(engine, plan, TagStore(fileURL: file), timeout: 120)
@@ -327,7 +360,7 @@ final class BatchRenameTests: XCTestCase {
             for (index, name) in names.enumerated() { try Data([UInt8(index), 42]).write(to: root.appendingPathComponent(name)) }
             let store = TagStore(fileURL: metadata.appendingPathComponent("tags.json")); tag(root.appendingPathComponent(names[0]), store: store)
             let targets = try entries(root).filter { names.prefix(count).contains($0.url.lastPathComponent) }
-            let plan = try RenamePlan.make(folder: root, photos: targets, orderTitle: "파일 이름순 ↑", settings: RenameSettings(base: "Wedding", separator: "_", start: 1, digits: 3), existingNames: Set(names), selectedOnly: true)
+            let plan = try RenamePlan.make(folder: root, photos: targets, orderTitle: "파일 이름순 ↑", settings: RenameSettings(prefix: "Wedding_", start: 1, digits: 3), existingNames: Set(names), selectedOnly: true)
             let result = try execute(BatchRenameEngine(journalDirectory: journals), plan, store)
             XCTAssertTrue(result.completed, result.message)
             for index in 0..<count {
@@ -344,7 +377,7 @@ final class BatchRenameTests: XCTestCase {
         try Data([1]).write(to: root.appendingPathComponent("old.ARW"))
         try Data([2]).write(to: root.appendingPathComponent("WÉDDING_001.arw"))
         let photos = try entries(root).filter { $0.url.lastPathComponent == "old.ARW" }
-        let plan = try RenamePlan.make(folder: root, photos: photos, orderTitle: "", settings: RenameSettings(base: "We\u{301}dding", separator: "_", start: 1, digits: 3), existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), selectedOnly: true)
+        let plan = try RenamePlan.make(folder: root, photos: photos, orderTitle: "", settings: RenameSettings(prefix: "We\u{301}dding_", start: 1, digits: 3), existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), selectedOnly: true)
         XCTAssertFalse(plan.valid)
         XCTAssertTrue(plan.rows[0].issue?.contains("충돌") == true)
         XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("old.ARW")), Data([1]))
@@ -375,7 +408,7 @@ final class BatchRenameTests: XCTestCase {
         let plan = try RenamePlan.make(folder: root, photos: selected, orderTitle: "", settings: RenameSettings(), existingNames: ["a.ARW", "b.JPG", "unselected.ARW"], selectedOnly: true)
         var injected = false
         let engine = BatchRenameEngine(journalDirectory: journals, move: { source, destination in
-            if !injected && destination.lastPathComponent == "Photo_0002.JPG" { injected = true; throw CocoaError(.fileWriteNoPermission) }
+            if !injected && destination.lastPathComponent == "KJG0002.JPG" { injected = true; throw CocoaError(.fileWriteNoPermission) }
             try BatchRenameEngine.exclusiveMove(source, destination)
         })
         let result = try execute(engine, plan, store)

@@ -7,7 +7,7 @@ struct RenameProblem: LocalizedError {
     var errorDescription: String? { message }
 }
 struct RenameSettings {
-    var base = "Photo", separator = "_"
+    var prefix = "KJG", suffix = ""
     var start = 1, digits = 4
 }
 struct RenamePreview {
@@ -24,7 +24,7 @@ struct RenamePlan {
     var snapshots: [String: RenameSourceSnapshot] = [:]
     var valid: Bool {
         !rows.isEmpty && rows.count <= 10_000 && Set(rows.map(\.original)).count == rows.count && rows.allSatisfy {
-            $0.issue == nil && Self.leaf($0.original) && Self.leaf($0.proposed) && !$0.proposed.hasPrefix("._") && $0.proposed.utf8.count <= 255 &&
+            $0.issue == nil && Self.leaf($0.original) && Self.destinationIssue($0.proposed) == nil &&
             ($0.original as NSString).pathExtension == ($0.proposed as NSString).pathExtension
         } && Set(rows.map { Self.folded($0.proposed) }).count == rows.count
     }
@@ -35,27 +35,48 @@ struct RenamePlan {
     static func leaf(_ text: String) -> Bool {
         !text.isEmpty && text != "." && text != ".." && !text.contains("/") && !text.contains("\0")
     }
+    private static let forbiddenCharacters = CharacterSet(charactersIn: #"/\:*?"<>|"#)
+        .union(CharacterSet(charactersIn: Unicode.Scalar(0)!...Unicode.Scalar(31)!))
+        .union(CharacterSet(charactersIn: Unicode.Scalar(127)!...Unicode.Scalar(159)!))
+    private static let reservedNames = Set(["CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$"] +
+        ["COM", "LPT"].flatMap { prefix in "123456789¹²³".map { prefix + String($0) } })
+
+    static func destinationIssue(_ name: String) -> String? {
+        if !leaf(name) || name.rangeOfCharacter(from: forbiddenCharacters) != nil {
+            return "파일명에 사용할 수 없는 문자입니다."
+        }
+        if name.hasSuffix(" ") || name.hasSuffix(".") { return "파일명 끝에 공백이나 마침표를 사용할 수 없습니다." }
+        if name.utf8.count > 255 { return "파일명은 UTF-8 255바이트 이내여야 합니다." }
+        if name.hasPrefix("._") { return "macOS 메타데이터 접두사(._)를 사용할 수 없습니다." }
+        let firstComponent = name.prefix { $0 != "." }.trimmingCharacters(in: CharacterSet(charactersIn: " "))
+        if reservedNames.contains(firstComponent.uppercased()) { return "Windows 예약 파일명입니다." }
+        return nil
+    }
     static func folded(_ text: String) -> String { text.precomposedStringWithCanonicalMapping.folding(options: [.caseInsensitive], locale: Locale(identifier: "en_US_POSIX")) }
     static func make(folder: URL, photos: [BrowserEntry], orderTitle: String, settings: RenameSettings, existingNames: Set<String>, selectedOnly: Bool = false) throws -> RenamePlan {
-        guard settings.base.utf8.count + settings.separator.utf8.count <= 255,
-              !settings.base.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              !(settings.base + settings.separator).contains(where: { "/:\0\n\r".contains($0) }),
-              settings.start >= 0, (1...12).contains(settings.digits),
+        guard settings.start >= 0, (1...12).contains(settings.digits),
               settings.start <= Int.max - max(0, photos.count - 1) else {
-            throw RenameProblem(message: "기본 이름·구분 문자 합계는 UTF-8 255바이트 이내여야 하며 / : 또는 줄바꿈을 사용할 수 없습니다. 시작 번호는 0 이상, 자릿수는 1–12로 입력하세요.")
+            throw RenameProblem(message: "시작 번호는 0 이상, 자릿수는 1–12로 입력하세요.")
+        }
+        guard settings.prefix.utf8.count + settings.suffix.utf8.count <= 255 else {
+            throw RenameProblem(message: "번호 앞뒤 문자의 합계는 UTF-8 255바이트 이내여야 합니다.")
+        }
+        if (settings.prefix + settings.suffix).rangeOfCharacter(from: forbiddenCharacters) != nil {
+            throw RenameProblem(message: #"번호 앞뒤 문자에 / \ : * ? " < > | 또는 제어 문자를 사용할 수 없습니다."#)
         }
         var rows = photos.filter(isTargetPhoto).enumerated().map { index, photo -> RenamePreview in
             let number = String(settings.start + index)
             let padded = String(repeating: "0", count: max(0, settings.digits - number.count)) + number
-            let name = settings.base + settings.separator + padded + "." + photo.url.pathExtension
+            let ext = photo.url.pathExtension
+            let name = settings.prefix + padded + settings.suffix + (ext.isEmpty ? "" : "." + ext)
             let sameFolder = TagStore.key(photo.url.deletingLastPathComponent()) == TagStore.key(folder)
             return RenamePreview(original: photo.url.lastPathComponent, proposed: name,
-                issue: !sameFolder ? "현재 폴더 밖의 파일" : (!leaf(name) || name.utf8.count > 255 || name.hasPrefix("._") ? "잘못되었거나 너무 긴 이름 / macOS 메타데이터 접두사" : nil))
+                issue: !sameFolder ? "현재 폴더 밖의 파일" : destinationIssue(name))
         }
         let original = Set(rows.map(\.original))
         let occupied = Set(existingNames.filter { !original.contains($0) }.map(folded))
         let counts = Dictionary(grouping: rows, by: { folded($0.proposed) }).mapValues(\.count)
-        for index in rows.indices {
+        for index in rows.indices where rows[index].issue == nil {
             if counts[folded(rows[index].proposed), default: 0] > 1 { rows[index].issue = "변경 예정 이름 중복" }
             if occupied.contains(folded(rows[index].proposed)) { rows[index].issue = "기존 폴더/파일과 충돌" }
         }

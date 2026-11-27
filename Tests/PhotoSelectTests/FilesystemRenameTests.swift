@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import CryptoKit
 import Darwin
 import XCTest
 @testable import PhotoSelect
@@ -144,7 +145,7 @@ final class FilesystemRenameTests: XCTestCase {
         }
         until("rename completes") { result != nil }
         XCTAssertTrue(try XCTUnwrap(result).completed, result?.message ?? "")
-        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("Photo_0001.ARW")), bytes)
+        XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("KJG0001.ARW")), bytes)
         XCTAssertEqual(engine.allowCoordinatedCompatibility, needsConsent)
     }
     private func folder(onVolume: Bool = true, preserveForRemount: Bool = false) throws -> URL {
@@ -166,9 +167,9 @@ final class FilesystemRenameTests: XCTestCase {
         value.allowCoordinatedCompatibility = true
         return value
     }
-    private func plan(_ root: URL, selected: Set<String>? = nil) throws -> RenamePlan {
+    private func plan(_ root: URL, selected: Set<String>? = nil, settings: RenameSettings = RenameSettings(prefix: "Wedding_", digits: 3)) throws -> RenamePlan {
         let entries = try BrowserEntry.read(root, showHidden: true).filter { selected?.contains($0.url.lastPathComponent) ?? true }
-        return try RenamePlan.make(folder: root, photos: PhotoSortOrder().photos(entries), orderTitle: "파일 이름순 ↑", settings: RenameSettings(base: "Wedding", separator: "_", start: 1, digits: 3), existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), selectedOnly: selected != nil)
+        return try RenamePlan.make(folder: root, photos: PhotoSortOrder().photos(entries), orderTitle: "파일 이름순 ↑", settings: settings, existingNames: Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), selectedOnly: selected != nil)
     }
     private func execute(_ engine: BatchRenameEngine, _ plan: RenamePlan, _ tags: TagStore) throws -> RenameOutcome {
         let done = expectation(description: "volume rename transaction")
@@ -219,9 +220,13 @@ final class FilesystemRenameTests: XCTestCase {
     }
     func testVolumeRenameCountsTimingAndModificationDates() throws {
         var rows: [[String: Any]] = []
-        for count in [1, 14, 100, 1200] {
+        let batches = [(1, "Wedding_", ""), (14, "Wedding_", ""), (100, "", ""),
+                       (1_000, "(", ")"), (1_200, "Wedding_", ""),
+                       (2_000, "본식 [", "]"), (3_000, "본식 - {", "} &+!@#")]
+        for (count, prefix, suffix) in batches {
             let root = try folder(), tags = try store(), engine = try engine()
             var snapshots: [RenameSourceSnapshot] = []
+            var beforeHashes: [SHA256.Digest] = []
             func original(_ index: Int) -> String {
                 String(format: "source_%04d.", index) + (index % 2 == 0 ? "ARW" : "JPG")
             }
@@ -230,26 +235,29 @@ final class FilesystemRenameTests: XCTestCase {
                 try Data("small synthetic image payload \(index)".utf8).write(to: file, options: .withoutOverwriting)
                 try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 1_700_000_000)], ofItemAtPath: file.path)
                 snapshots.append(try RenameSourceSnapshot.read(file))
+                beforeHashes.append(SHA256.hash(data: try Data(contentsOf: file)))
             }
             let excluded = ["notes.txt", "._shadow.ARW"]
             for name in excluded { try Data(name.utf8).write(to: root.appendingPathComponent(name)) }
             tag(root.appendingPathComponent(original(0)), tags)
             let supported = try support(root) != nil
-            let preview = try plan(root)
+            XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path).count, count + excluded.count)
+            let preview = try plan(root, settings: RenameSettings(prefix: prefix, suffix: suffix))
             let start = ProcessInfo.processInfo.systemUptime
             let outcome = try execute(engine, preview, tags)
             let elapsed = (ProcessInfo.processInfo.systemUptime - start) * 1000
             XCTAssertEqual(outcome.completed, supported, outcome.message)
             XCTAssertEqual(outcome.files.filter { $0.state == .renamed }.count, supported ? count : 0)
             for index in 0..<count {
-                let name = supported ? String(format: "Wedding_%03d.", index + 1) + (index % 2 == 0 ? "ARW" : "JPG") : original(index)
+                let name = supported ? (prefix + String(format: "%04d", index + 1) + suffix + ".") + (index % 2 == 0 ? "ARW" : "JPG") : original(index)
                 let file = root.appendingPathComponent(name)
-                XCTAssertEqual(try Data(contentsOf: file), Data("small synthetic image payload \(index)".utf8))
+                XCTAssertEqual(SHA256.hash(data: try Data(contentsOf: file)), beforeHashes[index], name)
                 let after = try RenameSourceSnapshot.read(file)
                 XCTAssertEqual(after.modifiedSeconds, snapshots[index].modifiedSeconds)
                 XCTAssertEqual(after.modifiedNanos, snapshots[index].modifiedNanos)
             }
             for name in excluded { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), Data(name.utf8)) }
+            XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path).count, count + excluded.count)
             XCTAssertTrue(try engine.pending(in: root).isEmpty)
             let format = try RenameFilesystem.Volume.read(root).format
             rows.append(["format": format, "requestedFiles": count, "renamedFiles": supported ? count : 0,
