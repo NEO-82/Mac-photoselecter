@@ -150,6 +150,13 @@ final class FilesystemRenameTests: XCTestCase {
     }
     private func folder(onVolume: Bool = true, preserveForRemount: Bool = false) throws -> URL {
         let base = onVolume ? ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_VOLUME"].map { URL(fileURLWithPath: $0) } ?? FileManager.default.temporaryDirectory : FileManager.default.temporaryDirectory
+        if onVolume, ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"] != nil {
+            let mounted = try RenameFilesystem.Volume.read(base, capabilities: false)
+            let parent = try RenameFilesystem.Volume.read(base.deletingLastPathComponent(), capabilities: false)
+            guard mounted.mountID != parent.mountID else {
+                throw RenameProblem(message: "Disposable image is no longer mounted at " + base.path)
+            }
+        }
         let root = base.appendingPathComponent("J-S-filesystem-test-" + UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
         if !preserveForRemount || ProcessInfo.processInfo.environment["PHOTOSELECT_RENAME_TEST_IMAGE"] == nil {
@@ -224,7 +231,9 @@ final class FilesystemRenameTests: XCTestCase {
                        (1_000, "(", ")"), (1_200, "Wedding_", ""),
                        (2_000, "본식 [", "]"), (3_000, "본식 - {", "} &+!@#")]
         for (count, prefix, suffix) in batches {
-            let root = try folder(), tags = try store(), engine = try engine()
+            // The harness discards its mounted image as a whole. Keep this
+            // fixture on that image to avoid thousands of individual unlinks.
+            let root = try folder(preserveForRemount: true), tags = try store(), engine = try engine()
             var snapshots: [RenameSourceSnapshot] = []
             var beforeHashes: [SHA256.Digest] = []
             func original(_ index: Int) -> String {
@@ -232,7 +241,7 @@ final class FilesystemRenameTests: XCTestCase {
             }
             for index in 0..<count {
                 let file = root.appendingPathComponent(original(index))
-                try Data("small synthetic image payload \(index)".utf8).write(to: file, options: .withoutOverwriting)
+                try Data("small synthetic image payload \(index)".utf8).write(to: file)
                 if index == 0 || index == count - 1 {
                     try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 1_700_000_000)], ofItemAtPath: file.path)
                 }
