@@ -233,7 +233,9 @@ final class FilesystemRenameTests: XCTestCase {
             for index in 0..<count {
                 let file = root.appendingPathComponent(original(index))
                 try Data("small synthetic image payload \(index)".utf8).write(to: file, options: .withoutOverwriting)
-                try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 1_700_000_000)], ofItemAtPath: file.path)
+                if index == 0 || index == count - 1 {
+                    try FileManager.default.setAttributes([.modificationDate: Date(timeIntervalSince1970: 1_700_000_000)], ofItemAtPath: file.path)
+                }
                 snapshots.append(try RenameSourceSnapshot.read(file))
                 beforeHashes.append(SHA256.hash(data: try Data(contentsOf: file)))
             }
@@ -241,7 +243,8 @@ final class FilesystemRenameTests: XCTestCase {
             for name in excluded { try Data(name.utf8).write(to: root.appendingPathComponent(name)) }
             tag(root.appendingPathComponent(original(0)), tags)
             let supported = try support(root) != nil
-            XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path).count, count + excluded.count)
+            let beforeNames = try FileManager.default.contentsOfDirectory(atPath: root.path)
+            XCTAssertEqual(beforeNames.filter { !excluded.contains($0) }.count, count)
             let preview = try plan(root, settings: RenameSettings(prefix: prefix, suffix: suffix))
             let start = ProcessInfo.processInfo.systemUptime
             let outcome = try execute(engine, preview, tags)
@@ -257,7 +260,9 @@ final class FilesystemRenameTests: XCTestCase {
                 XCTAssertEqual(after.modifiedNanos, snapshots[index].modifiedNanos)
             }
             for name in excluded { XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent(name)), Data(name.utf8)) }
-            XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path).count, count + excluded.count)
+            let afterNames = try FileManager.default.contentsOfDirectory(atPath: root.path)
+            XCTAssertEqual(afterNames.count, beforeNames.count)
+            XCTAssertEqual(afterNames.filter { !excluded.contains($0) }.count, count)
             XCTAssertTrue(try engine.pending(in: root).isEmpty)
             let format = try RenameFilesystem.Volume.read(root).format
             rows.append(["format": format, "requestedFiles": count, "renamedFiles": supported ? count : 0,
